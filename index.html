@@ -333,6 +333,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
     <div class="fl req" style="margin-top:12px">Forma de pagamento</div>
     <div class="paggrid" id="paggrid"></div>
+    <div id="fatura-aviso" style="display:none;background:#fef3c7;border:1.5px solid #fcd34d;border-radius:var(--rs);padding:10px 13px;font-size:12px;color:#92400e;margin-bottom:10px;"></div>
     <button class="btnlancar" id="btnlancar" onclick="lancar()"><span id="btntxt">Lançar na planilha</span><span>→</span></button>
   </div>
   <div class="slbl">Selecione o item</div>
@@ -674,18 +675,59 @@ document.addEventListener('input',e=>{if(e.target.id==='vinput')atuPrev();});
 function atuBtn(){document.getElementById('btntxt').textContent=parc&&nParc>1?`Lançar ${nParc} parcelas`:'Lançar na planilha';}
 
 // PAG
+function getMesFatura(cartao){
+  // Retorna {mes, ano} do mês que a compra vai cair baseado no fechamento
+  const c=carteiras.find(x=>x.nome===cartao);
+  if(!c||!c.fechamento||c.tipo!=='credito')return{mes,ano};
+  const hoje=new Date();
+  const diaHoje=hoje.getDate();
+  if(diaHoje>=c.fechamento){
+    // Passou do fechamento → próximo mês
+    let m=mes+1,a=ano;
+    if(m>11){m=0;a++;}
+    return{mes:m,ano:a};
+  }
+  return{mes,ano};
+}
+
 function rPag(){
   const g=document.getElementById('paggrid');g.innerHTML='';
   carteiras.forEach(c=>{
     const isCred=c.tipo==='credito';
     const disp=isCred?(c.limite>0?c.saldo:null):c.saldo;
     const saldoTxt=disp!==null?`${isCred?'Disponível':'Saldo'}: ${fmt(disp)}`:'';
+    let fatTxt='';
+    if(isCred&&c.fechamento>0){
+      const mf=getMesFatura(c.nome);
+      const hoje=new Date().getDate();
+      if(hoje>=c.fechamento){
+        fatTxt=`Fatura: ${MN[mf.mes].substring(0,3)}/${String(mf.ano).slice(-2)}`;
+      }
+    }
     const b=document.createElement('button');
     b.className='pagbtn'+(pagA===c.nome?' on':'')+(isCred?' cred':'');
-    b.innerHTML=c.nome+(saldoTxt?`<span class="stag">${saldoTxt}</span>`:'');
-    b.onclick=()=>{pagA=c.nome;rPag();};
+    b.innerHTML=c.nome
+      +(saldoTxt?`<span class="stag">${saldoTxt}</span>`:'')
+      +(fatTxt?`<span class="stag" style="color:#f59e0b;font-weight:600;">${fatTxt}</span>`:'');
+    b.onclick=()=>{pagA=c.nome;rPag();atuFaturaAviso();};
     g.appendChild(b);
   });
+}
+
+function atuFaturaAviso(){
+  const av=document.getElementById('fatura-aviso');
+  if(!av)return;
+  if(!pagA){av.style.display='none';return;}
+  const c=carteiras.find(x=>x.nome===pagA);
+  if(!c||c.tipo!=='credito'||!c.fechamento){av.style.display='none';return;}
+  const mf=getMesFatura(pagA);
+  const hoje=new Date().getDate();
+  if(hoje>=c.fechamento){
+    av.style.display='block';
+    av.innerHTML=`📅 Compra após fechamento (dia ${c.fechamento}) — cairá na fatura de <strong>${MN[mf.mes].substring(0,3)}/${String(mf.ano).slice(-2)}</strong>`;
+  } else {
+    av.style.display='none';
+  }
 }
 
 // LANÇAR GASTO — pagamento obrigatório
@@ -700,21 +742,27 @@ async function lancar(){
     const disp=c.tipo==='credito'?c.saldo:c.saldo;
     if(disp>0&&v>disp&&!confirm(`⚠️ Saldo insuficiente!\n${pagA}: ${fmt(disp)}\nGasto: ${fmt(v)}\n\nLançar mesmo assim?`))return;
   }
+  // Para cartão de crédito, verifica se passou do fechamento
+  const mf=getMesFatura(pagA);
+  const mesLanc=mf.mes, anoLanc=mf.ano;
+  const passouFechamento=(mesLanc!==mes||anoLanc!==ano);
+
   const btn=document.getElementById('btnlancar');btn.disabled=true;document.getElementById('btntxt').textContent='Enviando...';
   try{
     if(parc&&nParc>1){
-      await apiNC({acao:'lancarParcelas',mes:MN[mes],ano,mesInicio:mes,anoInicio:ano,coluna:itemA,valor:v,parcelas:nParc,descricao:desc,pagamento:pagA,usuario:sNome});
-      // Crédito: debita valor total do limite; Débito: só 1ª parcela
+      await apiNC({acao:'lancarParcelas',mes:MN[mesLanc],ano:anoLanc,mesInicio:mesLanc,anoInicio:anoLanc,coluna:itemA,valor:v,parcelas:nParc,descricao:desc,pagamento:pagA,usuario:sNome});
       if(c){
         const desconto=c.tipo==='credito'?v:Math.round(v/nParc*100)/100;
         c.saldo=Math.round((c.saldo-desconto)*100)/100;
       }
-      toast('✓ '+nParc+' parcelas lançadas!','ok');
+      const fatMsg=passouFechamento?` (fatura ${MN[mesLanc].substring(0,3)})`: '';
+      toast('✓ '+nParc+' parcelas lançadas'+fatMsg+'!','ok');
     }else{
-      await apiNC({acao:'lancar',mes:MN[mes],ano,coluna:itemA,valor:v,descricao:desc,pagamento:pagA,usuario:sNome});
-      gastosG[itemA]=(gastosG[itemA]||0)+v;
+      await apiNC({acao:'lancar',mes:MN[mesLanc],ano:anoLanc,coluna:itemA,valor:v,descricao:desc,pagamento:pagA,usuario:sNome});
+      if(mesLanc===mes&&anoLanc===ano) gastosG[itemA]=(gastosG[itemA]||0)+v;
       if(c)c.saldo=Math.round((c.saldo-v)*100)/100;
-      toast('✓ Lançado!','ok');
+      const fatMsg=passouFechamento?` na fatura de ${MN[mesLanc].substring(0,3)}`:'';
+      toast('✓ Lançado'+fatMsg+'!','ok');
     }
     document.getElementById('vinput').value='';document.getElementById('tinput').value='';pagA=null;rPag();hidePanel();
     parc=false;document.getElementById('psw').classList.remove('on');document.getElementById('ptog').classList.remove('on');document.getElementById('pcfg').style.display='none';
