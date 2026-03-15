@@ -460,44 +460,17 @@ async function api(p){
 async function apiNC(p){if(!sUrl)return;try{await fetch(sUrl+'?'+new URLSearchParams(p),{method:'GET',mode:'no-cors'});}catch(e){}}
 
 // Usa iframe para contornar CORS em operações que precisam de resposta
-function apiForm(params){
-  return new Promise((resolve)=>{
-    const iframeId='_apiform_'+Date.now();
-    const iframe=document.createElement('iframe');
-    iframe.name=iframeId;
-    iframe.style.display='none';
-    document.body.appendChild(iframe);
-
-    const form=document.createElement('form');
-    form.method='GET';
-    form.action=sUrl;
-    form.target=iframeId;
-    Object.entries(params).forEach(([k,v])=>{
-      const inp=document.createElement('input');
-      inp.type='hidden';inp.name=k;inp.value=v;
-      form.appendChild(inp);
-    });
-    document.body.appendChild(form);
-
-    let done=false;
-    iframe.onload=()=>{
-      if(done)return;
-      done=true;
-      try{
-        const txt=iframe.contentDocument.body.innerText||iframe.contentDocument.body.textContent||'';
-        const j=JSON.parse(txt);
-        resolve(j.sucesso===true);
-      }catch(e){
-        // onload disparou mas não conseguimos ler — assumimos sucesso pois o servidor processou
-        resolve(true);
-      }
-      setTimeout(()=>{iframe.remove();form.remove();},500);
-    };
-
-    // Timeout de segurança — se não responder em 8s, assume sucesso
-    setTimeout(()=>{if(!done){done=true;resolve(true);iframe.remove();form.remove();}},8000);
-    form.submit();
-  });
+async function apiForm(params){
+  if(!sUrl)return false;
+  try{
+    const r=await fetch(sUrl+'?'+new URLSearchParams(params),{redirect:'follow'});
+    const txt=await r.text();
+    const j=JSON.parse(txt);
+    return j.sucesso===true;
+  }catch(e){
+    console.error('apiForm erro:',e);
+    return false;
+  }
 }
 
 function init(){
