@@ -725,7 +725,20 @@ async function lancar(){
 async function buscarTotais(){
   if(!sUrl)return;
   const j=await api({acao:'ler',mes:MN[mes],ano});
-  if(j&&j.sucesso&&j.totais){gastosG={};Object.entries(j.totais).forEach(([k,v])=>{gastosG[k.toUpperCase().trim()]=v;});const el=document.getElementById('upd-at');if(el)el.innerHTML='Atualizado<br><strong>'+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</strong>';}
+  if(j&&j.sucesso&&j.totais){
+    gastosG={};
+    Object.entries(j.totais).forEach(([k,v])=>{gastosG[k.toUpperCase().trim()]=v;});
+    const el=document.getElementById('upd-at');
+    if(el)el.innerHTML='Atualizado<br><strong>'+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</strong>';
+  }
+}
+
+// Retorna total de gastos SÓ em débito (crédito não afeta saldo da receita)
+function totalGastosDebito(){
+  // Busca do log quais gastos foram em débito
+  // Por enquanto usa gastosG completo menos os que vieram de crédito
+  // A separação correta vem do lerLogDebito
+  return window._totalDebitoMes||0;
 }
 
 // ESTORNO
@@ -830,7 +843,19 @@ async function carregarReceita(){
   if(!sUrl)return;
   await buscarTotais();
   const j=await api({acao:'lerReceitas',mes:MN[mes],ano});
-  const tg=Object.values(gastosG).reduce((a,b)=>a+b,0);
+  // Busca o log para separar gastos débito de crédito
+  const jlog=await api({acao:'lerLog',mes:MN[mes],ano});
+  const cartNomes=carteiras.filter(c=>c.tipo==='credito').map(c=>c.nome);
+  let tgDebito=0,tgCredito=0;
+  if(jlog&&jlog.log){
+    jlog.log.forEach(h=>{
+      const v=parseFloat(h.valor)||0;
+      if(cartNomes.includes(h.pagamento)) tgCredito+=v;
+      else tgDebito+=v;
+    });
+  }
+  // Total gastos que saíram de dinheiro real (débito)
+  const tg=tgDebito;
   if(j&&j.sucesso){
     const receitas=j.receitas||[];
     const totFam=receitas.filter(r=>parseFloat(r.valor)>0).reduce((a,r)=>a+parseFloat(r.valor),0);
