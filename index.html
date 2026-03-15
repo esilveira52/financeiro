@@ -562,7 +562,7 @@ function init(){
   pessoaRec=pessoas[0]||'';
   if(sUrl){document.getElementById('url-inp').value=sUrl;buscarTotais();carregarLim();
     // Carrega carteiras da planilha ao iniciar
-    carregarCarteirasAPI().then(()=>{rPag();});
+    carregarCarteirasAPI().then(()=>{rPag();rContaRecGrid();rResContaGrid();});
   }
   else renderLim({});
   if(sNome){document.getElementById('nome-inp').value=sNome;document.getElementById('p2-inp').value=pessoas[1]||'';}
@@ -583,8 +583,20 @@ function ir(aba,el){
   if(aba==='mensal'){buscarTotais().then(()=>renderGraf());}
   if(aba==='anual')buscarAnual();
   if(aba==='historico')carregarHist();
-  if(aba==='receita'){rPessoaGrid();rTiposRec();rContaRecGrid();carregarReceita();}
-  if(aba==='reserva'){rResContaGrid();carregarReserva();}
+  if(aba==='receita'){
+    rPessoaGrid();rTiposRec();
+    // Carrega carteiras da planilha primeiro, depois renderiza as opções de conta
+    carregarCarteirasAPI().then(()=>{
+      rContaRecGrid();
+    });
+    carregarReceita();
+  }
+  if(aba==='reserva'){
+    carregarCarteirasAPI().then(()=>{
+      rResContaGrid();
+    });
+    carregarReserva();
+  }
   if(aba==='carteiras')carregarCarteiras();
   if(aba==='recorrentes')carregarRec();
   if(aba==='config'){document.getElementById('url-inp').value=sUrl||'';document.getElementById('nome-inp').value=sNome||'';document.getElementById('p2-inp').value=pessoas[1]||'';}
@@ -827,13 +839,15 @@ async function carregarReceita(){
 }
 async function estRecIdx(idx){
   const r=window._recHistStore[idx];if(!r||parseFloat(r.valor)<=0)return;
-  if(!confirm('Estornar R$ '+Math.abs(parseFloat(r.valor)).toLocaleString('pt-BR',{minimumFractionDigits:2})+' de '+r.tipo+' ('+r.pessoa+')?'))return;
+  const contaInfo=r.conta?` (conta: ${r.conta})`:'';
+  if(!confirm('Estornar '+fmt(parseFloat(r.valor))+' de '+r.tipo+' — '+r.pessoa+contaInfo+'?'))return;
   toast('Estornando...','');
-  // Usa api() com resposta para garantir que chegou na planilha
   const j=await api({acao:'estornarReceita',mes:MN[mes],ano,pessoa:r.pessoa,tipo:r.tipo,valor:Math.abs(parseFloat(r.valor)),conta:r.conta||'',usuario:sNome});
   if(j&&j.sucesso){
-    if(r.conta){const c=carteiras.find(x=>x.nome===r.conta);if(c)c.saldo=Math.round((c.saldo-parseFloat(r.valor))*100)/100;}
-    toast('✓ Receita estornada!','ok');rContaRecGrid();rPag();
+    toast('✓ Receita estornada!','ok');
+    // Recarrega carteiras da planilha para refletir o estorno
+    await carregarCarteirasAPI();
+    rContaRecGrid();rPag();
     await carregarReceita();
   } else {
     toast('Erro no estorno. Tente novamente.','err');
