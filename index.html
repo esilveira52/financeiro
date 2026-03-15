@@ -524,16 +524,16 @@ const MC=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez
 const TIPOS_REC=["Salário","Freelance","Investimentos","Outros"];
 const REC_PAD=[{nome:"YouTube Premium",coluna:"STREAM",valor:0,ativo:true,conta:""},{nome:"Amazon Prime",coluna:"STREAM",valor:0,ativo:true,conta:""},{nome:"Academia",coluna:"ACADEMIA",valor:0,ativo:true,conta:""},{nome:"Internet",coluna:"INTERNET",valor:0,ativo:true,conta:""},{nome:"Celular",coluna:"CELULAR",valor:0,ativo:true,conta:""},{nome:"Plano de Saúde",coluna:"PLANO DE SAÚDE",valor:0,ativo:true,conta:""},{nome:"MEI",coluna:"OUTROS",valor:0,ativo:true,conta:""},{nome:"Aluguel",coluna:"ALUGUEL",valor:0,ativo:true,conta:""}];
 const CART_PAD=[
-  {nome:"Santander",saldo:0,limite:0,tipo:"debito"},
-  {nome:"BRB",saldo:0,limite:0,tipo:"debito"},
-  {nome:"Caixa",saldo:0,limite:0,tipo:"debito"},
-  {nome:"Nubank DEB Edu",saldo:0,limite:0,tipo:"debito"},
-  {nome:"Nubank DEB Lud",saldo:0,limite:0,tipo:"debito"},
-  {nome:"Dinheiro",saldo:0,limite:0,tipo:"debito"},
-  {nome:"Vale Alimentação",saldo:0,limite:0,tipo:"debito"},
-  {nome:"Nubank CRED Edu",saldo:0,limite:0,tipo:"credito"},
-  {nome:"Nubank CRED Lud",saldo:0,limite:0,tipo:"credito"},
-  {nome:"Itaú Crédito",saldo:0,limite:0,tipo:"credito"},
+  {nome:"Santander",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"BRB",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"Caixa",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"Nubank DEB Edu",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"Nubank DEB Lud",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"Dinheiro",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"Vale Alimentação",saldo:0,limite:0,tipo:"debito",fechamento:0},
+  {nome:"Nubank CRED Edu",saldo:0,limite:0,tipo:"credito",fechamento:0},
+  {nome:"Nubank CRED Lud",saldo:0,limite:0,tipo:"credito",fechamento:0},
+  {nome:"Itaú Crédito",saldo:0,limite:0,tipo:"credito",fechamento:0},
 ];
 
 let catA=Object.keys(CAT)[0],itemA=null,pagA=null,parc=false,nParc=2;
@@ -789,7 +789,7 @@ async function carregarHist(){
           ${h.tipo==='PARCELA'?`<span class="htag p">📦 Parcela</span>`:''}
           ${h.tipo==='RECORRENTE'?`<span class="htag rc">🔄 Recorrente</span>`:''}
           ${isEst?`<span class="htag est">↩️ Estorno</span>`:''}
-          <span class="htag">${h.data}</span>
+          <span class="htag">📅 ${fmtData(h.data)}</span>
         </div>
       </div>`;
     }).join('');
@@ -884,7 +884,7 @@ async function carregarReceita(){
           </div>
         </div>
         ${r.descricao?`<div class="hdesc">"${r.descricao}"</div>`:''}
-        <div class="htags">${r.conta?`<span class="htag">🏦 ${r.conta}</span>`:''}<span class="htag">${r.data}</span></div>
+        <div class="htags">${r.conta?`<span class="htag">🏦 ${r.conta}</span>`:''}<span class="htag">📅 ${fmtData(r.data)}</span></div>
       </div>`).join('');
   }
 }
@@ -923,7 +923,7 @@ async function carregarCarteirasAPI(){
 async function carregarCarteiras(){
   await carregarCarteirasAPI();
   renderCartDebitoResumo();
-  renderCartCreditoResumo();
+  await renderCartCreditoResumo();
 }
 function renderCartDebitoResumo(){
   document.getElementById('cart-debito-resumo').innerHTML=carteiras.filter(c=>c.tipo==='debito').map(c=>{
@@ -931,15 +931,37 @@ function renderCartDebitoResumo(){
     return`<div class="cart-item"><div class="cart-header"><span class="cart-nome">💵 ${c.nome}<span class="cart-badge deb">débito</span></span><span class="cart-saldo ${cls}">${fmt(c.saldo)}</span></div></div>`;
   }).join('');
 }
-function renderCartCreditoResumo(){
+async function renderCartCreditoResumo(){
+  // Busca gastos do mês para cada cartão de crédito
+  const jlog=await api({acao:'lerLog',mes:MN[mes],ano});
+  const faturasMes={};
+  if(jlog&&jlog.log){
+    jlog.log.forEach(h=>{
+      if(h.tipo!=='ESTORNO'){
+        const v=parseFloat(h.valor)||0;
+        if(!faturasMes[h.pagamento])faturasMes[h.pagamento]=0;
+        faturasMes[h.pagamento]+=v;
+      }
+    });
+  }
   document.getElementById('cart-credito-resumo').innerHTML=carteiras.filter(c=>c.tipo==='credito').map(c=>{
     const usado=c.limite>0?c.limite-c.saldo:0;
     const pct=c.limite>0?Math.min(100,Math.round(usado/c.limite*100)):0;
     const cls=pct>90?'neg':pct>70?'warn':'ok';
+    const fatAtual=faturasMes[c.nome]||0;
+    const fechTxt=c.fechamento>0?`Fecha dia ${c.fechamento}`:'';
     return`<div class="cart-item">
-      <div class="cart-header"><span class="cart-nome">💳 ${c.nome}<span class="cart-badge cred">crédito</span></span><span class="cart-saldo ${cls}">${c.limite>0?fmt(c.saldo)+' disp.':fmt(c.saldo)}</span></div>
-      ${c.limite>0?`<div class="cart-bar"><div class="cart-bar-fill" style="width:${pct}%;background:${cls==='neg'?'#ef4444':cls==='warn'?'#f59e0b':'#22c55e'}"></div></div><div class="cart-info">Limite: ${fmt(c.limite)} • Usado: ${fmt(usado)}</div>`:''}
-      <button class="pagar-btn" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura de ${c.nome}</button>
+      <div class="cart-header">
+        <span class="cart-nome">💳 ${c.nome}<span class="cart-badge cred">crédito</span></span>
+        <span class="cart-saldo ${cls}">${c.limite>0?fmt(c.saldo)+' disp.':fmt(c.saldo)}</span>
+      </div>
+      ${fatAtual>0?`<div style="display:flex;justify-content:space-between;align-items:center;background:#fef3c7;border-radius:8px;padding:6px 10px;margin-bottom:6px;">
+        <span style="font-size:11px;color:#92400e;font-weight:600;">📄 Fatura ${MN[mes].toLowerCase().substring(0,3)}</span>
+        <span style="font-size:13px;font-weight:700;color:#d97706;">${fmt(fatAtual)}</span>
+      </div>`:''}
+      ${c.limite>0?`<div class="cart-bar"><div class="cart-bar-fill" style="width:${pct}%;background:${cls==='neg'?'#ef4444':cls==='warn'?'#f59e0b':'#22c55e'}"></div></div>
+      <div class="cart-info">Limite: ${fmt(c.limite)} • Usado: ${fmt(usado)}${fechTxt?' • '+fechTxt:''}</div>`:''}
+      <button class="pagar-btn" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>
     </div>`;
   }).join('');
 }
@@ -947,10 +969,18 @@ function renderCfgCredito(){
   const credito=carteiras.filter(c=>c.tipo==='credito');
   document.getElementById('cart-cfg-cred').innerHTML=credito.map((c,i)=>{
     const idx=carteiras.indexOf(c);
-    return`<div style="padding:10px 0;border-bottom:0.5px solid var(--border);">
-      <div style="font-size:12px;font-weight:700;margin-bottom:8px;">💳 ${c.nome}</div>
-      <div class="fl">Limite total</div>
-      <input type="number" class="cfginp" style="width:100%" id="cl-${idx}" value="${c.limite||''}" step="10" placeholder="Ex: 5000"/>
+    return`<div style="padding:12px 0;border-bottom:0.5px solid var(--border);">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">💳 ${c.nome}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div class="fl">Limite total</div>
+          <input type="number" class="cfginp" style="width:100%" id="cl-${idx}" value="${c.limite||''}" step="10" placeholder="Ex: 5000"/>
+        </div>
+        <div>
+          <div class="fl">Fecha dia</div>
+          <input type="number" class="cfginp" style="width:100%" id="cf-${idx}" value="${c.fechamento||''}" min="1" max="31" placeholder="Ex: 10"/>
+        </div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -958,15 +988,17 @@ async function salvarLimitesCredito(){
   carteiras.filter(c=>c.tipo==='credito').forEach(c=>{
     const idx=carteiras.indexOf(c);
     const el=document.getElementById(`cl-${idx}`);
+    const ef=document.getElementById(`cf-${idx}`);
     if(el){
       const novoLimite=parseFloat(el.value)||0;
       if(novoLimite>0&&c.limite===0)c.saldo=novoLimite;
       c.limite=novoLimite;
     }
+    if(ef)c.fechamento=parseInt(ef.value)||0;
   });
   const j=await api({acao:'salvarCarteiras',carteiras:JSON.stringify(carteiras)});
-  if(j&&j.sucesso){toast('✓ Limites salvos e sincronizados!','ok');renderCartCreditoResumo();rPag();}
-  else toast('Erro ao salvar limites.','err');
+  if(j&&j.sucesso){toast('✓ Configurações salvas!','ok');renderCartCreditoResumo();rPag();}
+  else toast('Erro ao salvar.','err');
 }
 function preencherSelTransf(){
   const opts=carteiras.filter(c=>c.tipo==='debito').map(c=>`<option value="${c.nome}">${c.nome} (${fmt(c.saldo)})</option>`).join('');
@@ -1063,7 +1095,7 @@ async function carregarReserva(){
   if(j&&j.sucesso){
     document.getElementById('saldo-res').textContent=fmt(j.reserva.saldo||0);
     if(!j.reserva.movimentos||!j.reserva.movimentos.length){document.getElementById('res-list').innerHTML='<div class="empty"><div class="ico">🏦</div><p>Nenhuma movimentação ainda</p></div>';return;}
-    document.getElementById('res-list').innerHTML=j.reserva.movimentos.map(r=>{const ent=r.tipo.toUpperCase()==='ENTRADA';return`<div class="hitem"><div class="htop"><div class="hname">${ent?'➕ Depósito':'➖ Retirada'}</div><div class="hval ${ent?'pos':'neg'}">${ent?'+':'-'} ${fmt(parseFloat(r.valor))}</div></div>${r.descricao?`<div class="hdesc">"${r.descricao}"</div>`:''}<div class="htags">${r.conta?`<span class="htag">🏦 ${r.conta}</span>`:''}<span class="htag">Saldo: ${fmt(parseFloat(r.saldo))}</span><span class="htag">${r.data}</span></div></div>`;}).join('');
+    document.getElementById('res-list').innerHTML=j.reserva.movimentos.map(r=>{const ent=r.tipo.toUpperCase()==='ENTRADA';return`<div class="hitem"><div class="htop"><div class="hname">${ent?'➕ Depósito':'➖ Retirada'}</div><div class="hval ${ent?'pos':'neg'}">${ent?'+':'-'} ${fmt(parseFloat(r.valor))}</div></div>${r.descricao?`<div class="hdesc">"${r.descricao}"</div>`:''}<div class="htags">${r.conta?`<span class="htag">🏦 ${r.conta}</span>`:''}<span class="htag">Saldo: ${fmt(parseFloat(r.saldo))}</span><span class="htag">📅 ${fmtData(r.data)}</span></div></div>`;}).join('');
   }
 }
 
@@ -1167,6 +1199,19 @@ async function salvarLim(){
   document.getElementById('lim-status').textContent='Salvo às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 
+function fmtData(d){
+  if(!d)return'—';
+  try{
+    const dt=new Date(d);
+    if(isNaN(dt))return d.toString().substring(0,16).replace('T',' ');
+    const dd=String(dt.getDate()).padStart(2,'0');
+    const mm=String(dt.getMonth()+1).padStart(2,'0');
+    const yy=dt.getFullYear();
+    const hh=String(dt.getHours()).padStart(2,'0');
+    const mi=String(dt.getMinutes()).padStart(2,'0');
+    return dd+'/'+mm+'/'+yy+' '+hh+':'+mi;
+  }catch(e){return d.toString().substring(0,16);}
+}
 function toast(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(tipo||'');setTimeout(()=>t.className='toast',3200);}
 
 init();
