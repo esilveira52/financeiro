@@ -362,16 +362,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="page" id="page-receita">
   <div class="phdr"><span class="phdr-title">💰 Receita</span><button class="rbtn" onclick="carregarReceita()">↻ Atualizar</button></div>
   <div class="saldo-box">
-    <div class="saldo-lbl">Total familiar do mês</div>
-    <div class="saldo-val" id="tot-rec-fam">R$ 0,00</div>
+    <div class="saldo-lbl">Saldo do mês (receita - gastos)</div>
+    <div class="saldo-val" id="saldo-geral">R$ 0,00</div>
   </div>
   <div class="pessoa-grid">
     <div class="pessoa-card"><div class="pessoa-nome" id="p1-nome">Edu</div><div class="pessoa-val" id="p1-val">R$ 0,00</div></div>
     <div class="pessoa-card"><div class="pessoa-nome" id="p2-nome">Lud</div><div class="pessoa-val" id="p2-val">R$ 0,00</div></div>
   </div>
   <div class="rcards">
+    <div class="rcard g"><div class="rcard-lbl">Total receitas</div><div class="rcard-val" id="tot-rec-fam">R$ 0,00</div></div>
     <div class="rcard r"><div class="rcard-lbl">Total gastos</div><div class="rcard-val" id="tot-gst-rec">R$ 0,00</div></div>
-    <div class="rcard b"><div class="rcard-lbl">Saldo</div><div class="rcard-val" id="saldo-geral">R$ 0,00</div></div>
   </div>
   <div class="form-crd">
     <div class="form-ttl">➕ Nova receita</div>
@@ -690,7 +690,11 @@ async function lancar(){
   try{
     if(parc&&nParc>1){
       await apiNC({acao:'lancarParcelas',mes:MN[mes],ano,mesInicio:mes,anoInicio:ano,coluna:itemA,valor:v,parcelas:nParc,descricao:desc,pagamento:pagA,usuario:sNome});
-      if(c)c.saldo=Math.round((c.saldo-Math.round(v/nParc*100)/100)*100)/100;
+      // Crédito: debita valor total do limite; Débito: só 1ª parcela
+      if(c){
+        const desconto=c.tipo==='credito'?v:Math.round(v/nParc*100)/100;
+        c.saldo=Math.round((c.saldo-desconto)*100)/100;
+      }
       toast('✓ '+nParc+' parcelas lançadas!','ok');
     }else{
       await apiNC({acao:'lancar',mes:MN[mes],ano,coluna:itemA,valor:v,descricao:desc,pagamento:pagA,usuario:sNome});
@@ -830,7 +834,8 @@ async function carregarReceita(){
     document.getElementById('p2-val').textContent=fmt(porPessoa[nomesComReceita[1]]||0);
     document.getElementById('tot-gst-rec').textContent=fmt(tg);
     const sl=totFam-tg;const el=document.getElementById('saldo-geral');
-    el.textContent=(sl<0?'- ':'')+fmt(Math.abs(sl));el.style.color=sl>=0?'#16a34a':'#ef4444';
+    el.textContent=(sl<0?'- ':'')+fmt(Math.abs(sl));
+    el.style.color=sl>=0?'rgba(255,255,255,1)':'#fca5a5';
     window._recHistStore=receitas;
     if(!receitas.length){document.getElementById('rec-hist-list').innerHTML='<div class="empty"><div class="ico">💰</div><p>Nenhuma receita em '+cap(MN[mes])+'</p></div>';return;}
     document.getElementById('rec-hist-list').innerHTML=receitas.map((r,idx)=>`
@@ -886,7 +891,7 @@ async function carregarCarteiras(){
 }
 function renderCartDebitoResumo(){
   document.getElementById('cart-debito-resumo').innerHTML=carteiras.filter(c=>c.tipo==='debito').map(c=>{
-    const cls=c.saldo<0?'neg':c.saldo<200?'warn':'ok';
+    const cls=c.saldo<0?'neg':c.saldo===0?'warn':'ok';
     return`<div class="cart-item"><div class="cart-header"><span class="cart-nome">💵 ${c.nome}<span class="cart-badge deb">débito</span></span><span class="cart-saldo ${cls}">${fmt(c.saldo)}</span></div></div>`;
   }).join('');
 }
