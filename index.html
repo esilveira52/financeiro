@@ -483,11 +483,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="page" id="page-config">
   <div class="phdr"><span class="phdr-title">⚙️ Configurações</span></div>
   <div class="cfgsec">
-    <div class="cfgttl">👤 Identificação</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Cada pessoa configura o próprio nome no seu celular. Ele aparecerá no histórico para identificar quem fez cada lançamento.</div>
-    <div class="fl">Seu nome</div>
-    <input class="fullinp" id="nome-inp" type="text" placeholder="Ex: Edu ou Lud..." maxlength="20"/>
-    <button class="btnsec" onclick="salvarNome()">Salvar meu nome</button>
+    <div class="cfgttl">👤 Quem é você?</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Selecione seu nome. Aparecerá no histórico para identificar quem fez cada lançamento.</div>
+    <div class="pessogrid" id="login-grid"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <div class="fl">Outro nome</div>
+      <div style="display:flex;gap:8px;">
+        <input class="fullinp" id="nome-inp" type="text" placeholder="Digite um nome..." maxlength="20" style="margin-bottom:0;flex:1;"/>
+        <button class="btnsec" style="width:auto;padding:0 16px;margin-top:0;" onclick="salvarNome()">+</button>
+      </div>
+    </div>
   </div>
   <div class="cfgsec">
     <div class="cfgttl">🔗 URL do Apps Script</div>
@@ -564,7 +569,7 @@ function init(){
     carregarCarteirasAPI().then(()=>{rPag();rContaRecGrid();rResContaGrid();});
   }
   else renderLim({});
-  if(sNome){document.getElementById('nome-inp').value=sNome;}
+  rLoginGrid();
 }
 
 function atuHdr(){
@@ -583,6 +588,7 @@ function ir(aba,el){
   if(aba==='anual')buscarAnual();
   if(aba==='historico')carregarHist();
   if(aba==='receita'){
+    pessoaRec=sNome||'';
     rPessoaGrid();rTiposRec();
     // Carrega carteiras da planilha primeiro, depois renderiza as opções de conta
     carregarCarteirasAPI().then(()=>{
@@ -598,7 +604,7 @@ function ir(aba,el){
   }
   if(aba==='carteiras')carregarCarteiras();
   if(aba==='recorrentes')carregarRec();
-  if(aba==='config'){document.getElementById('url-inp').value=sUrl||'';document.getElementById('nome-inp').value=sNome||'';}
+  if(aba==='config'){document.getElementById('url-inp').value=sUrl||'';document.getElementById('nome-inp').value='';rLoginGrid();}
 }
 function irCfg(){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
@@ -623,13 +629,40 @@ function rMesGrid(){
 function abrirMes(){rMesGrid();document.getElementById('mpick').classList.add('open');}
 function fMes(e){if(!e||e.target===document.getElementById('mpick'))document.getElementById('mpick').classList.remove('open');}
 
+function rLoginGrid(){
+  const g=document.getElementById('login-grid');if(!g)return;g.innerHTML='';
+  const nomes=JSON.parse(localStorage.getItem('sTodosPessoas')||'["Edu","Lud"]');
+  nomes.forEach(p=>{
+    if(!p)return;
+    const b=document.createElement('button');
+    b.className='pessobtn'+(sNome===p?' on':'');
+    b.textContent=p;
+    b.onclick=()=>{
+      sNome=p;localStorage.setItem('sNome',p);
+      document.getElementById('chip-usr').textContent='👤 '+p;
+      document.getElementById('nome-inp').value='';
+      atuHdr();rLoginGrid();
+      document.getElementById('av-cfg').style.display=(!sUrl||!p)?'block':'none';
+      toast('✓ Logado como '+p+'!','ok');
+    };
+    g.appendChild(b);
+  });
+}
+
 function salvarNome(){
   const n=document.getElementById('nome-inp').value.trim();
   if(!n){toast('Digite seu nome!','err');return;}
+  // Adiciona à lista de nomes se não existir
+  const nomes=JSON.parse(localStorage.getItem('sTodosPessoas')||'["Edu","Lud"]');
+  if(!nomes.includes(n))nomes.push(n);
+  localStorage.setItem('sTodosPessoas',JSON.stringify(nomes));
+  // Loga com esse nome
   sNome=n;localStorage.setItem('sNome',n);
   document.getElementById('chip-usr').textContent='👤 '+n;
+  document.getElementById('nome-inp').value='';
   atuHdr();document.getElementById('av-cfg').style.display=(!sUrl||!n)?'block':'none';
-  toast('✓ Nome salvo!','ok');
+  rLoginGrid();rPessoaGrid();
+  toast('✓ '+n+' adicionado!','ok');
 }
 function salvarUrl(){
   const u=document.getElementById('url-inp').value.trim();
@@ -776,18 +809,18 @@ function abrirEstornoIdx(idx){const h=window._logStore[idx];if(h&&h.tipo!=='ESTO
 function rTiposRec(){const g=document.getElementById('tipo-rec-grid');if(!g)return;g.innerHTML='';TIPOS_REC.forEach(t=>{const b=document.createElement('button');b.className='tipobtn'+(tipoRec===t?' on':'');b.textContent=t;b.onclick=()=>{tipoRec=t;rTiposRec();};g.appendChild(b);});}
 function rPessoaGrid(){
   const g=document.getElementById('pesso-grid');if(!g)return;g.innerHTML='';
-  // Mostra o nome do usuário atual como opção rápida
-  const opcoes=sNome?[sNome]:[];
-  // Adiciona nomes únicos já usados em receitas anteriores
-  if(window._recHistStore){
-    window._recHistStore.forEach(r=>{if(r.pessoa&&!opcoes.includes(r.pessoa))opcoes.push(r.pessoa);});
-  }
-  if(!opcoes.length)opcoes.push('Eu');
-  opcoes.forEach(p=>{
-    const b=document.createElement('button');b.className='pessobtn'+(pessoaRec===p?' on':'');
-    b.textContent=p;b.onclick=()=>{pessoaRec=p;rPessoaGrid();};g.appendChild(b);
+  // Mostra todos os nomes cadastrados
+  const nomes=JSON.parse(localStorage.getItem('sTodosPessoas')||'["Edu","Lud"]');
+  nomes.forEach(p=>{
+    if(!p)return;
+    const b=document.createElement('button');
+    b.className='pessobtn'+(pessoaRec===p?' on':'');
+    b.textContent=p;
+    b.onclick=()=>{pessoaRec=p;rPessoaGrid();};
+    g.appendChild(b);
   });
 }
+function setPessoa(nome){pessoaRec=nome;rPessoaGrid();}
 function rContaRecGrid(){
   const g=document.getElementById('conta-rec-grid');if(!g)return;g.innerHTML='';
   carteiras.filter(c=>c.tipo==='debito').forEach(c=>{
