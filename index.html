@@ -486,13 +486,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="cfgttl">👤 Quem é você?</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Selecione seu nome. Aparecerá no histórico para identificar quem fez cada lançamento.</div>
     <div class="pessogrid" id="login-grid"></div>
-    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-      <div class="fl">Outro nome</div>
-      <div style="display:flex;gap:8px;">
-        <input class="fullinp" id="nome-inp" type="text" placeholder="Digite um nome..." maxlength="20" style="margin-bottom:0;flex:1;"/>
-        <button class="btnsec" style="width:auto;padding:0 16px;margin-top:0;" onclick="salvarNome()">+</button>
-      </div>
-    </div>
+    <input id="nome-inp" type="hidden" value=""/>
   </div>
   <div class="cfgsec">
     <div class="cfgttl">🔗 URL do Apps Script</div>
@@ -547,7 +541,7 @@ let gastosG={},limites={},recs=[],carteiras=[...CART_PAD];
 let tipoRec="Salário",pessoaRec="",contaRec="",tipoRes="entrada",contaRes="";
 let grafCh=null,estData=null,fatData=null;
 let sUrl=localStorage.getItem('sUrl')||'',sNome=localStorage.getItem('sNome')||'';
-let pessoas=JSON.parse(localStorage.getItem('sPessoas')||'["Edu","Lud"]');
+const pessoas=['Edu','Lud'];
 const hj=new Date();
 let mes=parseInt(localStorage.getItem('sMes')||hj.getMonth()),ano=parseInt(localStorage.getItem('sAno')||hj.getFullYear()),anoA=ano;
 
@@ -631,9 +625,7 @@ function fMes(e){if(!e||e.target===document.getElementById('mpick'))document.get
 
 function rLoginGrid(){
   const g=document.getElementById('login-grid');if(!g)return;g.innerHTML='';
-  const nomes=JSON.parse(localStorage.getItem('sTodosPessoas')||'["Edu","Lud"]');
-  nomes.forEach(p=>{
-    if(!p)return;
+  ['Edu','Lud'].forEach(p=>{
     const b=document.createElement('button');
     b.className='pessobtn'+(sNome===p?' on':'');
     b.textContent=p;
@@ -650,19 +642,8 @@ function rLoginGrid(){
 }
 
 function salvarNome(){
-  const n=document.getElementById('nome-inp').value.trim();
-  if(!n){toast('Digite seu nome!','err');return;}
-  // Adiciona à lista de nomes se não existir
-  const nomes=JSON.parse(localStorage.getItem('sTodosPessoas')||'["Edu","Lud"]');
-  if(!nomes.includes(n))nomes.push(n);
-  localStorage.setItem('sTodosPessoas',JSON.stringify(nomes));
-  // Loga com esse nome
-  sNome=n;localStorage.setItem('sNome',n);
-  document.getElementById('chip-usr').textContent='👤 '+n;
-  document.getElementById('nome-inp').value='';
-  atuHdr();document.getElementById('av-cfg').style.display=(!sUrl||!n)?'block':'none';
-  rLoginGrid();rPessoaGrid();
-  toast('✓ '+n+' adicionado!','ok');
+  // Campo extra - não utilizado por enquanto
+  toast('Selecione Edu ou Lud acima.','warn');
 }
 function salvarUrl(){
   const u=document.getElementById('url-inp').value.trim();
@@ -809,10 +790,7 @@ function abrirEstornoIdx(idx){const h=window._logStore[idx];if(h&&h.tipo!=='ESTO
 function rTiposRec(){const g=document.getElementById('tipo-rec-grid');if(!g)return;g.innerHTML='';TIPOS_REC.forEach(t=>{const b=document.createElement('button');b.className='tipobtn'+(tipoRec===t?' on':'');b.textContent=t;b.onclick=()=>{tipoRec=t;rTiposRec();};g.appendChild(b);});}
 function rPessoaGrid(){
   const g=document.getElementById('pesso-grid');if(!g)return;g.innerHTML='';
-  // Mostra todos os nomes cadastrados
-  const nomes=JSON.parse(localStorage.getItem('sTodosPessoas')||'["Edu","Lud"]');
-  nomes.forEach(p=>{
-    if(!p)return;
+  ['Edu','Lud'].forEach(p=>{
     const b=document.createElement('button');
     b.className='pessobtn'+(pessoaRec===p?' on':'');
     b.textContent=p;
