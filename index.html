@@ -484,11 +484,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="phdr"><span class="phdr-title">⚙️ Configurações</span></div>
   <div class="cfgsec">
     <div class="cfgttl">👤 Identificação</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Cada pessoa configura o próprio nome no seu celular. Ele aparecerá no histórico para identificar quem fez cada lançamento.</div>
     <div class="fl">Seu nome</div>
-    <input class="fullinp" id="nome-inp" type="text" placeholder="Ex: Edu" maxlength="20"/>
-    <div class="fl" style="margin-top:8px;">Nome da sua esposa</div>
-    <input class="fullinp" id="p2-inp" type="text" placeholder="Ex: Lud" maxlength="20"/>
-    <button class="btnsec" onclick="salvarNomes()">Salvar nomes</button>
+    <input class="fullinp" id="nome-inp" type="text" placeholder="Ex: Edu ou Lud..." maxlength="20"/>
+    <button class="btnsec" onclick="salvarNome()">Salvar meu nome</button>
   </div>
   <div class="cfgsec">
     <div class="cfgttl">🔗 URL do Apps Script</div>
@@ -557,15 +556,15 @@ function init(){
   atuHdr();rCats();rItens();rParcelas();rMesGrid();
   document.getElementById('chip-usr').textContent=sNome?'👤 '+sNome:'👤 Config';
   document.getElementById('av-cfg').style.display=(!sUrl||!sNome)?'block':'none';
-  document.getElementById('p1-nome').textContent=pessoas[0]||'Edu';
-  document.getElementById('p2-nome').textContent=pessoas[1]||'Lud';
+  document.getElementById('p1-nome').textContent=pessoas[0]||'Pessoa 1';
+  document.getElementById('p2-nome').textContent=pessoas[1]||'Pessoa 2';
   pessoaRec=pessoas[0]||'';
   if(sUrl){document.getElementById('url-inp').value=sUrl;buscarTotais();carregarLim();
     // Carrega carteiras da planilha ao iniciar
     carregarCarteirasAPI().then(()=>{rPag();rContaRecGrid();rResContaGrid();});
   }
   else renderLim({});
-  if(sNome){document.getElementById('nome-inp').value=sNome;document.getElementById('p2-inp').value=pessoas[1]||'';}
+  if(sNome){document.getElementById('nome-inp').value=sNome;}
 }
 
 function atuHdr(){
@@ -599,7 +598,7 @@ function ir(aba,el){
   }
   if(aba==='carteiras')carregarCarteiras();
   if(aba==='recorrentes')carregarRec();
-  if(aba==='config'){document.getElementById('url-inp').value=sUrl||'';document.getElementById('nome-inp').value=sNome||'';document.getElementById('p2-inp').value=pessoas[1]||'';}
+  if(aba==='config'){document.getElementById('url-inp').value=sUrl||'';document.getElementById('nome-inp').value=sNome||'';}
 }
 function irCfg(){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
@@ -624,17 +623,13 @@ function rMesGrid(){
 function abrirMes(){rMesGrid();document.getElementById('mpick').classList.add('open');}
 function fMes(e){if(!e||e.target===document.getElementById('mpick'))document.getElementById('mpick').classList.remove('open');}
 
-function salvarNomes(){
+function salvarNome(){
   const n=document.getElementById('nome-inp').value.trim();
-  const p2=document.getElementById('p2-inp').value.trim();
   if(!n){toast('Digite seu nome!','err');return;}
   sNome=n;localStorage.setItem('sNome',n);
-  pessoas=[n,p2||pessoas[1]||''];localStorage.setItem('sPessoas',JSON.stringify(pessoas));
   document.getElementById('chip-usr').textContent='👤 '+n;
-  document.getElementById('p1-nome').textContent=pessoas[0];
-  document.getElementById('p2-nome').textContent=pessoas[1];
   atuHdr();document.getElementById('av-cfg').style.display=(!sUrl||!n)?'block':'none';
-  toast('✓ Nomes salvos!','ok');
+  toast('✓ Nome salvo!','ok');
 }
 function salvarUrl(){
   const u=document.getElementById('url-inp').value.trim();
@@ -775,7 +770,20 @@ function abrirEstornoIdx(idx){const h=window._logStore[idx];if(h&&h.tipo!=='ESTO
 
 // RECEITA
 function rTiposRec(){const g=document.getElementById('tipo-rec-grid');if(!g)return;g.innerHTML='';TIPOS_REC.forEach(t=>{const b=document.createElement('button');b.className='tipobtn'+(tipoRec===t?' on':'');b.textContent=t;b.onclick=()=>{tipoRec=t;rTiposRec();};g.appendChild(b);});}
-function rPessoaGrid(){const g=document.getElementById('pesso-grid');if(!g)return;g.innerHTML='';pessoas.forEach(p=>{if(!p)return;const b=document.createElement('button');b.className='pessobtn'+(pessoaRec===p?' on':'');b.textContent=p;b.onclick=()=>{pessoaRec=p;rPessoaGrid();};g.appendChild(b);});}
+function rPessoaGrid(){
+  const g=document.getElementById('pesso-grid');if(!g)return;g.innerHTML='';
+  // Mostra o nome do usuário atual como opção rápida
+  const opcoes=sNome?[sNome]:[];
+  // Adiciona nomes únicos já usados em receitas anteriores
+  if(window._recHistStore){
+    window._recHistStore.forEach(r=>{if(r.pessoa&&!opcoes.includes(r.pessoa))opcoes.push(r.pessoa);});
+  }
+  if(!opcoes.length)opcoes.push('Eu');
+  opcoes.forEach(p=>{
+    const b=document.createElement('button');b.className='pessobtn'+(pessoaRec===p?' on':'');
+    b.textContent=p;b.onclick=()=>{pessoaRec=p;rPessoaGrid();};g.appendChild(b);
+  });
+}
 function rContaRecGrid(){
   const g=document.getElementById('conta-rec-grid');if(!g)return;g.innerHTML='';
   carteiras.filter(c=>c.tipo==='debito').forEach(c=>{
@@ -814,10 +822,12 @@ async function carregarReceita(){
     const porPessoa={};
     receitas.filter(r=>parseFloat(r.valor)>0).forEach(r=>{porPessoa[r.pessoa]=(porPessoa[r.pessoa]||0)+parseFloat(r.valor);});
     document.getElementById('tot-rec-fam').textContent=fmt(totFam);
-    document.getElementById('p1-nome').textContent=pessoas[0]||'Edu';
-    document.getElementById('p2-nome').textContent=pessoas[1]||'Lud';
-    document.getElementById('p1-val').textContent=fmt(porPessoa[pessoas[0]]||0);
-    document.getElementById('p2-val').textContent=fmt(porPessoa[pessoas[1]]||0);
+    // Mostra os nomes de quem tem receita, dinamicamente
+    const nomesComReceita=Object.keys(porPessoa).sort();
+    document.getElementById('p1-nome').textContent=nomesComReceita[0]||pessoas[0]||'Pessoa 1';
+    document.getElementById('p2-nome').textContent=nomesComReceita[1]||pessoas[1]||'Pessoa 2';
+    document.getElementById('p1-val').textContent=fmt(porPessoa[nomesComReceita[0]]||0);
+    document.getElementById('p2-val').textContent=fmt(porPessoa[nomesComReceita[1]]||0);
     document.getElementById('tot-gst-rec').textContent=fmt(tg);
     const sl=totFam-tg;const el=document.getElementById('saldo-geral');
     el.textContent=(sl<0?'- ':'')+fmt(Math.abs(sl));el.style.color=sl>=0?'#16a34a':'#ef4444';
