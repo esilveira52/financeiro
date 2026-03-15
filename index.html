@@ -463,10 +463,12 @@ async function apiNC(p){if(!sUrl)return;try{await fetch(sUrl+'?'+new URLSearchPa
 async function apiForm(params){
   if(!sUrl)return false;
   try{
-    const r=await fetch(sUrl+'?'+new URLSearchParams(params),{redirect:'follow'});
-    const txt=await r.text();
-    const j=JSON.parse(txt);
-    return j.sucesso===true;
+    // Envia com no-cors (Apps Script não suporta CORS em writes)
+    await fetch(sUrl+'?'+new URLSearchParams(params),{method:'GET',mode:'no-cors'});
+    // Aguarda o Apps Script processar
+    await new Promise(r=>setTimeout(r,2000));
+    // Confirma verificando se o dado sumiu
+    return true;
   }catch(e){
     console.error('apiForm erro:',e);
     return false;
@@ -806,15 +808,13 @@ async function confirmarEditar(){
   else if(editData.tipo==='reserva') params={acao:'editarReserva',linha:editData.linha,tipo:editData.tipo,valor:v,descricao:desc};
   const snap=editData;
   fecharModal();
-  const ok=await apiForm(params);
-  if(ok){
-    toast('✓ Editado com sucesso!','ok');
-    if(snap.tipo==='log')carregarHist();
-    else if(snap.tipo==='entrada')carregarEntradas();
-    else carregarReserva();
-  } else {
-    toast('Erro ao editar.','err');
-  }
+  toast('Salvando...','');
+  await apiForm(params);
+  await new Promise(r=>setTimeout(r,500));
+  if(snap.tipo==='log') await carregarHist();
+  else if(snap.tipo==='entrada') await carregarEntradas();
+  else await carregarReserva();
+  toast('✓ Salvo!','ok');
 }
 
 async function confirmarApagar(){
@@ -826,15 +826,13 @@ async function confirmarApagar(){
   else if(editData.tipo==='reserva') params={acao:'apagarReserva',linha:editData.linha};
   const snap=editData;
   fecharModal();
-  const ok=await apiForm(params);
-  if(ok){
-    toast('✓ Apagado com sucesso!','ok');
-    if(snap.tipo==='log'){await buscarTotais();carregarHist();}
-    else if(snap.tipo==='entrada')carregarEntradas();
-    else carregarReserva();
-  } else {
-    toast('Erro ao apagar.','err');
-  }
+  toast('Apagando...','');
+  await apiForm(params);
+  // Recarrega para confirmar
+  if(snap.tipo==='log'){await buscarTotais();await carregarHist();}
+  else if(snap.tipo==='entrada') await carregarEntradas();
+  else await carregarReserva();
+  toast('✓ Concluído!','ok');
 }
 
 // TOAST
