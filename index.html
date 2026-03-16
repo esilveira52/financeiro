@@ -1766,7 +1766,9 @@ function mostrarDetalhe(dia,tarefasDia){
 function fmtDataBR(d){
   if(!d) return '';
   try{
-    var p=d.split('-');
+    // Pega só a parte da data YYYY-MM-DD (ignora hora/timezone)
+    var s=d.toString().split('T')[0];
+    var p=s.split('-');
     if(p.length===3) return p[2]+'/'+p[1]+'/'+p[0];
     return d;
   }catch(e){return d;}
@@ -1868,9 +1870,10 @@ function salvarTarefa(){
   const titulo=document.getElementById('t-titulo').value.trim();
   if(!titulo){toast('Digite um título!','err');return;}
   // Campos sempre: data (início), hora, datafim (fim do período - opcional)
-  const data=document.getElementById('t-data').value;
+  // Garante formato YYYY-MM-DD (pega só os 10 primeiros caracteres)
+  const data=(document.getElementById('t-data').value||'').substring(0,10);
   const hora=document.getElementById('t-hora').value;
-  const datafim=document.getElementById('t-datafim').value;
+  const datafim=(document.getElementById('t-datafim').value||'').substring(0,10);
   const lista=getTodas();
   const obj={titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,data,hora,datafim,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')};
   if(editandoT){
