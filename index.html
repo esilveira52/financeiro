@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 08:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 09:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -326,6 +326,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
+  <div class="tab" onclick="ir('compras',this)">🛒 Compras</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
@@ -560,6 +561,43 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <button class="btnsec" style="margin-top:6px;width:100%;" onclick="salvarRec()">💾 Salvar alterações</button>
 </div>
 
+<!-- ─ COMPRAS ─ -->
+<div class="page" id="page-compras">
+  <div class="phdr"><span class="phdr-title">🛒 Listas de Compras</span></div>
+  <div class="subtabs" id="compras-subtabs">
+    <button class="stab on" onclick="irSubCompras('mercado',this)">🛒 Mercado</button>
+    <button class="stab" onclick="irSubCompras('desejos',this)">✨ Desejos</button>
+  </div>
+
+  <!-- MERCADO -->
+  <div class="subpage on" id="sc-mercado">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <input type="text" id="merc-inp" class="tinput" placeholder="Item..." style="flex:1;height:44px;margin-bottom:0;" onkeydown="if(event.key==='Enter')addCompra('mercado')"/>
+      <input type="number" id="merc-qtd" class="tinput" placeholder="Qtd" min="1" style="width:60px;height:44px;margin-bottom:0;text-align:center;"/>
+      <button onclick="addCompra('mercado')" style="height:44px;padding:0 14px;background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;border-radius:var(--rs);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;font-size:18px;">+</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span id="merc-count" style="font-size:11px;color:var(--muted);"></span>
+      <button onclick="limparMarcados('mercado')" style="background:none;border:none;color:var(--c3);font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🗑 Limpar marcados</button>
+    </div>
+    <div id="merc-list"></div>
+  </div>
+
+  <!-- DESEJOS -->
+  <div class="subpage" id="sc-desejos">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <input type="text" id="desej-inp" class="tinput" placeholder="Item desejado..." style="flex:1;height:44px;margin-bottom:0;" onkeydown="if(event.key==='Enter')addCompra('desejos')"/>
+      <input type="number" id="desej-qtd" class="tinput" placeholder="Qtd" min="1" style="width:60px;height:44px;margin-bottom:0;text-align:center;"/>
+      <button onclick="addCompra('desejos')" style="height:44px;padding:0 14px;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;border:none;border-radius:var(--rs);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;font-size:18px;">+</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span id="desej-count" style="font-size:11px;color:var(--muted);"></span>
+      <button onclick="limparMarcados('desejos')" style="background:none;border:none;color:var(--c3);font-size:11px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🗑 Limpar marcados</button>
+    </div>
+    <div id="desej-list"></div>
+  </div>
+</div>
+
 <!-- ─ ANUAL ─ -->
 <div class="page" id="page-anual">
   <div class="phdr"><span class="phdr-title">📈 Anual</span><button class="rbtn" onclick="buscarAnual()">↻ Atualizar</button></div>
@@ -739,6 +777,7 @@ function ir(aba,el){
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
   if(aba==='geral')carregarGeral();
   if(aba==='calendario')renderCalendario();
+  if(aba==='compras'){irSubCompras('mercado',document.querySelector('#compras-subtabs .stab'));renderCompras('mercado');renderCompras('desejos');}
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){
     renderTarefasFiltro();
@@ -1803,11 +1842,14 @@ async function carregarParcelas(){
 const DIAS_SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 let calMes=new Date().getMonth();
 let calAno=new Date().getFullYear();
+let diaSelecionado=null;
 
 function mudCalMes(d){
   calMes+=d;
   if(calMes>11){calMes=0;calAno++;}
   if(calMes<0){calMes=11;calAno--;}
+  diaSelecionado=null;
+  document.getElementById('cal-detalhe').innerHTML='';
   renderCalendario();
 }
 
@@ -1856,9 +1898,12 @@ function renderCalendario(){
     });
 
     const cel=document.createElement('div');
-    cel.style.cssText='min-height:52px;border-radius:10px;padding:4px;cursor:pointer;background:'+(isHoje?'#e0f7fa':'var(--card)')+';border:'+(isHoje?'2px solid var(--c1)':'1.5px solid var(--border)')+';overflow:hidden;';
+    const isSel=diaSelecionado===dia;
+    cel.style.cssText='min-height:52px;border-radius:10px;padding:4px;cursor:pointer;overflow:hidden;'
+      +'background:'+(isHoje?'#e0f7fa':isSel?'#f0fdf4':'var(--card)')+';'
+      +'border:'+(isHoje?'2px solid var(--c1)':isSel?'2px solid #22c55e':'1.5px solid var(--border)')+';';
 
-    var innerHtml='<div style="font-size:11px;font-weight:'+(isHoje?'800':'600')+';color:'+(isHoje?'var(--c1)':'var(--text)')+';margin-bottom:3px;">'+dia+'</div>';
+    var innerHtml='<div style="font-size:11px;font-weight:'+(isHoje||isSel?'800':'600')+';color:'+(isHoje?'var(--c1)':isSel?'#16a34a':'var(--text)')+';margin-bottom:3px;">'+dia+'</div>';
 
     tDia.slice(0,2).forEach(function(t){
       var tag=TAGS_DEF.find(function(x){return x.id===t.tag;});
@@ -1882,7 +1927,7 @@ function renderCalendario(){
 
     if(tDia.length>2) innerHtml+='<div style="font-size:9px;color:var(--muted);">+'+(tDia.length-2)+'</div>';
     cel.innerHTML=innerHtml;
-    cel.onclick=(function(d,td){return function(){mostrarDetalhe(d,td);};})(dia,tDia);
+    cel.onclick=(function(d,td){return function(){diaSelecionado=d;renderCalendario();mostrarDetalhe(d,td);};})(dia,tDia);
     g.appendChild(cel);
   }
 }
@@ -2434,6 +2479,109 @@ function atuBadgeMensal(){
       }
     }
   });
+}
+
+// ── LISTA DE COMPRAS ──────────────────────────────────────────
+function irSubCompras(sub, el){
+  document.querySelectorAll('#compras-subtabs .stab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('#page-compras .subpage').forEach(p=>p.classList.remove('on'));
+  if(el) el.classList.add('on');
+  document.getElementById('sc-'+sub).classList.add('on');
+  renderCompras(sub);
+}
+
+function getCompras(lista){
+  return JSON.parse(localStorage.getItem('compras_'+lista)||'[]');
+}
+function saveCompras(lista, items){
+  localStorage.setItem('compras_'+lista, JSON.stringify(items));
+  if(sUrl) api({acao:'salvarCompras', lista, items: JSON.stringify(items)});
+}
+
+function addCompra(lista){
+  const inp=document.getElementById(lista==='mercado'?'merc-inp':'desej-inp');
+  const qtdInp=document.getElementById(lista==='mercado'?'merc-qtd':'desej-qtd');
+  const txt=inp.value.trim();
+  if(!txt) return;
+  const qtd=parseInt(qtdInp.value)||1;
+  const items=getCompras(lista);
+  items.unshift({id:Date.now(), nome:txt, qtd, marcado:false, quem:sNome||''});
+  saveCompras(lista, items);
+  inp.value=''; qtdInp.value='';
+  renderCompras(lista);
+  inp.focus();
+}
+
+function toggleCompra(lista, id){
+  const items=getCompras(lista).map(x=>x.id===id?{...x,marcado:!x.marcado}:x);
+  saveCompras(lista, items);
+  renderCompras(lista);
+}
+
+function deletarCompra(lista, id){
+  if(!confirm('Apagar este item?')) return;
+  saveCompras(lista, getCompras(lista).filter(x=>x.id!==id));
+  renderCompras(lista);
+  toast('✓ Item removido!','ok');
+}
+
+function limparMarcados(lista){
+  const marcados=getCompras(lista).filter(x=>x.marcado).length;
+  if(!marcados){toast('Nenhum item marcado!','warn');return;}
+  if(!confirm('Remover '+marcados+' item(s) marcado(s)?')) return;
+  saveCompras(lista, getCompras(lista).filter(x=>!x.marcado));
+  renderCompras(lista);
+  toast('✓ Marcados removidos!','ok');
+}
+
+function atuQtd(lista, id, delta){
+  const items=getCompras(lista).map(x=>{
+    if(x.id===id){const q=Math.max(1,(x.qtd||1)+delta);return{...x,qtd:q};}
+    return x;
+  });
+  saveCompras(lista, items);
+  renderCompras(lista);
+}
+
+function renderCompras(lista){
+  const elId=lista==='mercado'?'merc-list':'desej-list';
+  const countId=lista==='mercado'?'merc-count':'desej-count';
+  const el=document.getElementById(elId);
+  const countEl=document.getElementById(countId);
+  if(!el) return;
+  const items=getCompras(lista);
+  const pendentes=items.filter(x=>!x.marcado).length;
+  const total=items.length;
+  if(countEl) countEl.textContent=total>0?pendentes+' pendente'+(pendentes!==1?'s':'')+' de '+total+' item'+(total!==1?'s':''):'';
+  if(!items.length){
+    el.innerHTML='<div class="empty"><div class="ico">'+(lista==='mercado'?'🛒':'✨')+'</div><p>Lista vazia — adicione itens acima</p></div>';
+    return;
+  }
+  const sorted=[...items.filter(x=>!x.marcado),...items.filter(x=>x.marcado)];
+  const cor=lista==='mercado'?'#0ea5e9':'#8b5cf6';
+  el.innerHTML=sorted.map(item=>{
+    const qtd=item.qtd||1;
+    return`<div class="hitem" style="margin-bottom:8px;${item.marcado?'opacity:0.55;':''}">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <!-- Checkbox -->
+        <div onclick="toggleCompra('${lista}',${item.id})"
+          style="width:26px;height:26px;border-radius:50%;border:2px solid ${item.marcado?cor:'var(--border)'};background:${item.marcado?cor:'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.15s;">
+          ${item.marcado?'<span style="color:#fff;font-size:13px;font-weight:800;">✓</span>':''}
+        </div>
+        <!-- Nome -->
+        <span style="flex:1;font-size:14px;font-weight:500;text-decoration:${item.marcado?'line-through':'none'};color:${item.marcado?'var(--muted)':'var(--text)'};">${item.nome}</span>
+        <!-- Quantidade -->
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+          <button onclick="atuQtd('${lista}',${item.id},-1)" style="width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);">−</button>
+          <span style="font-size:13px;font-weight:700;min-width:20px;text-align:center;color:${cor};">${qtd}</span>
+          <button onclick="atuQtd('${lista}',${item.id},1)" style="width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);">+</button>
+        </div>
+        <!-- Apagar -->
+        <button onclick="deletarCompra('${lista}',${item.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 2px;flex-shrink:0;">🗑</button>
+      </div>
+      ${item.quem?`<div style="font-size:10px;color:var(--muted);margin-top:4px;margin-left:36px;">👤 adicionado por ${item.quem}</div>`:''}
+    </div>`;
+  }).join('');
 }
 
 function removerPin(){
