@@ -1328,25 +1328,56 @@ async function carregarGeral(){
   document.getElementById('geral-rec').textContent=fmt(totRec);
   document.getElementById('geral-gst').textContent=fmt(tgDeb);
 
+  // Busca gastos do mês anterior para fatura atual
+  const mesAnt=mes===0?11:mes-1;
+  const anoAnt=mes===0?ano-1:ano;
+  const jlogAnt=await api({acao:'lerLog',mes:MN[mesAnt],ano:anoAnt});
+  const faturasAnt={};
+  if(jlogAnt&&jlogAnt.log){
+    jlogAnt.log.forEach(h=>{
+      if(h.tipo==='ESTORNO')return;
+      const v=parseFloat(h.valor)||0;
+      if(v>0&&cartNomes.includes(h.pagamento)){
+        faturasAnt[h.pagamento]=(faturasAnt[h.pagamento]||0)+v;
+      }
+    });
+  }
+
   // Faturas
   const creditos=carteiras.filter(c=>c.tipo==='credito');
   const fatEl=document.getElementById('geral-faturas');
   if(!creditos.length){fatEl.innerHTML='<div class="empty"><div class="ico">💳</div><p>Nenhum cartão configurado</p></div>';return;}
-  fatEl.innerHTML=creditos.map(c=>{
-    const fat=faturas[c.nome]||0;
-    const mf=getMesFatura(c.nome);
-    const mesFatTxt=MN[mf.mes].substring(0,3)+'/'+String(mf.ano).slice(-2);
-    const cls=fat>0?'warn':'ok';
-    return`<div class="cart-item" style="margin-bottom:8px;">
-      <div class="cart-header">
-        <span class="cart-nome">💳 ${c.nome}</span>
-        <span class="cart-saldo ${fat>0?'warn':'ok'}">${fat>0?fmt(fat):'Sem gastos'}</span>
-      </div>
-      ${fat>0?`<div class="cart-info">Fatura referente a ${cap(MN[mes])}/${String(ano).slice(-2)} • vence em ${mesFatTxt}</div>
-      <button class="pagar-btn" style="margin-top:8px;" onclick="irAbaCarteiras('${c.nome}')">💳 Ir para pagar fatura</button>`
-      :'<div class="cart-info">Nenhum gasto neste mês</div>'}
-    </div>`;
-  }).join('');
+
+  fatEl.innerHTML=`
+    <div style="font-size:11px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+      📄 Pagar este mês — ref. ${cap(MN[mesAnt])}/${String(anoAnt).slice(-2)}
+    </div>
+    ${creditos.map(c=>{
+      const fat=faturasAnt[c.nome]||0;
+      return`<div class="cart-item" style="margin-bottom:8px;">
+        <div class="cart-header">
+          <span class="cart-nome">💳 ${c.nome}</span>
+          <span class="cart-saldo ${fat>0?'warn':'ok'}">${fat>0?fmt(fat):'R$ 0,00'}</span>
+        </div>
+        ${fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="irAbaCarteiras('${c.nome}')">💳 Pagar fatura</button>`:''}
+      </div>`;
+    }).join('')}
+
+    <div style="font-size:11px;font-weight:700;color:var(--c1);text-transform:uppercase;letter-spacing:0.06em;margin:16px 0 8px;">
+      📋 Próxima fatura — ref. ${cap(MN[mes])}/${String(ano).slice(-2)}
+    </div>
+    ${creditos.map(c=>{
+      const fat=faturas[c.nome]||0;
+      const mf=getMesFatura(c.nome);
+      const mesFatTxt=cap(MN[mf.mes])+'/'+String(mf.ano).slice(-2);
+      return`<div class="cart-item" style="margin-bottom:8px;">
+        <div class="cart-header">
+          <span class="cart-nome">💳 ${c.nome}</span>
+          <span class="cart-saldo ${fat>0?'b':'ok'}">${fat>0?fmt(fat):'R$ 0,00'}</span>
+        </div>
+        ${fat>0?`<div class="cart-info">Vence em ${mesFatTxt}</div>`:''}
+      </div>`;
+    }).join('')}`;
 
   renderLembretes();
 }
