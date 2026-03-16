@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 00:25 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 00:35 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -315,16 +315,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="tabs">
   <div class="tab on" onclick="ir('geral',this)">🏠 Geral</div>
   <div class="tab" onclick="ir('gastos',this)">💸 Gastos</div>
+  <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
+  <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
   <div class="tab" onclick="ir('mensal',this)">📊 Mensal</div>
   <div class="tab" onclick="ir('historico',this)">🕓 Histórico</div>
   <div class="tab" onclick="ir('receita',this)">💰 Receita</div>
   <div class="tab" onclick="ir('carteiras',this)">💳 Carteiras</div>
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
-  <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
-  <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
-  <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
+  <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
 
@@ -386,20 +386,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="slbl">💳 Faturas abertas</div>
   <div id="geral-faturas"><div class="loading">Carregando...</div></div>
 
-  <!-- Lembretes -->
+  <!-- Tarefas resumo -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
-    <div class="slbl" style="margin-bottom:0;">📝 Tarefas</div>
-    <button onclick="abrirNovaT()" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;">+ Nova tarefa</button>
+    <div class="slbl" style="margin-bottom:0;">📝 Tarefas pendentes</div>
+    <button onclick="irAba('tarefas')" style="background:none;border:none;color:var(--c1);font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Ver todas →</button>
   </div>
   <div style="background:var(--card);border-radius:var(--r);padding:16px;border:1px solid var(--border);margin-bottom:16px;">
-    <div id="lembretes-list" style="margin-bottom:12px;"></div>
-    <div style="display:flex;gap:8px;">
-      <input type="text" id="lembrete-inp" class="tinput" placeholder="Tarefa rápida (Enter para salvar)..." style="flex:1;height:42px;margin-bottom:0;" onkeydown="if(event.key==='Enter')addLembrete()"/>
-      <button onclick="addLembrete()" style="height:42px;padding:0 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;color:var(--muted);flex-shrink:0;">+</button>
-    </div>
-    <div style="text-align:center;margin-top:10px;">
-      <button onclick="ir('tarefas',document.querySelectorAll('.tab')[9])" style="background:none;border:none;color:var(--c1);font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Ver todas as tarefas →</button>
-    </div>
+    <div id="lembretes-list"></div>
   </div>
 </div>
 
