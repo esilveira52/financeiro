@@ -273,6 +273,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
+  <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
   <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
@@ -521,6 +522,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ CALENDÁRIO ─ -->
+<div class="page" id="page-calendario">
+  <div class="phdr">
+    <button onclick="mudCalMes(-1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">←</button>
+    <span class="phdr-title" id="cal-titulo">Março 2026</span>
+    <button onclick="mudCalMes(1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">→</button>
+  </div>
+  <!-- Dias da semana -->
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;" id="cal-header"></div>
+  <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
+  <div id="cal-detalhe" style="margin-top:14px;"></div>
+</div>
+
 <!-- ─ PARCELAS ─ -->
 <div class="page" id="page-parcelas">
   <div class="phdr"><span class="phdr-title">📦 Parcelamentos</span><button class="rbtn" onclick="carregarParcelas()">↻ Atualizar</button></div>
@@ -551,15 +565,19 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <textarea class="tinput" id="t-desc" rows="2" placeholder="Detalhes..."></textarea>
     <div class="fl req">Tag</div>
     <div class="tipogrid" id="t-tags" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
-        <div class="fl">Data</div>
+        <div class="fl">Data início</div>
         <input type="date" class="tinput" id="t-data" style="height:42px;margin-bottom:0;"/>
       </div>
       <div>
         <div class="fl">Hora</div>
         <input type="time" class="tinput" id="t-hora" style="height:42px;margin-bottom:0;"/>
       </div>
+    </div>
+    <div id="t-datafim-wrap" style="margin-bottom:12px;">
+      <div class="fl">Data fim <span style="font-weight:400;text-transform:none;font-size:10px">(para períodos — opcional)</span></div>
+      <input type="date" class="tinput" id="t-datafim" style="height:42px;margin-bottom:0;"/>
     </div>
     <div class="mbtns">
       <button class="mbtn-can" onclick="fecharModalT()">Cancelar</button>
@@ -669,6 +687,7 @@ function ir(aba,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
   if(aba==='geral')carregarGeral();
+  if(aba==='calendario')renderCalendario();
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){renderTarefasFiltro();renderTarefas();}
   if(aba==='mensal'){buscarTotais().then(()=>renderGraf());}
@@ -1634,6 +1653,87 @@ async function carregarParcelas(){
   }).join('');
 }
 
+// ── CALENDÁRIO ────────────────────────────────────────────────
+const DIAS_SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function mudCalMes(d){
+  calMes+=d;
+  if(calMes>11){calMes=0;calAno++;}
+  if(calMes<0){calMes=11;calAno--;}
+  renderCalendario();
+}
+
+function renderCalendario(){
+  document.getElementById('cal-titulo').textContent=cap(MN[calMes])+' '+calAno;
+
+  // Header dias semana
+  const hdr=document.getElementById('cal-header');
+  hdr.innerHTML=DIAS_SEM.map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:4px 0;">${d}</div>`).join('');
+
+  const tarefas=getTarefas();
+  const hoje=new Date();
+  const primeiroDia=new Date(calAno,calMes,1).getDay();
+  const diasMes=new Date(calAno,calMes+1,0).getDate();
+
+  const g=document.getElementById('cal-grid');
+  g.innerHTML='';
+
+  // Células vazias antes do dia 1
+  for(let i=0;i<primeiroDia;i++){
+    const el=document.createElement('div');
+    el.style.cssText='min-height:52px;';
+    g.appendChild(el);
+  }
+
+  // Dias do mês
+  for(let dia=1;dia<=diasMes;dia++){
+    const dataStr=`${calAno}-${String(calMes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    const isHoje=hoje.getDate()===dia&&hoje.getMonth()===calMes&&hoje.getFullYear()===calAno;
+
+    // Tarefas neste dia (data única ou dentro do período)
+    const tDia=tarefas.filter(t=>{
+      if(!t.data)return false;
+      if(t.dataFim) return dataStr>=t.data&&dataStr<=t.dataFim;
+      return t.data===dataStr;
+    });
+
+    const cel=document.createElement('div');
+    cel.style.cssText=`min-height:52px;border-radius:10px;padding:4px;cursor:pointer;background:${isHoje?'#e0f7fa':'var(--card)'};border:${isHoje?'2px solid var(--c1)':'1.5px solid var(--border)'};`;
+    cel.innerHTML=`<div style="font-size:11px;font-weight:${isHoje?'800':'600'};color:${isHoje?'var(--c1)':'var(--text)'};margin-bottom:3px;">${dia}</div>
+      ${tDia.slice(0,2).map(t=>{
+        const tag=TAGS_DEF.find(x=>x.id===t.tag);
+        const cor=tag?tag.cor:'var(--muted)';
+        return`<div style="font-size:9px;font-weight:600;color:#fff;background:${cor};border-radius:4px;padding:1px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${t.titulo}</div>`;
+      }).join('')}
+      ${tDia.length>2?`<div style="font-size:9px;color:var(--muted);">+${tDia.length-2}</div>`:''}`;
+
+    cel.onclick=()=>mostrarDetalhe(dia,tDia);
+    g.appendChild(cel);
+  }
+}
+
+function mostrarDetalhe(dia,tarefas){
+  const el=document.getElementById('cal-detalhe');
+  if(!tarefas.length){el.innerHTML='';return;}
+  const dataFmt=`${String(dia).padStart(2,'0')}/${String(calMes+1).padStart(2,'0')}/${calAno}`;
+  el.innerHTML=`<div class="slbl">📅 ${dataFmt}</div>`+
+    tarefas.map(t=>{
+      const tag=TAGS_DEF.find(x=>x.id===t.tag);
+      return`<div class="hitem">
+        <div class="htop">
+          <div class="hname">${t.titulo}</div>
+          ${t.feito?'<span style="font-size:11px;color:#16a34a;font-weight:700;">✅ Feito</span>':''}
+        </div>
+        ${t.desc?`<div class="hdesc">"${t.desc}"</div>`:''}
+        <div class="htags">
+          ${tag?`<span class="htag" style="background:${tag.cor}18;color:${tag.cor};border-color:${tag.cor}">${tag.label}</span>`:''}
+          ${t.dataFim?`<span class="htag">📆 até ${new Date(t.dataFim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</span>`:''}
+          ${t.hora?`<span class="htag">⏰ ${t.hora}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+}
+
 function irAbaCarteiras(cartao){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
@@ -1659,11 +1759,19 @@ const TAGS_DEF=[
   {id:'saude',label:'❤️ Saúde',cor:'#ef4444'},
   {id:'lazer',label:'🎬 Lazer',cor:'#ec4899'},
   {id:'financeiro',label:'💰 Financeiro',cor:'#14b8a6'},
+  {id:'ferias',label:'🏖️ Férias',cor:'#06b6d4'},
+  {id:'folga',label:'😴 Folga',cor:'#a78bfa'},
 ];
 let tagAtiva='todas', editandoT=null, tagSel='';
 
 function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_v2')||'[]');}
 function saveTarefas(l){localStorage.setItem('tarefas_v2',JSON.stringify(l));}
+
+function togglePeriodo(){
+  const cb=document.getElementById('t-tem-periodo');
+  const wrap=document.getElementById('t-datafim-wrap');
+  if(cb&&wrap)wrap.style.display=cb.checked?'block':'none';
+}
 
 function abrirNovaT(){
   editandoT=null;
@@ -1672,6 +1780,7 @@ function abrirNovaT(){
   document.getElementById('t-desc').value='';
   document.getElementById('t-data').value='';
   document.getElementById('t-hora').value='';
+  document.getElementById('t-datafim').value='';
   tagSel='';
   renderTagsSel();
   document.getElementById('modal-tarefa').classList.add('open');
@@ -1686,6 +1795,7 @@ function abrirEditT(id){
   document.getElementById('t-desc').value=t.desc||'';
   document.getElementById('t-data').value=t.data||'';
   document.getElementById('t-hora').value=t.hora||'';
+  document.getElementById('t-datafim').value=t.datafim||'';
   tagSel=t.tag||'';
   renderTagsSel();
   document.getElementById('modal-tarefa').classList.add('open');
@@ -1693,6 +1803,26 @@ function abrirEditT(id){
 
 function fecharModalT(){document.getElementById('modal-tarefa').classList.remove('open');editandoT=null;}
 function fModalT(e){if(e.target===document.getElementById('modal-tarefa'))fecharModalT();}
+
+let modoData='unico';
+function setModoData(modo){
+  modoData=modo;
+  document.getElementById('campo-unico').style.display=modo==='unico'?'block':'none';
+  document.getElementById('campo-periodo').style.display=modo==='periodo'?'block':'none';
+  document.getElementById('modo-unico').classList.toggle('on',modo==='unico');
+  document.getElementById('modo-periodo').classList.toggle('on',modo==='periodo');
+}
+
+let tipoData='unica';
+let calMes=new Date().getMonth(), calAno=new Date().getFullYear();
+
+function setTipoData(tipo){
+  tipoData=tipo;
+  document.getElementById('t-tipo-data-btn').className='t2btn'+(tipo==='unica'?' on':'');
+  document.getElementById('t-tipo-periodo-btn').className='t2btn'+(tipo==='periodo'?' on':'');
+  document.getElementById('t-data-unica-wrap').style.display=tipo==='unica'?'block':'none';
+  document.getElementById('t-data-periodo-wrap').style.display=tipo==='periodo'?'block':'none';
+}
 
 function renderTagsSel(){
   const g=document.getElementById('t-tags');if(!g)return;
@@ -1705,11 +1835,21 @@ function salvarTarefa(){
   const titulo=document.getElementById('t-titulo').value.trim();
   if(!titulo){toast('Digite um título!','err');return;}
   const lista=getTarefas();
+  const dados={
+    titulo,
+    desc:document.getElementById('t-desc').value.trim(),
+    tag:tagSel,
+    data:modoData==='unico'?document.getElementById('t-data').value:'',
+    hora:modoData==='unico'?document.getElementById('t-hora').value:'',
+    dataIni:modoData==='periodo'?document.getElementById('t-data-ini').value:'',
+    dataFim:modoData==='periodo'?document.getElementById('t-data-fim').value:'',
+    modo:modoData
+  };
   if(editandoT){
     const idx=lista.findIndex(x=>x.id===editandoT);
-    if(idx>=0){lista[idx]={...lista[idx],titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,data:document.getElementById('t-data').value,hora:document.getElementById('t-hora').value};}
+    if(idx>=0) lista[idx]={...lista[idx],...dados};
   } else {
-    lista.unshift({id:Date.now(),titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,data:document.getElementById('t-data').value,hora:document.getElementById('t-hora').value,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')});
+    lista.unshift({id:Date.now(),...dados,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')});
   }
   saveTarefas(lista);fecharModalT();renderTarefas();renderLembretes();
   toast(editandoT?'✓ Tarefa editada!':'✓ Tarefa criada!','ok');
@@ -1758,8 +1898,18 @@ function renderTarefas(){
   }
   el.innerHTML=lista.map(t=>{
     const tag=TAGS_DEF.find(x=>x.id===t.tag);
-    const vencida=t.data&&!t.feito&&new Date(t.data)<new Date()&&t.data!==new Date().toISOString().split('T')[0];
-    const dtTxt=t.data?new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+(t.hora?' às '+t.hora:''):'';
+    const dataRef=t.datafim||t.data;
+    const vencida=dataRef&&!t.feito&&new Date(dataRef+'T23:59:59')<new Date();
+    let dtTxt='';
+    if(t.data&&t.datafim){
+      const ini=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+      const fim=new Date(t.datafim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+      // Calcula duração em dias
+      const dias=Math.round((new Date(t.datafim)-new Date(t.data))/(1000*60*60*24))+1;
+      dtTxt=`${ini} → ${fim} (${dias} dia${dias>1?'s':''})`;
+    } else if(t.data){
+      dtTxt=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+(t.hora?' às '+t.hora:'');
+    }
     return`<div class="hitem" style="${t.feito?'opacity:0.6':''}${vencida?';border-color:#ef4444':''}" >
       <div class="htop">
         <div style="display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0;">
