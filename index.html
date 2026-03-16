@@ -273,6 +273,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
+  <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
   <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
@@ -520,6 +521,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ PARCELAS ─ -->
+<div class="page" id="page-parcelas">
+  <div class="phdr"><span class="phdr-title">📦 Parcelamentos</span><button class="rbtn" onclick="carregarParcelas()">↻ Atualizar</button></div>
+  <div class="aviso" id="parc-resumo" style="display:none;background:#e0f7fa;border-color:var(--c1);color:#0369a1;"></div>
+  <div id="parcelas-list"><div class="loading">Carregando...</div></div>
+</div>
+
 <!-- ─ TAREFAS ─ -->
 <div class="page" id="page-tarefas">
   <div class="phdr"><span class="phdr-title">✅ Tarefas</span>
@@ -661,6 +669,7 @@ function ir(aba,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
   if(aba==='geral')carregarGeral();
+  if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){renderTarefasFiltro();renderTarefas();}
   if(aba==='mensal'){buscarTotais().then(()=>renderGraf());}
   if(aba==='anual')buscarAnual();
@@ -1451,20 +1460,42 @@ async function carregarGeral(){
   const fatEl=document.getElementById('geral-faturas');
   if(!creditos.length){fatEl.innerHTML='<div class="empty"><div class="ico">💳</div><p>Nenhum cartão configurado</p></div>';return;}
 
-  const renderSecao=(titulo,corTitulo,fatMap,mesLabel,anoLabel,mostraBotao)=>`
+  // Verifica faturas já pagas no log de FATURAS
+  const jFatPagas=await api({acao:'lerFaturasPagas'});
+  const fatPagas=new Set();
+  if(jFatPagas&&jFatPagas.faturas){
+    jFatPagas.faturas.forEach(f=>fatPagas.add(f.cartao+'||'+f.mes+'||'+f.ano));
+  }
+
+  const hoje=new Date();
+  const renderSecao=(titulo,corTitulo,fatMap,mesLabel,anoLabel,mostraBotao)=>{
+    const isMesAnt=mesLabel===mesAnt&&anoLabel===anoAnt;
+    return`
     <div style="font-size:11px;font-weight:700;color:${corTitulo};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
       ${titulo} — ${cap(MN[mesLabel])}/${String(anoLabel).slice(-2)}
     </div>
     ${creditos.map(c=>{
       const fat=fatMap[c.nome]||0;
-      return`<div class="cart-item" style="margin-bottom:6px;">
+      const chave=c.nome+'||'+MN[mesLabel].toUpperCase()+'||'+anoLabel;
+      const paga=fatPagas.has(chave);
+      // Vencida: fatura do mês anterior e hoje já passou do dia de fechamento+7
+      const fechDia=c.fechamento||1;
+      const vencida=isMesAnt&&!paga&&fat>0&&hoje.getDate()>fechDia+7;
+      const status=paga?'✅ Paga':vencida?'⚠️ Vencida':fat>0?'⏳ Em aberto':'—';
+      const statusCor=paga?'#16a34a':vencida?'#ef4444':'#f59e0b';
+      const borda=vencida?'border:1.5px solid #ef4444;':'';
+      return`<div class="cart-item" style="margin-bottom:6px;${borda}">
         <div class="cart-header">
           <span class="cart-nome">💳 ${c.nome}</span>
-          <span class="cart-saldo ${fat>0?'warn':'ok'} val-priv">${fmt(fat)}</span>
+          <span class="cart-saldo val-priv" style="color:${fat>0?'#f59e0b':'#16a34a'}">${fmt(fat)}</span>
         </div>
-        ${mostraBotao&&fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>`:''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+          <span style="font-size:11px;font-weight:600;color:${statusCor};">${status}</span>
+          ${mostraBotao&&fat>0&&!paga?`<button class="pagar-btn" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar</button>`:''}
+        </div>
       </div>`;
     }).join('')}`;
+  };
 
   fatEl.innerHTML=
     renderSecao('📄 Pagar este mês','#d97706',faturasAnt,mesAnt,anoAnt,true)+
@@ -1475,6 +1506,118 @@ async function carregarGeral(){
 
   renderLembretes();
   atuPrivacy();
+}
+
+// ── PARCELAS ──────────────────────────────────────────────────
+async function carregarParcelas(){
+  if(!sUrl){document.getElementById('parcelas-list').innerHTML='<div class="empty"><div class="ico">🔗</div><p>Configure a URL</p></div>';return;}
+  document.getElementById('parcelas-list').innerHTML='<div class="loading">Carregando parcelas...</div>';
+
+  // Busca logs de todos os meses com parcelas
+  const mesesBuscar=[];
+  for(let i=-2;i<=12;i++){
+    let m=mes+i, a=ano;
+    while(m>11){m-=12;a++;}
+    while(m<0){m+=12;a--;}
+    mesesBuscar.push({m,a});
+  }
+
+  // Busca todos os logs em paralelo
+  const resultados=await Promise.all(mesesBuscar.map(x=>api({acao:'lerLog',mes:MN[x.m],ano:x.a})));
+
+  // Agrupa parcelas pelo nome base (remove " (X/Y)" do final)
+  const grupos={};
+  resultados.forEach((j,ri)=>{
+    if(!j||!j.log)return;
+    const {m,a}=mesesBuscar[ri];
+    j.log.forEach(h=>{
+      if(h.tipo!=='PARCELA')return;
+      // Extrai nome base e info da parcela
+      const match=h.descricao.match(/^(.*)\s\((\d+)\/(\d+)\)$/);
+      if(!match)return;
+      const [,nome,parcAtual,parcTotal]=match;
+      const chave=nome.trim()+'||'+h.categoria+'||'+h.pagamento+'||'+parcTotal;
+      if(!grupos[chave]){
+        grupos[chave]={nome:nome.trim(),categoria:h.categoria,cartao:h.pagamento,total:parseInt(parcTotal),parcelas:[],valorParcela:parseFloat(h.valor)||0};
+      }
+      grupos[chave].parcelas.push({mes:m,ano:a,num:parseInt(parcAtual),valor:parseFloat(h.valor)||0});
+    });
+  });
+
+  const lista=Object.values(grupos);
+  if(!lista.length){
+    document.getElementById('parcelas-list').innerHTML='<div class="empty"><div class="ico">📦</div><p>Nenhum parcelamento encontrado</p></div>';
+    document.getElementById('parc-resumo').style.display='none';
+    return;
+  }
+
+  // Ordena por mês atual (mais relevantes primeiro)
+  lista.sort((a,b)=>{
+    const aAtual=a.parcelas.find(p=>p.mes===mes&&p.ano===ano);
+    const bAtual=b.parcelas.find(p=>p.mes===mes&&p.ano===ano);
+    if(aAtual&&!bAtual)return -1;
+    if(!aAtual&&bAtual)return 1;
+    return 0;
+  });
+
+  // Resumo
+  let totalMes=0;
+  lista.forEach(g=>{const p=g.parcelas.find(x=>x.mes===mes&&x.ano===ano);if(p)totalMes+=p.valor;});
+  const rEl=document.getElementById('parc-resumo');
+  if(totalMes>0){
+    rEl.style.display='block';
+    rEl.innerHTML=`💳 Total em parcelas este mês: <strong>${fmt(totalMes)}</strong>`;
+  } else rEl.style.display='none';
+
+  document.getElementById('parcelas-list').innerHTML=lista.map(g=>{
+    const valorTotal=g.valorParcela*g.total;
+    const pagas=g.parcelas.filter(p=>{
+      const dp=new Date(p.ano,p.mes,1);
+      const da=new Date(ano,mes,1);
+      return dp<=da;
+    }).length;
+    const faltam=g.total-pagas;
+    const pct=Math.round(pagas/g.total*100);
+    const corBarra=faltam===0?'#22c55e':pct>50?'#0ea5e9':'#f59e0b';
+    const tag=ICOLOR[g.categoria]||'var(--out)';
+
+    // Linha do tempo — mostra até 6 parcelas ao redor do mês atual
+    const mesIni=g.parcelas.reduce((min,p)=>p.mes+(p.ano*12)<min.mes+(min.ano*12)?p:min,g.parcelas[0]);
+    const timelineHTML=g.parcelas.map(p=>{
+      const isAtual=p.mes===mes&&p.ano===ano;
+      const passada=new Date(p.ano,p.mes,1)<new Date(ano,mes,1);
+      const bg=passada?'#dcfce7':isAtual?'#0ea5e9':'var(--bg)';
+      const cor=passada?'#16a34a':isAtual?'#fff':'var(--muted)';
+      const brd=isAtual?'#0ea5e9':passada?'#22c55e':'var(--border)';
+      return`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;min-width:36px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:${bg};border:2px solid ${brd};display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:9px;font-weight:700;color:${cor};">${p.num}</span>
+        </div>
+        <span style="font-size:9px;color:var(--muted);font-weight:500;">${MN[p.mes].substring(0,3)}</span>
+      </div>`;
+    }).join(`<div style="flex:1;height:2px;background:${pct>50?'#22c55e':'var(--border)'};margin-top:13px;min-width:6px;"></div>`);
+
+    return`<div class="hitem" style="margin-bottom:10px;">
+      <div class="htop">
+        <div>
+          <div class="hname"><span style="color:${tag}">${EMO[g.categoria]||'📌'}</span> ${g.nome}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${g.cartao} • ${fmt(g.valorParcela)}/mês • Total ${fmt(valorTotal)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:13px;font-weight:700;color:${faltam===0?'#22c55e':'var(--text)'};">${pagas}/${g.total}</div>
+          <div style="font-size:10px;color:var(--muted);">${faltam===0?'✅ Quitado':`${faltam} restante${faltam>1?'s':''}`}</div>
+        </div>
+      </div>
+      <!-- Barra de progresso -->
+      <div style="background:var(--bg);border-radius:99px;height:6px;overflow:hidden;margin:10px 0 8px;">
+        <div style="width:${pct}%;height:100%;border-radius:99px;background:${corBarra};transition:width 0.5s;"></div>
+      </div>
+      <!-- Linha do tempo -->
+      <div style="display:flex;align-items:center;overflow-x:auto;padding:4px 0;scrollbar-width:none;">
+        ${timelineHTML}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function irAbaCarteiras(cartao){
