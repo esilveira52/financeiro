@@ -576,8 +576,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       </div>
     </div>
     <div style="margin-bottom:12px;">
-      <div class="fl">Data fim <span style="font-weight:400;text-transform:none;font-size:10px">(deixe vazio para data única)</span></div>
-      <input type="date" class="tinput" id="t-datafim" style="height:42px;margin-bottom:0;"/>
+      <div class="fl">Data fim <span style="font-weight:400;text-transform:none;font-size:10px">(para férias/período — opcional)</span></div>
+      <input type="date" class="tinput" id="t-datafim" style="height:42px;margin-bottom:4px;"/>
+      <div style="font-size:10px;color:var(--muted);">💡 Use o seletor de data do celular — clique no campo</div>
     </div>
     <div class="mbtns">
       <button class="mbtn-can" onclick="fecharModalT()">Cancelar</button>
@@ -1717,17 +1718,15 @@ function renderCalendario(){
     const celTagsHtml=tDia.slice(0,2).map(t=>{
       const tag=TAGS_DEF.find(x=>x.id===t.tag);
       const cor=tag?tag.cor:'var(--muted)';
-      const isPer=!!t.dataFim;
+      const isPer=!!(t.datafim&&t.datafim!=='');
       if(!isPer){
         return '<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:4px;padding:2px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+t.titulo+'</div>';
       }
       // Período: determina posição do dia dentro do período
       const isIni=t.data===dataStr;
-      const isFim=t.dataFim===dataStr;
-      // Primeiro dia visível no mês (pode ser início real ou dia 1 do mês)
+      const isFim=t.datafim===dataStr;
       const isPrimeiroVisMes=isIni||(dataStr===primeiroDiaMes&&t.data<primeiroDiaMes);
-      // Último dia visível no mês (pode ser fim real ou último dia do mês)
-      const isUltimoVisMes=isFim||(dataStr===ultimoDiaMes&&t.dataFim>ultimoDiaMes);
+      const isUltimoVisMes=isFim||(dataStr===ultimoDiaMes&&t.datafim>ultimoDiaMes);
       const br=isPrimeiroVisMes&&isUltimoVisMes?'4px':isPrimeiroVisMes?'4px 0 0 4px':isUltimoVisMes?'0 4px 4px 0':'0';
       const ml=isPrimeiroVisMes?'0':'-5px';
       const mr=isUltimoVisMes?'0':'-5px';
