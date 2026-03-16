@@ -1855,15 +1855,17 @@ function salvarTarefa(){
   const titulo=document.getElementById('t-titulo').value.trim();
   if(!titulo){toast('Digite um título!','err');return;}
   const lista=getTodas();
+  const isPer=tipoData==='periodo';
   const dados={
     titulo,
     desc:document.getElementById('t-desc').value.trim(),
     tag:tagSel,
-    data:modoData==='unico'?document.getElementById('t-data').value:'',
-    hora:modoData==='unico'?document.getElementById('t-hora').value:'',
-    dataIni:modoData==='periodo'?document.getElementById('t-data-ini').value:'',
-    dataFim:modoData==='periodo'?document.getElementById('t-data-fim').value:'',
-    modo:modoData
+    // Sempre usa 'data' como campo principal — data única ou início do período
+    data:isPer?document.getElementById('t-data-ini').value:document.getElementById('t-data').value,
+    hora:isPer?'':document.getElementById('t-hora').value,
+    // dataFim só existe quando é período
+    dataFim:isPer?document.getElementById('t-data-fim').value:'',
+    modo:isPer?'periodo':'unico'
   };
   if(editandoT){
     const idx=lista.findIndex(x=>x.id===editandoT);
@@ -1963,17 +1965,16 @@ function renderTarefas(){
   }
   el.innerHTML=lista.map(t=>{
     const tag=TAGS_DEF.find(x=>x.id===t.tag);
-    const dataRef=t.datafim||t.data;
+    const dataRef=t.dataFim||t.data;
     const vencida=dataRef&&!t.feito&&new Date(dataRef+'T23:59:59')<new Date();
     let dtTxt='';
-    if(t.data&&t.datafim){
-      const ini=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
-      const fim=new Date(t.datafim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
-      // Calcula duração em dias
-      const dias=Math.round((new Date(t.datafim)-new Date(t.data))/(1000*60*60*24))+1;
+    if(t.data&&t.dataFim){
+      const ini=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
+      const fim=new Date(t.dataFim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
+      const dias=Math.round((new Date(t.dataFim)-new Date(t.data))/(1000*60*60*24))+1;
       dtTxt=`${ini} → ${fim} (${dias} dia${dias>1?'s':''})`;
     } else if(t.data){
-      dtTxt=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+(t.hora?' às '+t.hora:'');
+      dtTxt=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'})+(t.hora?' às '+t.hora:'');
     }
     return`<div class="hitem" style="${t.feito?'opacity:0.6':''}${vencida?';border-color:#ef4444':''}" >
       <div class="htop">
