@@ -1416,18 +1416,33 @@ async function carregarGeral(){
   document.getElementById('geral-rec').textContent=fmt(totRec);
   document.getElementById('geral-gst').textContent=fmt(tgDeb);
 
-  // Busca gastos do mês anterior para fatura atual
+  // Busca gastos dos 3 meses: anterior, atual e próximo
   const mesAnt=mes===0?11:mes-1;
   const anoAnt=mes===0?ano-1:ano;
-  const jlogAnt=await api({acao:'lerLog',mes:MN[mesAnt],ano:anoAnt});
+  const mesProx=mes===11?0:mes+1;
+  const anoProx=mes===11?ano+1:ano;
+
+  const [jlogAnt, jlogProx] = await Promise.all([
+    api({acao:'lerLog',mes:MN[mesAnt],ano:anoAnt}),
+    api({acao:'lerLog',mes:MN[mesProx],ano:anoProx}),
+  ]);
+
   const faturasAnt={};
   if(jlogAnt&&jlogAnt.log){
     jlogAnt.log.forEach(h=>{
       if(h.tipo==='ESTORNO')return;
       const v=parseFloat(h.valor)||0;
-      if(v>0&&cartNomes.includes(h.pagamento)){
+      if(v>0&&cartNomes.includes(h.pagamento))
         faturasAnt[h.pagamento]=(faturasAnt[h.pagamento]||0)+v;
-      }
+    });
+  }
+  const faturasProx={};
+  if(jlogProx&&jlogProx.log){
+    jlogProx.log.forEach(h=>{
+      if(h.tipo==='ESTORNO')return;
+      const v=parseFloat(h.valor)||0;
+      if(v>0&&cartNomes.includes(h.pagamento))
+        faturasProx[h.pagamento]=(faturasProx[h.pagamento]||0)+v;
     });
   }
 
@@ -1436,36 +1451,27 @@ async function carregarGeral(){
   const fatEl=document.getElementById('geral-faturas');
   if(!creditos.length){fatEl.innerHTML='<div class="empty"><div class="ico">💳</div><p>Nenhum cartão configurado</p></div>';return;}
 
-  fatEl.innerHTML=`
-    <div style="font-size:11px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
-      📄 Pagar este mês — ref. ${cap(MN[mesAnt])}/${String(anoAnt).slice(-2)}
+  const renderSecao=(titulo,corTitulo,fatMap,mesLabel,anoLabel,mostraBotao)=>`
+    <div style="font-size:11px;font-weight:700;color:${corTitulo};text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+      ${titulo} — ${cap(MN[mesLabel])}/${String(anoLabel).slice(-2)}
     </div>
     ${creditos.map(c=>{
-      const fat=faturasAnt[c.nome]||0;
-      return`<div class="cart-item" style="margin-bottom:8px;">
+      const fat=fatMap[c.nome]||0;
+      return`<div class="cart-item" style="margin-bottom:6px;">
         <div class="cart-header">
           <span class="cart-nome">💳 ${c.nome}</span>
-          <span class="cart-saldo ${fat>0?'warn':'ok'} val-priv">${fat>0?fmt(fat):'R$ 0,00'}</span>
+          <span class="cart-saldo ${fat>0?'warn':'ok'} val-priv">${fmt(fat)}</span>
         </div>
-        ${fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>`:''}
-      </div>`;
-    }).join('')}
-
-    <div style="font-size:11px;font-weight:700;color:var(--c1);text-transform:uppercase;letter-spacing:0.06em;margin:16px 0 8px;">
-      📋 Próxima fatura — ref. ${cap(MN[mes])}/${String(ano).slice(-2)}
-    </div>
-    ${creditos.map(c=>{
-      const fat=faturas[c.nome]||0;
-      const mf=getMesFatura(c.nome);
-      const mesFatTxt=cap(MN[mf.mes])+'/'+String(mf.ano).slice(-2);
-      return`<div class="cart-item" style="margin-bottom:8px;">
-        <div class="cart-header">
-          <span class="cart-nome">💳 ${c.nome}</span>
-          <span class="cart-saldo ${fat>0?'b':'ok'}">${fat>0?fmt(fat):'R$ 0,00'}</span>
-        </div>
-        ${fat>0?`<div class="cart-info">Vence em ${mesFatTxt}</div>`:''}
+        ${mostraBotao&&fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>`:''}
       </div>`;
     }).join('')}`;
+
+  fatEl.innerHTML=
+    renderSecao('📄 Pagar este mês','#d97706',faturasAnt,mesAnt,anoAnt,true)+
+    `<div style="height:1px;background:var(--border);margin:14px 0;"></div>`+
+    renderSecao('📋 Fatura atual','#0ea5e9',faturas,mes,ano,false)+
+    `<div style="height:1px;background:var(--border);margin:14px 0;"></div>`+
+    renderSecao('📅 Próximo mês','#8b5cf6',faturasProx,mesProx,anoProx,false);
 
   renderLembretes();
   atuPrivacy();
