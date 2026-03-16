@@ -1674,6 +1674,8 @@ function renderCalendario(){
   const hoje=new Date();
   const primeiroDia=new Date(calAno,calMes,1).getDay();
   const diasMes=new Date(calAno,calMes+1,0).getDate();
+  const primeiroDiaMes=`${calAno}-${String(calMes+1).padStart(2,'0')}-01`;
+  const ultimoDiaMes=`${calAno}-${String(calMes+1).padStart(2,'0')}-${String(diasMes).padStart(2,'0')}`;
 
   const g=document.getElementById('cal-grid');
   g.innerHTML='';
@@ -1690,11 +1692,10 @@ function renderCalendario(){
     const dataStr=`${calAno}-${String(calMes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
     const isHoje=hoje.getDate()===dia&&hoje.getMonth()===calMes&&hoje.getFullYear()===calAno;
 
-    // Tarefas neste dia (data única ou dentro do período)
-    const tDia=getTarefas().filter(t=>{
+    // Tarefas neste dia — inclui períodos que cruzam meses
+    const tDia=tarefas.filter(t=>{
       if(!t.data)return false;
       if(t.dataFim){
-        // Compara strings YYYY-MM-DD diretamente funciona para ordenação
         return dataStr>=t.data&&dataStr<=t.dataFim;
       }
       return t.data===dataStr;
@@ -1706,13 +1707,21 @@ function renderCalendario(){
       const tag=TAGS_DEF.find(x=>x.id===t.tag);
       const cor=tag?tag.cor:'var(--muted)';
       const isPer=!!t.dataFim;
+      if(!isPer){
+        return '<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:4px;padding:2px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+t.titulo+'</div>';
+      }
+      // Período: determina posição do dia dentro do período
       const isIni=t.data===dataStr;
       const isFim=t.dataFim===dataStr;
-      const br=isPer?(isIni&&isFim?'4px':isIni?'4px 0 0 4px':isFim?'0 4px 4px 0':'0'):'4px';
-      const ml=isPer&&!isIni?'-5px':'0';
-      const mr=isPer&&!isFim&&t.dataFim?'-5px':'0';
-      const txt=isIni||!isPer?t.titulo:'';
-      return '<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
+      // Primeiro dia visível no mês (pode ser início real ou dia 1 do mês)
+      const isPrimeiroVisMes=isIni||(dataStr===primeiroDiaMes&&t.data<primeiroDiaMes);
+      // Último dia visível no mês (pode ser fim real ou último dia do mês)
+      const isUltimoVisMes=isFim||(dataStr===ultimoDiaMes&&t.dataFim>ultimoDiaMes);
+      const br=isPrimeiroVisMes&&isUltimoVisMes?'4px':isPrimeiroVisMes?'4px 0 0 4px':isUltimoVisMes?'0 4px 4px 0':'0';
+      const ml=isPrimeiroVisMes?'0':'-5px';
+      const mr=isUltimoVisMes?'0':'-5px';
+      const txt=isPrimeiroVisMes?t.titulo:'';
+      return '<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
     }).join('');
     cel.innerHTML='<div style="font-size:11px;font-weight:'+(isHoje?'800':'600')+';color:'+(isHoje?'var(--c1)':'var(--text)')+';margin-bottom:3px;">'+dia+'</div>'+celTagsHtml+(tDia.length>2?'<div style="font-size:9px;color:var(--muted);">+'+(tDia.length-2)+'</div>':'');
 
