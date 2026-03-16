@@ -575,8 +575,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <input type="time" class="tinput" id="t-hora" style="height:42px;margin-bottom:0;"/>
       </div>
     </div>
-    <div id="t-datafim-wrap" style="margin-bottom:12px;">
-      <div class="fl">Data fim <span style="font-weight:400;text-transform:none;font-size:10px">(para períodos — opcional)</span></div>
+    <div style="margin-bottom:12px;">
+      <div class="fl">Data fim <span style="font-weight:400;text-transform:none;font-size:10px">(deixe vazio para data única)</span></div>
       <input type="date" class="tinput" id="t-datafim" style="height:42px;margin-bottom:0;"/>
     </div>
     <div class="mbtns">
@@ -689,7 +689,11 @@ function ir(aba,el){
   if(aba==='geral')carregarGeral();
   if(aba==='calendario')renderCalendario();
   if(aba==='parcelas')carregarParcelas();
-  if(aba==='tarefas'){renderTarefasFiltro();renderTarefas();}
+  if(aba==='tarefas'){
+    renderTarefasFiltro();
+    if(sUrl){api({acao:'lerTarefas'}).then(jt=>{if(jt&&jt.sucesso&&jt.tarefas){localStorage.setItem('tarefas_bkp',JSON.stringify(jt.tarefas));renderTarefas();renderLembretes();}});}
+    renderTarefas();
+  }
   if(aba==='mensal'){buscarTotais().then(()=>renderGraf());}
   if(aba==='anual')buscarAnual();
   if(aba==='historico')carregarHist();
@@ -1409,6 +1413,13 @@ function fmtData(d){
 }
 // ── GERAL ─────────────────────────────────────────────────────
 async function carregarGeral(){
+  // Sincroniza tarefas da planilha
+  if(sUrl){
+    const jt=await api({acao:'lerTarefas'});
+    if(jt&&jt.sucesso&&jt.tarefas){
+      localStorage.setItem('tarefas_bkp',JSON.stringify(jt.tarefas));
+    }
+  }
   if(!sUrl){
     document.getElementById('geral-saldo').textContent='Configure a URL';
     return;
@@ -1695,8 +1706,8 @@ function renderCalendario(){
     // Tarefas neste dia — inclui períodos que cruzam meses
     const tDia=tarefas.filter(t=>{
       if(!t.data)return false;
-      if(t.dataFim){
-        return dataStr>=t.data&&dataStr<=t.dataFim;
+      if(t.datafim&&t.datafim!==''){
+        return dataStr>=t.data&&dataStr<=t.datafim;
       }
       return t.data===dataStr;
     });
@@ -1745,7 +1756,7 @@ function mostrarDetalhe(dia,tarefas){
         ${t.desc?`<div class="hdesc">"${t.desc}"</div>`:''}
         <div class="htags">
           ${tag?`<span class="htag" style="background:${tag.cor}18;color:${tag.cor};border-color:${tag.cor}">${tag.label}</span>`:''}
-          ${t.dataFim?`<span class="htag">📆 até ${new Date(t.dataFim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</span>`:''}
+          ${t.datafim?`<span class="htag">📆 até ${new Date(t.datafim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</span>`:''}
           ${t.hora?`<span class="htag">⏰ ${t.hora}</span>`:''}
         </div>
       </div>`;
@@ -1767,7 +1778,7 @@ function irAbaCarteiras(cartao){
   });
 }
 
-// ── TAREFAS COMPLETO ──────────────────────────────────────────
+// ── TAREFAS COMPLETO ──────────────────────────────────────
 const TAGS_DEF=[
   {id:'carro',label:'🚗 Carro',cor:'#0ea5e9'},
   {id:'casa',label:'🏠 Casa',cor:'#10b981'},
@@ -1782,15 +1793,27 @@ const TAGS_DEF=[
 ];
 let tagAtiva='todas', editandoT=null, tagSel='';
 
-function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_v2')||'[]').filter(x=>!x.lixeira);}
-function getTodas(){return JSON.parse(localStorage.getItem('tarefas_v2')||'[]');}
-function getLixeira(){return JSON.parse(localStorage.getItem('tarefas_v2')||'[]').filter(x=>x.lixeira);}
-function saveTarefas(l){localStorage.setItem('tarefas_v2',JSON.stringify(l));} // saves full list including lixeira
+// Tarefas ficam na planilha para compartilhar entre os dois usuários
+async function getTarefasAPI(){
+  if(!sUrl) return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]');
+  const j=await api({acao:'lerTarefas'});
+  if(j&&j.sucesso){
+    localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
+    return j.tarefas;
+  }
+  return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]');
+}
+async function salvarTarefasAPI(lista){
+  localStorage.setItem('tarefas_bkp',JSON.stringify(lista));
+  if(sUrl) await apiNC({acao:'salvarTarefas',tarefas:JSON.stringify(lista)});
+}
 
-function togglePeriodo(){
-  const cb=document.getElementById('t-tem-periodo');
-  const wrap=document.getElementById('t-datafim-wrap');
-  if(cb&&wrap)wrap.style.display=cb.checked?'block':'none';
+function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>!x.lixeira);}
+function getTodas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]');}
+function getLixeira(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>x.lixeira);}
+function saveTarefas(l){
+  localStorage.setItem('tarefas_bkp',JSON.stringify(l));
+  if(sUrl) apiNC({acao:'salvarTarefas',tarefas:JSON.stringify(l)});
 }
 
 function abrirNovaT(){
@@ -1808,10 +1831,10 @@ function abrirNovaT(){
 }
 
 function abrirEditT(id){
-  const t=getTarefas().find(x=>x.id===id);if(!t)return;
+  const t=getTodas().find(x=>x.id===id);if(!t)return;
   editandoT=id;
   document.getElementById('modal-t-ttl').textContent='✏️ Editar tarefa';
-  document.getElementById('t-titulo').value=t.titulo;
+  document.getElementById('t-titulo').value=t.titulo||'';
   document.getElementById('t-desc').value=t.desc||'';
   document.getElementById('t-data').value=t.data||'';
   document.getElementById('t-hora').value=t.hora||'';
@@ -1824,26 +1847,6 @@ function abrirEditT(id){
 function fecharModalT(){document.getElementById('modal-tarefa').classList.remove('open');editandoT=null;}
 function fModalT(e){if(e.target===document.getElementById('modal-tarefa'))fecharModalT();}
 
-let modoData='unico';
-function setModoData(modo){
-  modoData=modo;
-  document.getElementById('campo-unico').style.display=modo==='unico'?'block':'none';
-  document.getElementById('campo-periodo').style.display=modo==='periodo'?'block':'none';
-  document.getElementById('modo-unico').classList.toggle('on',modo==='unico');
-  document.getElementById('modo-periodo').classList.toggle('on',modo==='periodo');
-}
-
-let tipoData='unica';
-let calMes=new Date().getMonth(), calAno=new Date().getFullYear();
-
-function setTipoData(tipo){
-  tipoData=tipo;
-  document.getElementById('t-tipo-data-btn').className='t2btn'+(tipo==='unica'?' on':'');
-  document.getElementById('t-tipo-periodo-btn').className='t2btn'+(tipo==='periodo'?' on':'');
-  document.getElementById('t-data-unica-wrap').style.display=tipo==='unica'?'block':'none';
-  document.getElementById('t-data-periodo-wrap').style.display=tipo==='periodo'?'block':'none';
-}
-
 function renderTagsSel(){
   const g=document.getElementById('t-tags');if(!g)return;
   g.innerHTML=TAGS_DEF.map(t=>`
@@ -1854,24 +1857,17 @@ function renderTagsSel(){
 function salvarTarefa(){
   const titulo=document.getElementById('t-titulo').value.trim();
   if(!titulo){toast('Digite um título!','err');return;}
+  // Campos sempre: data (início), hora, datafim (fim do período - opcional)
+  const data=document.getElementById('t-data').value;
+  const hora=document.getElementById('t-hora').value;
+  const datafim=document.getElementById('t-datafim').value;
   const lista=getTodas();
-  const isPer=tipoData==='periodo';
-  const dados={
-    titulo,
-    desc:document.getElementById('t-desc').value.trim(),
-    tag:tagSel,
-    // Sempre usa 'data' como campo principal — data única ou início do período
-    data:isPer?document.getElementById('t-data-ini').value:document.getElementById('t-data').value,
-    hora:isPer?'':document.getElementById('t-hora').value,
-    // dataFim só existe quando é período
-    dataFim:isPer?document.getElementById('t-data-fim').value:'',
-    modo:isPer?'periodo':'unico'
-  };
+  const obj={titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,data,hora,datafim,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')};
   if(editandoT){
     const idx=lista.findIndex(x=>x.id===editandoT);
-    if(idx>=0) lista[idx]={...lista[idx],...dados};
+    if(idx>=0) lista[idx]={...lista[idx],titulo:obj.titulo,desc:obj.desc,tag:obj.tag,data:obj.data,hora:obj.hora,datafim:obj.datafim};
   } else {
-    lista.unshift({id:Date.now(),...dados,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')});
+    lista.unshift({id:Date.now(),...obj,lixeira:false});
   }
   saveTarefas(lista);fecharModalT();renderTarefas();renderLembretes();
   toast(editandoT?'✓ Tarefa editada!':'✓ Tarefa criada!','ok');
@@ -1895,14 +1891,12 @@ function restaurarT(id){
 function deletarT(id){
   if(!confirm('Apagar permanentemente?'))return;
   saveTarefas(getTodas().filter(x=>x.id!==id));
-  renderTarefas();
-  toast('✓ Apagado!','ok');
+  renderTarefas();toast('✓ Apagado!','ok');
 }
 function esvaziarLixeira(){
   if(!confirm('Apagar tudo da lixeira permanentemente?'))return;
   saveTarefas(getTodas().filter(x=>!x.lixeira));
-  renderTarefas();
-  toast('✓ Lixeira esvaziada!','ok');
+  renderTarefas();toast('✓ Lixeira esvaziada!','ok');
 }
 
 function renderTarefasFiltro(){
@@ -1930,23 +1924,19 @@ function renderTarefas(){
   // Lixeira
   if(tagAtiva==='lixeira'){
     const lixeira=getLixeira();
-    if(!lixeira.length){
-      el.innerHTML='<div class="empty"><div class="ico">🗑</div><p>Lixeira vazia</p></div>';return;
-    }
+    if(!lixeira.length){el.innerHTML='<div class="empty"><div class="ico">🗑</div><p>Lixeira vazia</p></div>';return;}
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <span style="font-size:12px;color:var(--muted);">${lixeira.length} item(s) na lixeira</span>
+      <span style="font-size:12px;color:var(--muted);">${lixeira.length} item(s)</span>
       <button onclick="esvaziarLixeira()" style="background:#fee2e2;border:1px solid #ef4444;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;color:#ef4444;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">🗑 Esvaziar</button>
-    </div>`+
-    lixeira.map(t=>`
+    </div>`+lixeira.map(t=>`
       <div class="hitem" style="opacity:0.7;">
         <div class="htop">
           <div class="hname" style="text-decoration:line-through;">${t.titulo}</div>
           <div style="display:flex;gap:6px;">
-            <button onclick="restaurarT(${t.id})" style="background:#dcfce7;border:1px solid #22c55e;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;color:#16a34a;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">↩️ Restaurar</button>
-            <button onclick="deletarT(${t.id})" style="background:#fee2e2;border:1px solid #ef4444;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;color:#ef4444;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">✕ Apagar</button>
+            <button onclick="restaurarT(${t.id})" style="background:#dcfce7;border:1px solid #22c55e;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;color:#16a34a;cursor:pointer;">↩️</button>
+            <button onclick="deletarT(${t.id})" style="background:#fee2e2;border:1px solid #ef4444;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700;color:#ef4444;cursor:pointer;">✕</button>
           </div>
         </div>
-        ${t.desc?`<div class="hdesc">"${t.desc}"</div>`:''}
       </div>`).join('');
     return;
   }
@@ -1955,28 +1945,24 @@ function renderTarefas(){
   if(tagAtiva==='pendentes') lista=lista.filter(x=>!x.feito);
   else if(tagAtiva==='feitas') lista=lista.filter(x=>x.feito);
   else if(tagAtiva!=='todas') lista=lista.filter(x=>x.tag===tagAtiva);
-  lista.sort((a,b)=>{
-    if(a.feito!==b.feito)return a.feito?1:-1;
-    if(a.data&&b.data)return a.data.localeCompare(b.data);
-    return 0;
-  });
-  if(!lista.length){
-    el.innerHTML='<div class="empty"><div class="ico">✅</div><p>Nenhuma tarefa aqui!</p></div>';return;
-  }
+  lista.sort((a,b)=>{if(a.feito!==b.feito)return a.feito?1:-1;if(a.data&&b.data)return a.data.localeCompare(b.data);return 0;});
+  if(!lista.length){el.innerHTML='<div class="empty"><div class="ico">✅</div><p>Nenhuma tarefa aqui!</p></div>';return;}
+
   el.innerHTML=lista.map(t=>{
     const tag=TAGS_DEF.find(x=>x.id===t.tag);
-    const dataRef=t.dataFim||t.data;
+    const dataRef=t.datafim||t.data;
     const vencida=dataRef&&!t.feito&&new Date(dataRef+'T23:59:59')<new Date();
+    // Data display
     let dtTxt='';
-    if(t.data&&t.dataFim){
+    if(t.data&&t.datafim){
       const ini=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
-      const fim=new Date(t.dataFim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
-      const dias=Math.round((new Date(t.dataFim)-new Date(t.data))/(1000*60*60*24))+1;
-      dtTxt=`${ini} → ${fim} (${dias} dia${dias>1?'s':''})`;
+      const fim=new Date(t.datafim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
+      const dias=Math.round((new Date(t.datafim)-new Date(t.data))/(1000*60*60*24))+1;
+      dtTxt=ini+' → '+fim+' ('+dias+' dia'+(dias>1?'s':'')+')';
     } else if(t.data){
       dtTxt=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'})+(t.hora?' às '+t.hora:'');
     }
-    return`<div class="hitem" style="${t.feito?'opacity:0.6':''}${vencida?';border-color:#ef4444':''}" >
+    return`<div class="hitem" style="${t.feito?'opacity:0.6':''}${vencida?';border-color:#ef4444':''}">
       <div class="htop">
         <div style="display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0;">
           <div onclick="toggleT(${t.id})" style="width:22px;height:22px;border-radius:7px;border:2px solid ${t.feito?'#22c55e':'var(--border)'};background:${t.feito?'#22c55e':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:1px;">
@@ -1995,7 +1981,6 @@ function renderTarefas(){
       <div class="htags" style="margin-top:8px;">
         ${tag?`<span class="htag" style="background:${tag.cor}18;color:${tag.cor};border-color:${tag.cor}">${tag.label}</span>`:''}
         ${dtTxt?`<span class="htag" style="${vencida?'background:#fee2e2;color:#ef4444;border-color:#ef4444':''}">📅 ${dtTxt}</span>`:''}
-        <span class="htag">${t.criadoEm||''}</span>
       </div>
     </div>`;
   }).join('');
