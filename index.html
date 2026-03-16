@@ -273,6 +273,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
+  <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
 
@@ -404,7 +405,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="pessoa-card"><div class="pessoa-nome" id="p2-nome">Lud</div><div class="pessoa-val val-priv" id="p2-val">R$ 0,00</div></div>
   </div>
   <div class="rcards">
-    <div class="rcard g"><div class="rcard-lbl">Total receitas</div><div class="rcard-val" id="tot-rec-fam">R$ 0,00</div></div>
+    <div class="rcard g"><div class="rcard-lbl">Total receitas</div><div class="rcard-val val-priv" id="tot-rec-fam">R$ 0,00</div></div>
     <div class="rcard r"><div class="rcard-lbl">Total gastos</div><div class="rcard-val val-priv" id="tot-gst-rec">R$ 0,00</div></div>
   </div>
   <div class="form-crd">
@@ -513,6 +514,46 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ TAREFAS ─ -->
+<div class="page" id="page-tarefas">
+  <div class="phdr"><span class="phdr-title">✅ Tarefas</span>
+    <button class="rbtn" onclick="abrirNovaT()">+ Nova</button>
+  </div>
+
+  <!-- Filtro tags -->
+  <div class="cats" id="tag-filtros"></div>
+
+  <!-- Lista -->
+  <div id="tarefas-list"></div>
+</div>
+
+<!-- MODAL NOVA TAREFA -->
+<div class="modal" id="modal-tarefa" onclick="fModalT(event)">
+  <div class="modal-in">
+    <div class="modal-ttl" id="modal-t-ttl">✅ Nova tarefa</div>
+    <div class="fl req">Título</div>
+    <input type="text" class="tinput" id="t-titulo" placeholder="Ex: Revisar seguro do carro..." style="height:42px;margin-bottom:12px;"/>
+    <div class="fl">Descrição <span style="font-weight:400;text-transform:none;font-size:10px">(opcional)</span></div>
+    <textarea class="tinput" id="t-desc" rows="2" placeholder="Detalhes..."></textarea>
+    <div class="fl req">Tag</div>
+    <div class="tipogrid" id="t-tags" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div>
+        <div class="fl">Data</div>
+        <input type="date" class="tinput" id="t-data" style="height:42px;margin-bottom:0;"/>
+      </div>
+      <div>
+        <div class="fl">Hora</div>
+        <input type="time" class="tinput" id="t-hora" style="height:42px;margin-bottom:0;"/>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn-can" onclick="fecharModalT()">Cancelar</button>
+      <button class="mbtn-ok" onclick="salvarTarefa()">✅ Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─ CONFIG ─ -->
 <div class="page" id="page-config">
   <div class="phdr"><span class="phdr-title">⚙️ Configurações</span></div>
@@ -614,6 +655,7 @@ function ir(aba,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
   if(aba==='geral')carregarGeral();
+  if(aba==='tarefas'){renderTarefasFiltro();renderTarefas();}
   if(aba==='mensal'){buscarTotais().then(()=>renderGraf());}
   if(aba==='anual')buscarAnual();
   if(aba==='historico')carregarHist();
@@ -1431,43 +1473,170 @@ function irAbaCarteiras(cartao){
   });
 }
 
+// ── TAREFAS COMPLETO ──────────────────────────────────────────
+const TAGS_DEF=[
+  {id:'carro',label:'🚗 Carro',cor:'#0ea5e9'},
+  {id:'casa',label:'🏠 Casa',cor:'#10b981'},
+  {id:'fitness',label:'💪 Fitness',cor:'#f97316'},
+  {id:'estudo',label:'📚 Estudo',cor:'#8b5cf6'},
+  {id:'alimentacao',label:'🛒 Alimentação',cor:'#f59e0b'},
+  {id:'saude',label:'❤️ Saúde',cor:'#ef4444'},
+  {id:'lazer',label:'🎬 Lazer',cor:'#ec4899'},
+  {id:'financeiro',label:'💰 Financeiro',cor:'#14b8a6'},
+];
+let tagAtiva='todas', editandoT=null, tagSel='';
+
+function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_v2')||'[]');}
+function saveTarefas(l){localStorage.setItem('tarefas_v2',JSON.stringify(l));}
+
+function abrirNovaT(){
+  editandoT=null;
+  document.getElementById('modal-t-ttl').textContent='✅ Nova tarefa';
+  document.getElementById('t-titulo').value='';
+  document.getElementById('t-desc').value='';
+  document.getElementById('t-data').value='';
+  document.getElementById('t-hora').value='';
+  tagSel='';
+  renderTagsSel();
+  document.getElementById('modal-tarefa').classList.add('open');
+  setTimeout(()=>document.getElementById('t-titulo').focus(),100);
+}
+
+function abrirEditT(id){
+  const t=getTarefas().find(x=>x.id===id);if(!t)return;
+  editandoT=id;
+  document.getElementById('modal-t-ttl').textContent='✏️ Editar tarefa';
+  document.getElementById('t-titulo').value=t.titulo;
+  document.getElementById('t-desc').value=t.desc||'';
+  document.getElementById('t-data').value=t.data||'';
+  document.getElementById('t-hora').value=t.hora||'';
+  tagSel=t.tag||'';
+  renderTagsSel();
+  document.getElementById('modal-tarefa').classList.add('open');
+}
+
+function fecharModalT(){document.getElementById('modal-tarefa').classList.remove('open');editandoT=null;}
+function fModalT(e){if(e.target===document.getElementById('modal-tarefa'))fecharModalT();}
+
+function renderTagsSel(){
+  const g=document.getElementById('t-tags');if(!g)return;
+  g.innerHTML=TAGS_DEF.map(t=>`
+    <button class="tipobtn${tagSel===t.id?' on':''}" style="${tagSel===t.id?`background:${t.cor}20;border-color:${t.cor};color:${t.cor}`:''}"
+      onclick="tagSel='${t.id}';renderTagsSel()">${t.label}</button>`).join('');
+}
+
+function salvarTarefa(){
+  const titulo=document.getElementById('t-titulo').value.trim();
+  if(!titulo){toast('Digite um título!','err');return;}
+  const lista=getTarefas();
+  if(editandoT){
+    const idx=lista.findIndex(x=>x.id===editandoT);
+    if(idx>=0){lista[idx]={...lista[idx],titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,data:document.getElementById('t-data').value,hora:document.getElementById('t-hora').value};}
+  } else {
+    lista.unshift({id:Date.now(),titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,data:document.getElementById('t-data').value,hora:document.getElementById('t-hora').value,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')});
+  }
+  saveTarefas(lista);fecharModalT();renderTarefas();renderLembretes();
+  toast(editandoT?'✓ Tarefa editada!':'✓ Tarefa criada!','ok');
+}
+
+function toggleT(id){
+  const lista=getTarefas().map(x=>x.id===id?{...x,feito:!x.feito}:x);
+  saveTarefas(lista);renderTarefas();renderLembretes();
+}
+
+function deletarT(id){
+  if(!confirm('Apagar esta tarefa?'))return;
+  saveTarefas(getTarefas().filter(x=>x.id!==id));
+  renderTarefas();renderLembretes();
+}
+
+function renderTarefasFiltro(){
+  const g=document.getElementById('tag-filtros');if(!g)return;
+  const todas={id:'todas',label:'📋 Todas',cor:'var(--c1)'};
+  const pendentes={id:'pendentes',label:'⏳ Pendentes',cor:'#f59e0b'};
+  const feitas={id:'feitas',label:'✅ Concluídas',cor:'#22c55e'};
+  [todas,pendentes,feitas,...TAGS_DEF].forEach(t=>{
+    const b=document.createElement('button');
+    b.className='catb'+(tagAtiva===t.id?' on':'');
+    if(tagAtiva===t.id){b.style.background=t.cor.startsWith('#')?t.cor:'';b.style.borderColor=t.cor.startsWith('#')?t.cor:'';}
+    b.textContent=t.label;
+    b.onclick=()=>{tagAtiva=t.id;renderTarefasFiltro();renderTarefas();};
+    g.appendChild(b);
+  });
+}
+
+function renderTarefas(){
+  const el=document.getElementById('tarefas-list');if(!el)return;
+  let lista=getTarefas();
+  if(tagAtiva==='pendentes') lista=lista.filter(x=>!x.feito);
+  else if(tagAtiva==='feitas') lista=lista.filter(x=>x.feito);
+  else if(tagAtiva!=='todas') lista=lista.filter(x=>x.tag===tagAtiva);
+  // Ordena: pendentes primeiro, depois por data
+  lista.sort((a,b)=>{
+    if(a.feito!==b.feito)return a.feito?1:-1;
+    if(a.data&&b.data)return a.data.localeCompare(b.data);
+    return 0;
+  });
+  if(!lista.length){
+    el.innerHTML='<div class="empty"><div class="ico">✅</div><p>Nenhuma tarefa aqui!</p></div>';return;
+  }
+  el.innerHTML=lista.map(t=>{
+    const tag=TAGS_DEF.find(x=>x.id===t.tag);
+    const vencida=t.data&&!t.feito&&new Date(t.data)<new Date()&&t.data!==new Date().toISOString().split('T')[0];
+    const dtTxt=t.data?new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+(t.hora?' às '+t.hora:''):'';
+    return`<div class="hitem" style="${t.feito?'opacity:0.6':''}${vencida?';border-color:#ef4444':''}" >
+      <div class="htop">
+        <div style="display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0;">
+          <div onclick="toggleT(${t.id})" style="width:22px;height:22px;border-radius:7px;border:2px solid ${t.feito?'#22c55e':'var(--border)'};background:${t.feito?'#22c55e':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:1px;">
+            ${t.feito?'<span style="color:#fff;font-size:12px;font-weight:800;">✓</span>':''}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div class="hname" style="text-decoration:${t.feito?'line-through':'none'}">${t.titulo}</div>
+            ${t.desc?`<div class="hdesc">${t.desc}</div>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button onclick="abrirEditT(${t.id})" style="background:none;border:none;font-size:15px;cursor:pointer;padding:0;">✏️</button>
+          <button onclick="deletarT(${t.id})" style="background:none;border:none;font-size:15px;cursor:pointer;padding:0;">🗑</button>
+        </div>
+      </div>
+      <div class="htags" style="margin-top:8px;">
+        ${tag?`<span class="htag" style="background:${tag.cor}18;color:${tag.cor};border-color:${tag.cor}">${tag.label}</span>`:''}
+        ${dtTxt?`<span class="htag" style="${vencida?'background:#fee2e2;color:#ef4444;border-color:#ef4444':''}">📅 ${dtTxt}</span>`:''}
+        <span class="htag">${t.criadoEm||''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ── LEMBRETES ─────────────────────────────────────────────────
-function getLembretes(){return JSON.parse(localStorage.getItem('lembretes')||'[]');}
-function saveLembretes(l){localStorage.setItem('lembretes',JSON.stringify(l));}
+function renderLembretes(){
+  // Mostra resumo das tarefas pendentes na aba Geral (max 3)
+  const el=document.getElementById('lembretes-list');if(!el)return;
+  const pendentes=getTarefas().filter(x=>!x.feito).slice(0,3);
+  if(!pendentes.length){
+    el.innerHTML='<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">Nenhuma tarefa pendente 🎉</div>';return;
+  }
+  el.innerHTML=pendentes.map(t=>{
+    const tag=TAGS_DEF.find(x=>x.id===t.tag);
+    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);">
+      <div onclick="toggleT(${t.id});renderLembretes();" style="width:20px;height:20px;border-radius:6px;border:2px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">${t.titulo}</div>
+        ${tag?`<div style="font-size:10px;color:var(--muted);margin-top:1px;">${tag.label}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 
 function addLembrete(){
+  // Quick add from geral tab
   const inp=document.getElementById('lembrete-inp');
-  const txt=inp.value.trim();
-  if(!txt)return;
-  const l=getLembretes();
-  l.unshift({id:Date.now(),texto:txt,feito:false,data:new Date().toLocaleDateString('pt-BR')});
-  saveLembretes(l);inp.value='';renderLembretes();
-}
-
-function toggleLembrete(id){
-  const l=getLembretes().map(x=>x.id===id?{...x,feito:!x.feito}:x);
-  saveLembretes(l);renderLembretes();
-}
-
-function deleteLembrete(id){
-  saveLembretes(getLembretes().filter(x=>x.id!==id));renderLembretes();
-}
-
-function renderLembretes(){
-  const l=getLembretes();
-  const el=document.getElementById('lembretes-list');if(!el)return;
-  if(!l.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px;">Nenhum lembrete ainda 😊</div>';return;}
-  el.innerHTML=l.map(x=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border);">
-      <div onclick="toggleLembrete(${x.id})" style="width:20px;height:20px;border-radius:6px;border:2px solid ${x.feito?'#22c55e':'var(--border)'};background:${x.feito?'#22c55e':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
-        ${x.feito?'<span style="color:#fff;font-size:11px;font-weight:800;">✓</span>':''}
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:500;text-decoration:${x.feito?'line-through':'none'};color:${x.feito?'var(--muted)':'var(--text)'};">${x.texto}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:1px;">${x.data}</div>
-      </div>
-      <button onclick="deleteLembrete(${x.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;">×</button>
-    </div>`).join('');
+  const txt=inp.value.trim();if(!txt)return;
+  const lista=getTarefas();
+  lista.unshift({id:Date.now(),titulo:txt,desc:'',tag:'',data:'',hora:'',feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')});
+  saveTarefas(lista);inp.value='';renderLembretes();
+  toast('✓ Tarefa adicionada!','ok');
 }
 
 // ── PRIVACIDADE ───────────────────────────────────────────────
