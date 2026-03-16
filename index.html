@@ -1732,11 +1732,14 @@ function renderCalendario(){
       } else {
         var isIni=t.data===dataStr;
         var isFim=df===dataStr;
-        var isPrimVis=isIni||(dataStr===primeiroDiaMes&&t.data<primeiroDiaMes);
-        var isUltVis=isFim||(dataStr===ultimoDiaMes&&df>ultimoDiaMes);
+        // Primeiro dia visível = dia de início OU dia 1 do mês se período começou antes
+        var isPrimVis=isIni||(dataStr===primeiroDiaMes&&t.data<=primeiroDiaMes);
+        // Último dia visível = dia de fim OU último dia do mês se período continua depois
+        var isUltVis=isFim||(dataStr===ultimoDiaMes&&df>=ultimoDiaMes);
         var br=isPrimVis&&isUltVis?'4px':isPrimVis?'4px 0 0 4px':isUltVis?'0 4px 4px 0':'0';
         var ml=isPrimVis?'0':'-5px';
         var mr=isUltVis?'0':'-5px';
+        // Mostra nome no primeiro dia visível do mês (seja o início real ou dia 1)
         var txt=isPrimVis?t.titulo:'';
         innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
       }
