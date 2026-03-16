@@ -240,6 +240,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .loading{text-align:center;padding:24px;color:var(--muted);font-size:12px;opacity:0.6;}
 .aviso{background:#fefce8;border:1.5px solid #fcd34d;border-radius:var(--rs);padding:11px 13px;margin-bottom:14px;font-size:12px;color:#854d0e;}
 .divider{height:1px;background:var(--border);margin:14px 0;}
+.priv{filter:blur(6px);user-select:none;transition:filter 0.2s;}
+.priv-shown{filter:none;transition:filter 0.2s;}
 .toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;z-index:400;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
 .toast.show{display:block;}
 .toast.ok{background:linear-gradient(135deg,#16a34a,#22c55e);}
@@ -255,6 +257,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="hdr-r">
       <div class="chip" onclick="irCfg()" id="chip-usr">👤</div>
       <div class="mbadge" onclick="abrirMes()"><span id="mes-lbl">Mês</span><span>▾</span></div>
+      <div class="icobtn" onclick="togglePrivacy()" id="privacy-btn">🙈</div>
       <div class="icobtn" onclick="irCfg()">⚙️</div>
     </div>
   </div>
@@ -318,10 +321,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <!-- Saldo do mês -->
   <div class="saldo-box" id="geral-saldo-box">
     <div class="saldo-lbl">Saldo do mês</div>
-    <div class="saldo-val" id="geral-saldo">—</div>
+    <div class="saldo-val val-priv" id="geral-saldo">—</div>
     <div style="display:flex;gap:16px;margin-top:12px;">
-      <div><div style="font-size:10px;opacity:0.75;margin-bottom:2px;">RECEITAS</div><div style="font-size:14px;font-weight:700;" id="geral-rec">—</div></div>
-      <div><div style="font-size:10px;opacity:0.75;margin-bottom:2px;">GASTOS DÉBITO</div><div style="font-size:14px;font-weight:700;" id="geral-gst">—</div></div>
+      <div><div style="font-size:10px;opacity:0.75;margin-bottom:2px;">RECEITAS</div><div style="font-size:14px;font-weight:700;" class="val-priv" id="geral-rec">—</div></div>
+      <div><div style="font-size:10px;opacity:0.75;margin-bottom:2px;">GASTOS DÉBITO</div><div style="font-size:14px;font-weight:700;" class="val-priv" id="geral-gst">—</div></div>
     </div>
   </div>
 
@@ -394,15 +397,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="phdr"><span class="phdr-title">💰 Receita</span><button class="rbtn" onclick="carregarReceita()">↻ Atualizar</button></div>
   <div class="saldo-box">
     <div class="saldo-lbl">Saldo do mês (receita - gastos)</div>
-    <div class="saldo-val" id="saldo-geral">R$ 0,00</div>
+    <div class="saldo-val val-priv" id="saldo-geral">R$ 0,00</div>
   </div>
   <div class="pessoa-grid">
-    <div class="pessoa-card"><div class="pessoa-nome" id="p1-nome">Edu</div><div class="pessoa-val" id="p1-val">R$ 0,00</div></div>
-    <div class="pessoa-card"><div class="pessoa-nome" id="p2-nome">Lud</div><div class="pessoa-val" id="p2-val">R$ 0,00</div></div>
+    <div class="pessoa-card"><div class="pessoa-nome" id="p1-nome">Edu</div><div class="pessoa-val val-priv" id="p1-val">R$ 0,00</div></div>
+    <div class="pessoa-card"><div class="pessoa-nome" id="p2-nome">Lud</div><div class="pessoa-val val-priv" id="p2-val">R$ 0,00</div></div>
   </div>
   <div class="rcards">
     <div class="rcard g"><div class="rcard-lbl">Total receitas</div><div class="rcard-val" id="tot-rec-fam">R$ 0,00</div></div>
-    <div class="rcard r"><div class="rcard-lbl">Total gastos</div><div class="rcard-val" id="tot-gst-rec">R$ 0,00</div></div>
+    <div class="rcard r"><div class="rcard-lbl">Total gastos</div><div class="rcard-val val-priv" id="tot-gst-rec">R$ 0,00</div></div>
   </div>
   <div class="form-crd">
     <div class="form-ttl">➕ Nova receita</div>
@@ -469,7 +472,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <!-- ─ RESERVA ─ -->
 <div class="page" id="page-reserva">
   <div class="phdr"><span class="phdr-title">🏦 Reserva</span><button class="rbtn" onclick="carregarReserva()">↻ Atualizar</button></div>
-  <div class="saldo-box"><div class="saldo-lbl">💰 Saldo da reserva</div><div class="saldo-val" id="saldo-res">R$ 0,00</div></div>
+  <div class="saldo-box"><div class="saldo-lbl">💰 Saldo da reserva</div><div class="saldo-val val-priv" id="saldo-res">R$ 0,00</div></div>
   <div class="form-crd">
     <div class="form-ttl">Movimentação</div>
     <div class="btn2">
@@ -595,6 +598,7 @@ function init(){
   }
   else renderLim({});
   rLoginGrid();
+  atuPrivacy();
 }
 
 function atuHdr(){
@@ -875,6 +879,7 @@ async function carregarHist(){
   }else{
     document.getElementById('hist-list').innerHTML='<div class="empty"><div class="ico">🕓</div><p>Nenhum lançamento em '+cap(MN[mes])+'</p></div>';
   }
+  atuPrivacy();
 }
 function abrirEstornoIdx(idx){const h=window._logStore[idx];if(h&&h.tipo!=='ESTORNO')abrirEstorno(h);}
 
@@ -952,19 +957,20 @@ async function carregarReceita(){
     el.textContent=(sl<0?'- ':'')+fmt(Math.abs(sl));
     el.style.color=sl>=0?'rgba(255,255,255,1)':'#fca5a5';
     window._recHistStore=receitas;
-    if(!receitas.length){document.getElementById('rec-hist-list').innerHTML='<div class="empty"><div class="ico">💰</div><p>Nenhuma receita em '+cap(MN[mes])+'</p></div>';return;}
+    if(!receitas.length){document.getElementById('rec-hist-list').innerHTML='<div class="empty"><div class="ico">💰</div><p>Nenhuma receita em '+cap(MN[mes])+'</p></div>';atuPrivacy();return;}
     document.getElementById('rec-hist-list').innerHTML=receitas.map((r,idx)=>`
       <div class="hitem">
         <div class="htop">
           <div class="hname">💰 ${r.tipo} — <strong>${r.pessoa}</strong></div>
           <div style="display:flex;align-items:center;gap:6px;">
             ${parseFloat(r.valor)>0?`<button class="estbtn" onclick="estRecIdx(${idx})">↩️</button>`:''}
-            <div class="hval ${parseFloat(r.valor)>0?'pos':'est'}">${parseFloat(r.valor)>0?'+':''} ${fmt(Math.abs(parseFloat(r.valor)))}</div>
+            <div class="hval ${parseFloat(r.valor)>0?'pos':'est'} val-priv">${parseFloat(r.valor)>0?'+':''} ${fmt(Math.abs(parseFloat(r.valor)))}</div>
           </div>
         </div>
         ${r.descricao?`<div class="hdesc">"${r.descricao}"</div>`:''}
         <div class="htags">${r.conta?`<span class="htag">🏦 ${r.conta}</span>`:''}<span class="htag">📅 ${fmtData(r.data)}</span></div>
       </div>`).join('');
+  atuPrivacy();
   }
 }
 async function estRecIdx(idx){
@@ -1007,8 +1013,9 @@ async function carregarCarteiras(){
 function renderCartDebitoResumo(){
   document.getElementById('cart-debito-resumo').innerHTML=carteiras.filter(c=>c.tipo==='debito').map(c=>{
     const cls=c.saldo<0?'neg':c.saldo===0?'warn':'ok';
-    return`<div class="cart-item"><div class="cart-header"><span class="cart-nome">💵 ${c.nome}<span class="cart-badge deb">débito</span></span><span class="cart-saldo ${cls}">${fmt(c.saldo)}</span></div></div>`;
+    return`<div class="cart-item"><div class="cart-header"><span class="cart-nome">💵 ${c.nome}<span class="cart-badge deb">débito</span></span><span class="cart-saldo ${cls} val-priv">${fmt(c.saldo)}</span></div></div>`;
   }).join('');
+  atuPrivacy();
 }
 async function renderCartCreditoResumo(){
   // Busca gastos do mês para cada cartão de crédito
@@ -1032,7 +1039,7 @@ async function renderCartCreditoResumo(){
     return`<div class="cart-item">
       <div class="cart-header">
         <span class="cart-nome">💳 ${c.nome}<span class="cart-badge cred">crédito</span></span>
-        <span class="cart-saldo ${cls}">${c.limite>0?fmt(c.saldo)+' disp.':fmt(c.saldo)}</span>
+        <span class="cart-saldo ${cls} val-priv">${c.limite>0?fmt(c.saldo)+' disp.':fmt(c.saldo)}</span>
       </div>
       ${fatAtual>0?`<div style="display:flex;justify-content:space-between;align-items:center;background:#fef3c7;border-radius:8px;padding:6px 10px;margin-bottom:6px;">
         <span style="font-size:11px;color:#92400e;font-weight:600;">📄 Fatura ${MN[mes].toLowerCase().substring(0,3)}</span>
@@ -1043,6 +1050,7 @@ async function renderCartCreditoResumo(){
       <button class="pagar-btn" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>
     </div>`;
   }).join('');
+  atuPrivacy();
 }
 function renderCfgCredito(){
   const credito=carteiras.filter(c=>c.tipo==='credito');
@@ -1109,17 +1117,20 @@ async function abrirPagarFatura(cartao){
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
 
-  // A fatura que estou pagando AGORA contém gastos do mês anterior
-  // Período: dia fechamento do mês retrasado até dia (fechamento-1) do mês anterior
-  // Exemplo: fecha dia 8, estou em março →
-  //   pago a fatura de fevereiro → gastos de 08/jan até 07/fev
-  const mesRef=mes===0?11:mes-1;       // mês anterior = mês de referência da fatura
-  const anoRef=mes===0?ano-1:ano;
-  const mesIni=mesRef===0?11:mesRef-1; // mês ainda anterior = início do período
-  const anoIni=mesRef===0?anoRef-1:anoRef;
-  const diaFim=fechDia-1>0?fechDia-1:28;
+  // Estou em MARÇO → pagando fatura de FEVEREIRO
+  // Fatura fevereiro = gastos de 08/jan até 07/fev
+  // mesRef = mês dos gastos = mês anterior ao atual = FEVEREIRO
+  // Período início = dia fechamento do mês 2 atrás (janeiro)
+  // Período fim = dia (fechamento-1) do mesRef (fevereiro)
 
-  const periodoTxt=`${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
+  const mesRef = mes===0 ? 11 : mes-1;           // FEVEREIRO
+  const anoRef = mes===0 ? ano-1 : ano;
+  const mesIni = mesRef===0 ? 11 : mesRef-1;      // JANEIRO (início do período)
+  const anoIni = mesRef===0 ? anoRef-1 : anoRef;
+  const diaFim = fechDia-1 > 0 ? fechDia-1 : 28;
+
+  // Período correto: 08/jan/2026 até 07/fev/2026
+  const periodoTxt = `${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
 
   fatData={cartao, mesRef, anoRef, periodoTxt};
 
@@ -1127,8 +1138,9 @@ async function abrirPagarFatura(cartao){
   document.getElementById('fat-info').innerHTML='<div class="loading">Calculando...</div>';
   document.getElementById('modal-fatura').classList.add('open');
 
-  // Busca gastos do mês de referência (mês anterior)
-  const j=await api({acao:'lerGastosCartao',cartao,mes:MN[mesRef],ano:anoRef});
+  // Busca gastos do período exato da fatura
+  // mes = início do período (mesIni), mes2 = fim do período (mesRef)
+  const j=await api({acao:'lerGastosCartao',cartao,mes:MN[mesIni],ano:anoIni,mes2:MN[mesRef],ano2:anoRef,fechDia});
   if(j&&j.sucesso){
     fatData.total=j.gastos.total;
     const itensTxt=j.gastos.itens.length>0
@@ -1137,7 +1149,7 @@ async function abrirPagarFatura(cartao){
       :'Nenhum gasto encontrado neste período';
     document.getElementById('fat-info').innerHTML=`
       <div style="font-size:11px;color:#0369a1;margin-bottom:6px;">📅 Período: <strong>${periodoTxt}</strong></div>
-      <div style="font-size:11px;color:#0369a1;margin-bottom:8px;">Referente a: <strong>${cap(MN[mesRef])}/${String(anoRef).slice(-2)}</strong></div>
+      <div style="font-size:11px;color:#0369a1;margin-bottom:8px;">Referente a: <strong>${cap(MN[mesRef])}/${String(anoRef).slice(-2)}</strong> — pago em <strong>${cap(MN[mes])}/${String(ano).slice(-2)}</strong></div>
       Total da fatura: <strong style="font-size:15px;">${fmt(j.gastos.total)}</strong><br><br>
       <div style="font-size:11px;color:#0369a1;">${itensTxt}</div>`;
     document.getElementById('fat-valor').value=j.gastos.total.toFixed(2);
@@ -1195,6 +1207,7 @@ async function carregarReserva(){
     document.getElementById('saldo-res').textContent=fmt(j.reserva.saldo||0);
     if(!j.reserva.movimentos||!j.reserva.movimentos.length){document.getElementById('res-list').innerHTML='<div class="empty"><div class="ico">🏦</div><p>Nenhuma movimentação ainda</p></div>';return;}
     document.getElementById('res-list').innerHTML=j.reserva.movimentos.map(r=>{const ent=r.tipo.toUpperCase()==='ENTRADA';return`<div class="hitem"><div class="htop"><div class="hname">${ent?'➕ Depósito':'➖ Retirada'}</div><div class="hval ${ent?'pos':'neg'}">${ent?'+':'-'} ${fmt(parseFloat(r.valor))}</div></div>${r.descricao?`<div class="hdesc">"${r.descricao}"</div>`:''}<div class="htags">${r.conta?`<span class="htag">🏦 ${r.conta}</span>`:''}<span class="htag">Saldo: ${fmt(parseFloat(r.saldo))}</span><span class="htag">📅 ${fmtData(r.data)}</span></div></div>`;}).join('');
+  atuPrivacy();
   }
 }
 
@@ -1377,7 +1390,7 @@ async function carregarGeral(){
       return`<div class="cart-item" style="margin-bottom:8px;">
         <div class="cart-header">
           <span class="cart-nome">💳 ${c.nome}</span>
-          <span class="cart-saldo ${fat>0?'warn':'ok'}">${fat>0?fmt(fat):'R$ 0,00'}</span>
+          <span class="cart-saldo ${fat>0?'warn':'ok'} val-priv">${fat>0?fmt(fat):'R$ 0,00'}</span>
         </div>
         ${fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>`:''}
       </div>`;
@@ -1400,6 +1413,7 @@ async function carregarGeral(){
     }).join('')}`;
 
   renderLembretes();
+  atuPrivacy();
 }
 
 function irAbaCarteiras(cartao){
@@ -1454,6 +1468,24 @@ function renderLembretes(){
       </div>
       <button onclick="deleteLembrete(${x.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0;">×</button>
     </div>`).join('');
+}
+
+// ── PRIVACIDADE ───────────────────────────────────────────────
+let privado=localStorage.getItem('privado')!=='false';
+
+function togglePrivacy(){
+  privado=!privado;
+  localStorage.setItem('privado',privado);
+  atuPrivacy();
+}
+
+function atuPrivacy(){
+  const btn=document.getElementById('privacy-btn');
+  if(btn)btn.textContent=privado?'🙈':'👁';
+  document.querySelectorAll('.val-priv').forEach(el=>{
+    el.classList.toggle('priv',privado);
+    el.classList.toggle('priv-shown',!privado);
+  });
 }
 
 function toast(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(tipo||'');setTimeout(()=>t.className='toast',3200);}
