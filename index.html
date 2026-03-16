@@ -1667,6 +1667,8 @@ async function carregarParcelas(){
 
 // ── CALENDÁRIO ────────────────────────────────────────────────
 const DIAS_SEM=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+let calMes=new Date().getMonth();
+let calAno=new Date().getFullYear();
 
 function mudCalMes(d){
   calMes+=d;
@@ -1676,20 +1678,23 @@ function mudCalMes(d){
 }
 
 function renderCalendario(){
-  document.getElementById('cal-titulo').textContent=cap(MN[calMes])+' '+calAno;
+  const titulo=document.getElementById('cal-titulo');
+  if(titulo) titulo.textContent=cap(MN[calMes])+' '+calAno;
 
   // Header dias semana
   const hdr=document.getElementById('cal-header');
-  hdr.innerHTML=DIAS_SEM.map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:4px 0;">${d}</div>`).join('');
+  if(hdr) hdr.innerHTML=DIAS_SEM.map(d=>'<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:4px 0;">'+d+'</div>').join('');
 
   const tarefas=getTarefas();
   const hoje=new Date();
   const primeiroDia=new Date(calAno,calMes,1).getDay();
   const diasMes=new Date(calAno,calMes+1,0).getDate();
-  const primeiroDiaMes=`${calAno}-${String(calMes+1).padStart(2,'0')}-01`;
-  const ultimoDiaMes=`${calAno}-${String(calMes+1).padStart(2,'0')}-${String(diasMes).padStart(2,'0')}`;
+  const mes2=String(calMes+1).padStart(2,'0');
+  const primeiroDiaMes=calAno+'-'+mes2+'-01';
+  const ultimoDiaMes=calAno+'-'+mes2+'-'+String(diasMes).padStart(2,'0');
 
   const g=document.getElementById('cal-grid');
+  if(!g) return;
   g.innerHTML='';
 
   // Células vazias antes do dia 1
@@ -1701,66 +1706,72 @@ function renderCalendario(){
 
   // Dias do mês
   for(let dia=1;dia<=diasMes;dia++){
-    const dataStr=`${calAno}-${String(calMes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    const dataStr=calAno+'-'+mes2+'-'+String(dia).padStart(2,'0');
     const isHoje=hoje.getDate()===dia&&hoje.getMonth()===calMes&&hoje.getFullYear()===calAno;
 
-    // Tarefas neste dia — inclui períodos que cruzam meses
-    const tDia=tarefas.filter(t=>{
-      if(!t.data)return false;
-      if(t.datafim&&t.datafim!==''){
-        return dataStr>=t.data&&dataStr<=t.datafim;
-      }
+    // Filtra tarefas deste dia
+    const tDia=tarefas.filter(function(t){
+      if(!t.data) return false;
+      var df=t.datafim||'';
+      if(df!=='') return dataStr>=t.data && dataStr<=df;
       return t.data===dataStr;
     });
 
     const cel=document.createElement('div');
-    cel.style.cssText=`min-height:52px;border-radius:10px;padding:4px;cursor:pointer;background:${isHoje?'#e0f7fa':'var(--card)'};border:${isHoje?'2px solid var(--c1)':'1.5px solid var(--border)'};overflow:hidden;`;
-    const celTagsHtml=tDia.slice(0,2).map(t=>{
-      const tag=TAGS_DEF.find(x=>x.id===t.tag);
-      const cor=tag?tag.cor:'var(--muted)';
-      const isPer=!!(t.datafim&&t.datafim!=='');
-      if(!isPer){
-        return '<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:4px;padding:2px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+t.titulo+'</div>';
-      }
-      // Período: determina posição do dia dentro do período
-      const isIni=t.data===dataStr;
-      const isFim=t.datafim===dataStr;
-      const isPrimeiroVisMes=isIni||(dataStr===primeiroDiaMes&&t.data<primeiroDiaMes);
-      const isUltimoVisMes=isFim||(dataStr===ultimoDiaMes&&t.datafim>ultimoDiaMes);
-      const br=isPrimeiroVisMes&&isUltimoVisMes?'4px':isPrimeiroVisMes?'4px 0 0 4px':isUltimoVisMes?'0 4px 4px 0':'0';
-      const ml=isPrimeiroVisMes?'0':'-5px';
-      const mr=isUltimoVisMes?'0':'-5px';
-      const txt=isPrimeiroVisMes?t.titulo:'';
-      return '<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
-    }).join('');
-    cel.innerHTML='<div style="font-size:11px;font-weight:'+(isHoje?'800':'600')+';color:'+(isHoje?'var(--c1)':'var(--text)')+';margin-bottom:3px;">'+dia+'</div>'+celTagsHtml+(tDia.length>2?'<div style="font-size:9px;color:var(--muted);">+'+(tDia.length-2)+'</div>':'');
+    cel.style.cssText='min-height:52px;border-radius:10px;padding:4px;cursor:pointer;background:'+(isHoje?'#e0f7fa':'var(--card)')+';border:'+(isHoje?'2px solid var(--c1)':'1.5px solid var(--border)')+';overflow:hidden;';
 
-    cel.onclick=()=>mostrarDetalhe(dia,tDia);
+    var innerHtml='<div style="font-size:11px;font-weight:'+(isHoje?'800':'600')+';color:'+(isHoje?'var(--c1)':'var(--text)')+';margin-bottom:3px;">'+dia+'</div>';
+
+    tDia.slice(0,2).forEach(function(t){
+      var tag=TAGS_DEF.find(function(x){return x.id===t.tag;});
+      var cor=tag?tag.cor:'#94a3b8';
+      var df=t.datafim||'';
+      var isPer=df!=='';
+      if(!isPer){
+        innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:4px;padding:2px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+t.titulo+'</div>';
+      } else {
+        var isIni=t.data===dataStr;
+        var isFim=df===dataStr;
+        var isPrimVis=isIni||(dataStr===primeiroDiaMes&&t.data<primeiroDiaMes);
+        var isUltVis=isFim||(dataStr===ultimoDiaMes&&df>ultimoDiaMes);
+        var br=isPrimVis&&isUltVis?'4px':isPrimVis?'4px 0 0 4px':isUltVis?'0 4px 4px 0':'0';
+        var ml=isPrimVis?'0':'-5px';
+        var mr=isUltVis?'0':'-5px';
+        var txt=isPrimVis?t.titulo:'';
+        innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
+      }
+    });
+
+    if(tDia.length>2) innerHtml+='<div style="font-size:9px;color:var(--muted);">+'+(tDia.length-2)+'</div>';
+    cel.innerHTML=innerHtml;
+    cel.onclick=(function(d,td){return function(){mostrarDetalhe(d,td);};})(dia,tDia);
     g.appendChild(cel);
   }
 }
 
-function mostrarDetalhe(dia,tarefas){
+function mostrarDetalhe(dia,tarefasDia){
   const el=document.getElementById('cal-detalhe');
-  if(!tarefas.length){el.innerHTML='';return;}
-  const dataFmt=`${String(dia).padStart(2,'0')}/${String(calMes+1).padStart(2,'0')}/${calAno}`;
-  el.innerHTML=`<div class="slbl">📅 ${dataFmt}</div>`+
-    tarefas.map(t=>{
-      const tag=TAGS_DEF.find(x=>x.id===t.tag);
-      return`<div class="hitem">
-        <div class="htop">
-          <div class="hname">${t.titulo}</div>
-          ${t.feito?'<span style="font-size:11px;color:#16a34a;font-weight:700;">✅ Feito</span>':''}
-        </div>
-        ${t.desc?`<div class="hdesc">"${t.desc}"</div>`:''}
-        <div class="htags">
-          ${tag?`<span class="htag" style="background:${tag.cor}18;color:${tag.cor};border-color:${tag.cor}">${tag.label}</span>`:''}
-          ${t.datafim?`<span class="htag">📆 até ${new Date(t.datafim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</span>`:''}
-          ${t.hora?`<span class="htag">⏰ ${t.hora}</span>`:''}
-        </div>
-      </div>`;
-    }).join('');
+  if(!el) return;
+  if(!tarefasDia||!tarefasDia.length){el.innerHTML='';return;}
+  const dataFmt=String(dia).padStart(2,'0')+'/'+String(calMes+1).padStart(2,'0')+'/'+calAno;
+  var html='<div class="slbl">📅 '+dataFmt+'</div>';
+  tarefasDia.forEach(function(t){
+    var tag=TAGS_DEF.find(function(x){return x.id===t.tag;});
+    var df=t.datafim||'';
+    html+='<div class="hitem"><div class="htop"><div class="hname">'+t.titulo+'</div>'+(t.feito?'<span style="font-size:11px;color:#16a34a;font-weight:700;">✅</span>':'')+'</div>'+(t.desc?'<div class="hdesc">'+t.desc+'</div>':'')+'<div class="htags">'+(tag?'<span class="htag" style="background:'+tag.cor+'18;color:'+tag.cor+';border-color:'+tag.cor+'">'+tag.label+'</span>':'')+(df?'<span class="htag">📆 até '+fmtDataBR(df)+'</span>':'')+(t.hora?'<span class="htag">⏰ '+t.hora+'</span>':'')+'</div></div>';
+  });
+  el.innerHTML=html;
 }
+
+function fmtDataBR(d){
+  if(!d) return '';
+  try{
+    var p=d.split('-');
+    if(p.length===3) return p[2]+'/'+p[1]+'/'+p[0];
+    return d;
+  }catch(e){return d;}
+}
+
 
 function irAbaCarteiras(cartao){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
@@ -1953,13 +1964,12 @@ function renderTarefas(){
     const vencida=dataRef&&!t.feito&&new Date(dataRef+'T23:59:59')<new Date();
     // Data display
     let dtTxt='';
-    if(t.data&&t.datafim){
-      const ini=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
-      const fim=new Date(t.datafim+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'});
-      const dias=Math.round((new Date(t.datafim)-new Date(t.data))/(1000*60*60*24))+1;
-      dtTxt=ini+' → '+fim+' ('+dias+' dia'+(dias>1?'s':'')+')';
+    var df=t.datafim||'';
+    if(t.data&&df!==''){
+      const dias=Math.round((new Date(df)-new Date(t.data))/(1000*60*60*24))+1;
+      dtTxt=fmtDataBR(t.data)+' → '+fmtDataBR(df)+' ('+(isNaN(dias)?'':dias+' dia'+(dias>1?'s':''))+')';
     } else if(t.data){
-      dtTxt=new Date(t.data+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'2-digit'})+(t.hora?' às '+t.hora:'');
+      dtTxt=fmtDataBR(t.data)+(t.hora?' às '+t.hora:'');
     }
     return`<div class="hitem" style="${t.feito?'opacity:0.6':''}${vencida?';border-color:#ef4444':''}">
       <div class="htop">
