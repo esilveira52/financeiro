@@ -1709,11 +1709,15 @@ function renderCalendario(){
     const dataStr=calAno+'-'+mes2+'-'+String(dia).padStart(2,'0');
     const isHoje=hoje.getDate()===dia&&hoje.getMonth()===calMes&&hoje.getFullYear()===calAno;
 
-    // Filtra tarefas deste dia
+    // Filtra tarefas deste dia — normaliza início/fim para caso estejam trocados
     const tDia=tarefas.filter(function(t){
       if(!t.data) return false;
       var df=t.datafim||'';
-      if(df!=='') return dataStr>=t.data && dataStr<=df;
+      if(df!==''){
+        var dIni=t.data<=df?t.data:df;
+        var dFim=t.data<=df?df:t.data;
+        return dataStr>=dIni && dataStr<=dFim;
+      }
       return t.data===dataStr;
     });
 
@@ -1732,14 +1736,17 @@ function renderCalendario(){
       } else {
         var isIni=t.data===dataStr;
         var isFim=df===dataStr;
-        // Primeiro dia visível = dia de início OU dia 1 do mês se período começou antes
-        var isPrimVis=isIni||(dataStr===primeiroDiaMes&&t.data<=primeiroDiaMes);
-        // Último dia visível = dia de fim OU último dia do mês se período continua depois
-        var isUltVis=isFim||(dataStr===ultimoDiaMes&&df>=ultimoDiaMes);
+        // Normaliza: garante que dataInicio <= dataFim
+        var dIni=t.data<=df?t.data:df;
+        var dFim=t.data<=df?df:t.data;
+        var isIniReal=dataStr===dIni;
+        var isFimReal=dataStr===dFim;
+        // Primeiro dia visível = início real OU dia 1 do mês se começou antes
+        var isPrimVis=isIniReal||(dataStr===primeiroDiaMes&&dIni<primeiroDiaMes);
+        var isUltVis=isFimReal||(dataStr===ultimoDiaMes&&dFim>ultimoDiaMes);
         var br=isPrimVis&&isUltVis?'4px':isPrimVis?'4px 0 0 4px':isUltVis?'0 4px 4px 0':'0';
         var ml=isPrimVis?'0':'-5px';
         var mr=isUltVis?'0':'-5px';
-        // Mostra nome no primeiro dia visível do mês (seja o início real ou dia 1)
         var txt=isPrimVis?t.titulo:'';
         innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
       }
