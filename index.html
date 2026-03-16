@@ -334,12 +334,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div id="geral-faturas"><div class="loading">Carregando...</div></div>
 
   <!-- Lembretes -->
-  <div class="slbl">📝 Tarefas e lembretes</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;">
+    <div class="slbl" style="margin-bottom:0;">📝 Tarefas</div>
+    <button onclick="abrirNovaT()" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;">+ Nova tarefa</button>
+  </div>
   <div style="background:var(--card);border-radius:var(--r);padding:16px;border:1px solid var(--border);margin-bottom:16px;">
     <div id="lembretes-list" style="margin-bottom:12px;"></div>
     <div style="display:flex;gap:8px;">
-      <input type="text" id="lembrete-inp" class="tinput" placeholder="Adicionar tarefa ou lembrete..." style="flex:1;height:42px;margin-bottom:0;" onkeydown="if(event.key==='Enter')addLembrete()"/>
-      <button onclick="addLembrete()" style="height:42px;padding:0 16px;background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;border-radius:var(--rs);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;flex-shrink:0;">+</button>
+      <input type="text" id="lembrete-inp" class="tinput" placeholder="Tarefa rápida (Enter para salvar)..." style="flex:1;height:42px;margin-bottom:0;" onkeydown="if(event.key==='Enter')addLembrete()"/>
+      <button onclick="addLembrete()" style="height:42px;padding:0 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--rs);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;color:var(--muted);flex-shrink:0;">+</button>
+    </div>
+    <div style="text-align:center;margin-top:10px;">
+      <button onclick="ir('tarefas',document.querySelectorAll('.tab')[9])" style="background:none;border:none;color:var(--c1);font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;">Ver todas as tarefas →</button>
     </div>
   </div>
 </div>
@@ -599,16 +605,16 @@ const MC=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez
 const TIPOS_REC=["Salário","Freelance","Investimentos","Outros"];
 const REC_PAD=[{nome:"YouTube Premium",coluna:"STREAM",valor:0,ativo:true,conta:""},{nome:"Amazon Prime",coluna:"STREAM",valor:0,ativo:true,conta:""},{nome:"Academia",coluna:"ACADEMIA",valor:0,ativo:true,conta:""},{nome:"Internet",coluna:"INTERNET",valor:0,ativo:true,conta:""},{nome:"Celular",coluna:"CELULAR",valor:0,ativo:true,conta:""},{nome:"Plano de Saúde",coluna:"PLANO DE SAÚDE",valor:0,ativo:true,conta:""},{nome:"MEI",coluna:"OUTROS",valor:0,ativo:true,conta:""},{nome:"Aluguel",coluna:"ALUGUEL",valor:0,ativo:true,conta:""}];
 const CART_PAD=[
-  {nome:"Santander",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"BRB",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"Caixa",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"Nubank DEB Edu",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"Nubank DEB Lud",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"Dinheiro",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"Vale Alimentação",saldo:0,limite:0,tipo:"debito",fechamento:0},
-  {nome:"Nubank CRED Edu",saldo:0,limite:0,tipo:"credito",fechamento:0},
-  {nome:"Nubank CRED Lud",saldo:0,limite:0,tipo:"credito",fechamento:0},
-  {nome:"Itaú Crédito",saldo:0,limite:0,tipo:"credito",fechamento:0},
+  {nome:"Santander",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"BRB",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"Caixa",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"Nubank DEB Edu",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"Nubank DEB Lud",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"Dinheiro",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"Vale Alimentação",saldo:0,limite:0,tipo:"debito",fechamento:0,vencimento:0},
+  {nome:"Nubank CRED Edu",saldo:0,limite:0,tipo:"credito",fechamento:0,vencimento:0},
+  {nome:"Nubank CRED Lud",saldo:0,limite:0,tipo:"credito",fechamento:0,vencimento:0},
+  {nome:"Itaú Crédito",saldo:0,limite:0,tipo:"credito",fechamento:0,vencimento:0},
 ];
 
 let catA=Object.keys(CAT)[0],itemA=null,pagA=null,parc=false,nParc=2;
@@ -1100,16 +1106,21 @@ function renderCfgCredito(){
     const idx=carteiras.indexOf(c);
     return`<div style="padding:12px 0;border-bottom:0.5px solid var(--border);">
       <div style="font-size:12px;font-weight:700;margin-bottom:10px;">💳 ${c.nome}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
         <div>
           <div class="fl">Limite total</div>
           <input type="number" class="cfginp" style="width:100%" id="cl-${idx}" value="${c.limite||''}" step="10" placeholder="Ex: 5000"/>
         </div>
         <div>
           <div class="fl">Fecha dia</div>
-          <input type="number" class="cfginp" style="width:100%" id="cf-${idx}" value="${c.fechamento||''}" min="1" max="31" placeholder="Ex: 10"/>
+          <input type="number" class="cfginp" style="width:100%" id="cf-${idx}" value="${c.fechamento||''}" min="1" max="31" placeholder="Ex: 8"/>
+        </div>
+        <div>
+          <div class="fl">Vence dia</div>
+          <input type="number" class="cfginp" style="width:100%" id="cv-${idx}" value="${c.vencimento||''}" min="1" max="31" placeholder="Ex: 15"/>
         </div>
       </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px;">Salvo automaticamente — não precisa preencher todo mês</div>
     </div>`;
   }).join('');
 }
@@ -1118,12 +1129,14 @@ async function salvarLimitesCredito(){
     const idx=carteiras.indexOf(c);
     const el=document.getElementById(`cl-${idx}`);
     const ef=document.getElementById(`cf-${idx}`);
+    const ev=document.getElementById(`cv-${idx}`);
     if(el){
       const novoLimite=parseFloat(el.value)||0;
       if(novoLimite>0&&c.limite===0)c.saldo=novoLimite;
       c.limite=novoLimite;
     }
     if(ef)c.fechamento=parseInt(ef.value)||0;
+    if(ev)c.vencimento=parseInt(ev.value)||0;
   });
   const j=await api({acao:'salvarCarteiras',carteiras:JSON.stringify(carteiras)});
   if(j&&j.sucesso){toast('✓ Configurações salvas!','ok');renderCartCreditoResumo();rPag();}
