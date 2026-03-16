@@ -1106,24 +1106,44 @@ async function fazerTransferencia(){
 
 // PAGAR FATURA
 async function abrirPagarFatura(cartao){
-  fatData={cartao};
+  const c=carteiras.find(x=>x.nome===cartao);
+  const fechDia=c&&c.fechamento>0?c.fechamento:1;
+
+  // A fatura que estou pagando AGORA contém gastos do mês anterior
+  // Período: dia fechamento do mês retrasado até dia (fechamento-1) do mês anterior
+  // Exemplo: fecha dia 8, estou em março →
+  //   pago a fatura de fevereiro → gastos de 08/jan até 07/fev
+  const mesRef=mes===0?11:mes-1;       // mês anterior = mês de referência da fatura
+  const anoRef=mes===0?ano-1:ano;
+  const mesIni=mesRef===0?11:mesRef-1; // mês ainda anterior = início do período
+  const anoIni=mesRef===0?anoRef-1:anoRef;
+  const diaFim=fechDia-1>0?fechDia-1:28;
+
+  const periodoTxt=`${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
+
+  fatData={cartao, mesRef, anoRef, periodoTxt};
+
   document.getElementById('fat-ttl').textContent='💳 Pagar fatura — '+cartao;
-  document.getElementById('fat-info').innerHTML='<div class="loading">Calculando gastos do mês...</div>';
+  document.getElementById('fat-info').innerHTML='<div class="loading">Calculando...</div>';
   document.getElementById('modal-fatura').classList.add('open');
-  // Busca gastos do cartão no mês
-  const j=await api({acao:'lerGastosCartao',cartao,mes:MN[mes],ano});
+
+  // Busca gastos do mês de referência (mês anterior)
+  const j=await api({acao:'lerGastosCartao',cartao,mes:MN[mesRef],ano:anoRef});
   if(j&&j.sucesso){
     fatData.total=j.gastos.total;
-    const c=carteiras.find(x=>x.nome===cartao);
+    const itensTxt=j.gastos.itens.length>0
+      ?j.gastos.itens.slice(0,5).map(i=>`• ${cap(i.categoria)}: ${fmt(i.valor)}`).join('<br>')
+        +(j.gastos.itens.length>5?`<br>...e mais ${j.gastos.itens.length-5} itens`:'')
+      :'Nenhum gasto encontrado neste período';
     document.getElementById('fat-info').innerHTML=`
-      <strong>Gastos em ${cap(MN[mes])}/${String(ano).slice(-2)} com ${cartao}:</strong><br>
-      Total: <strong>${fmt(j.gastos.total)}</strong><br>
-      ${j.gastos.itens.slice(0,5).map(i=>`• ${cap(i.categoria)}: ${fmt(i.valor)}`).join('<br>')}
-      ${j.gastos.itens.length>5?`<br>...e mais ${j.gastos.itens.length-5} itens`:''}`;
+      <div style="font-size:11px;color:#0369a1;margin-bottom:6px;">📅 Período: <strong>${periodoTxt}</strong></div>
+      <div style="font-size:11px;color:#0369a1;margin-bottom:8px;">Referente a: <strong>${cap(MN[mesRef])}/${String(anoRef).slice(-2)}</strong></div>
+      Total da fatura: <strong style="font-size:15px;">${fmt(j.gastos.total)}</strong><br><br>
+      <div style="font-size:11px;color:#0369a1;">${itensTxt}</div>`;
     document.getElementById('fat-valor').value=j.gastos.total.toFixed(2);
   }
   // Preenche contas débito
-  const opts=carteiras.filter(c=>c.tipo==='debito').map(c=>`<option value="${c.nome}">${c.nome} (${fmt(c.saldo)})</option>`).join('');
+  const opts=carteiras.filter(ct=>ct.tipo==='debito').map(ct=>`<option value="${ct.nome}">${ct.nome} (${fmt(ct.saldo)})</option>`).join('');
   document.getElementById('fat-conta').innerHTML=opts;
 }
 function fecharFatura(){document.getElementById('modal-fatura').classList.remove('open');fatData=null;}
@@ -1359,7 +1379,7 @@ async function carregarGeral(){
           <span class="cart-nome">💳 ${c.nome}</span>
           <span class="cart-saldo ${fat>0?'warn':'ok'}">${fat>0?fmt(fat):'R$ 0,00'}</span>
         </div>
-        ${fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="irAbaCarteiras('${c.nome}')">💳 Pagar fatura</button>`:''}
+        ${fat>0?`<button class="pagar-btn" style="margin-top:6px;" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>`:''}
       </div>`;
     }).join('')}
 
