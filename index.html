@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 16/03/2026 22:25 -->
+<!-- Financeiro Familiar | Gerado: 16/03/2026 22:35 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1830,7 +1830,8 @@ function getTodas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]')
 function getLixeira(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>x.lixeira);}
 function saveTarefas(l){
   localStorage.setItem('tarefas_bkp',JSON.stringify(l));
-  if(sUrl) apiNC({acao:'salvarTarefas',tarefas:JSON.stringify(l)});
+  // Usa api() com resposta para garantir que chega na planilha (compartilhado com Lud)
+  if(sUrl) api({acao:'salvarTarefas',tarefas:JSON.stringify(l)});
 }
 
 function abrirNovaT(){
