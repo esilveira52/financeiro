@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 16/03/2026 22:35 -->
+<!-- Financeiro Familiar | Gerado: 16/03/2026 23:20 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -243,6 +243,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .divider{height:1px;background:var(--border);margin:14px 0;}
 .priv{filter:blur(6px);user-select:none;transition:filter 0.2s;}
 .priv-shown{filter:none;transition:filter 0.2s;}
+/* PIN SCREEN */
+.pin-screen{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#0ea5e9,#06b6d4,#14b8a6);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;}
+.pin-logo{font-size:48px;margin-bottom:8px;}
+.pin-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:4px;}
+.pin-sub{font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:36px;}
+.pin-dots{display:flex;gap:16px;margin-bottom:32px;}
+.pin-dot{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.3);border:2px solid rgba(255,255,255,0.6);transition:all 0.15s;}
+.pin-dot.filled{background:#fff;border-color:#fff;}
+.pin-dot.error{background:#ef4444;border-color:#ef4444;}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:240px;}
+.pin-btn{height:64px;border-radius:16px;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.25);color:#fff;font-size:22px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.1s;backdrop-filter:blur(4px);}
+.pin-btn:active{background:rgba(255,255,255,0.35);transform:scale(0.95);}
+.pin-btn.del{font-size:18px;}
+.pin-btn.empty{background:transparent;border-color:transparent;pointer-events:none;}
+.pin-error{color:#fca5a5;font-size:12px;font-weight:600;margin-top:-20px;margin-bottom:16px;height:16px;}
+.pin-cfg{margin-top:28px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:99px;padding:8px 20px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
+/* PIN CONFIG no app */
+.pin-config-sec{background:var(--card);border-radius:var(--r);padding:18px;margin-bottom:16px;border:1px solid var(--border);}
 .toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;z-index:400;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
 .toast.show{display:block;}
 .toast.ok{background:linear-gradient(135deg,#16a34a,#22c55e);}
@@ -252,6 +270,35 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </head>
 <body>
 
+<!-- PIN SCREEN -->
+<div class="pin-screen" id="pin-screen">
+  <div class="pin-logo">💰</div>
+  <div class="pin-title">Financeiro</div>
+  <div class="pin-sub" id="pin-sub">Digite o PIN do app</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinDigit('1')">1</button>
+    <button class="pin-btn" onclick="pinDigit('2')">2</button>
+    <button class="pin-btn" onclick="pinDigit('3')">3</button>
+    <button class="pin-btn" onclick="pinDigit('4')">4</button>
+    <button class="pin-btn" onclick="pinDigit('5')">5</button>
+    <button class="pin-btn" onclick="pinDigit('6')">6</button>
+    <button class="pin-btn" onclick="pinDigit('7')">7</button>
+    <button class="pin-btn" onclick="pinDigit('8')">8</button>
+    <button class="pin-btn" onclick="pinDigit('9')">9</button>
+    <button class="pin-btn empty"></button>
+    <button class="pin-btn" onclick="pinDigit('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+  <button class="pin-cfg" id="pin-cfg-btn" style="display:none">Entrar sem senha →</button>
+</div>
+
 <div class="hdr">
   <div class="hdr-top">
     <div><h1>💰 Financeiro</h1><p id="hdr-sub">Carregando...</p></div>
@@ -259,6 +306,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <div class="chip" onclick="irCfg()" id="chip-usr">👤</div>
       <div class="mbadge" onclick="abrirMes()"><span id="mes-lbl">Mês</span><span>▾</span></div>
       <div class="icobtn" onclick="togglePrivacy()" id="privacy-btn">🙈</div>
+      <div class="icobtn" onclick="bloquearApp()" title="Bloquear">🔒</div>
       <div class="icobtn" onclick="irCfg()">⚙️</div>
     </div>
   </div>
@@ -602,6 +650,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <input class="fullinp" id="url-inp" type="url" placeholder="https://script.google.com/macros/s/..."/>
     <button class="btnsec" onclick="salvarUrl()">Salvar URL</button>
   </div>
+
   <div class="cfgsec">
     <div class="cfgttl">🎯 Limites mensais de gasto por categoria</div>
     <div id="lim-list"><div class="loading">Carregando...</div></div>
@@ -674,6 +723,7 @@ function init(){
   else renderLim({});
   rLoginGrid();
   atuPrivacy();
+  pinInit();
 }
 
 function atuHdr(){
@@ -2052,6 +2102,159 @@ function atuPrivacy(){
   });
 }
 
+// ── PIN / SENHA ────────────────────────────────────────────────
+let pinAtual='';
+let pinTentativas=0;
+
+const PIN_FIXO='9410';
+const TIMEOUT_MS=5*60*1000; // 5 minutos
+let lockTimer=null;
+
+function resetLockTimer(){
+  if(lockTimer) clearTimeout(lockTimer);
+  lockTimer=setTimeout(()=>{
+    if(sessionStorage.getItem('autenticado')==='1'){
+      bloquearApp(true);
+    }
+  },TIMEOUT_MS);
+}
+
+function bloquearApp(auto=false){
+  sessionStorage.removeItem('autenticado');
+  const pinScreen=document.getElementById('pin-screen');
+  pinScreen.style.display='flex';
+  document.getElementById('pin-sub').textContent=auto?'Bloqueado por inatividade':'App bloqueado';
+  document.getElementById('pin-error').textContent='';
+  pinAtual='';atuPinDots();
+  if(lockTimer){clearTimeout(lockTimer);lockTimer=null;}
+}
+
+// Monitora qualquer toque/clique/tecla para resetar o timer
+['touchstart','mousedown','keydown','scroll'].forEach(ev=>{
+  document.addEventListener(ev,()=>{
+    if(sessionStorage.getItem('autenticado')==='1') resetLockTimer();
+  },{passive:true});
+}); // senha do app
+
+function pinInit(){
+  const pinScreen=document.getElementById('pin-screen');
+  // Verifica se já autenticou nesta sessão
+  if(sessionStorage.getItem('autenticado')==='1'){
+    pinScreen.style.display='none';
+    resetLockTimer();
+    return;
+  }
+  pinScreen.style.display='flex';
+  document.getElementById('pin-sub').textContent='Digite o PIN do app';
+  document.getElementById('pin-cfg-btn').style.display='none';
+  pinAtual='';
+  atuPinDots();
+}
+
+function pinDigit(d){
+  if(pinAtual.length>=4) return;
+  pinAtual+=d;
+  atuPinDots();
+  if(pinAtual.length===4) setTimeout(pinVerificar,120);
+}
+
+function pinDel(){
+  pinAtual=pinAtual.slice(0,-1);
+  atuPinDots();
+  document.getElementById('pin-error').textContent='';
+}
+
+function atuPinDots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('pd'+i);
+    d.classList.toggle('filled',i<pinAtual.length);
+    d.classList.remove('error');
+  }
+}
+
+function pinVerificar(){
+  const pinSalvo=localStorage.getItem('appPin')||'';
+  if(pinAtual===pinSalvo){
+    document.getElementById('pin-screen').style.display='none';
+    pinTentativas=0;
+    pinAtual='';
+  } else {
+    pinTentativas++;
+    for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error');
+    document.getElementById('pin-error').textContent=
+      pinTentativas>=3?'PIN incorreto ('+pinTentativas+'x)':'PIN incorreto';
+    setTimeout(()=>{
+      pinAtual='';atuPinDots();
+      document.getElementById('pin-error').textContent='';
+      // Depois de 5 tentativas mostra opção de entrar sem senha
+      if(pinTentativas>=5) document.getElementById('pin-cfg-btn').style.display='block';
+    },600);
+  }
+}
+
+function pinSemSenha(){
+  if(confirm('Remover PIN e entrar sem senha?')){
+    localStorage.removeItem('appPin');
+    document.getElementById('pin-screen').style.display='none';
+  }
+}
+
+// Chamado pela config para definir PIN
+let pinNovoTemp='';
+let pinEtapa='novo'; // 'novo' ou 'confirmar'
+
+function abrirConfigPin(){
+  pinNovoTemp='';pinEtapa='novo';
+  document.getElementById('pin-sub').textContent='Digite o novo PIN';
+  document.getElementById('pin-screen').style.display='flex';
+  document.getElementById('pin-cfg-btn').style.display='block';
+  document.getElementById('pin-cfg-btn').textContent='Cancelar';
+  document.getElementById('pin-cfg-btn').onclick=fecharConfigPin;
+  pinAtual='';atuPinDots();
+  // Substitui verificação por configuração
+  window._pinModo='config';
+}
+
+function fecharConfigPin(){
+  window._pinModo='normal';
+  document.getElementById('pin-screen').style.display='none';
+  document.getElementById('pin-cfg-btn').onclick=pinSemSenha;
+}
+
+// Sobrescreve pinVerificar quando em modo config
+const _pinVerOriginal=pinVerificar;
+function pinVerificar(){
+  if(pinAtual===PIN_FIXO){
+    sessionStorage.setItem('autenticado','1');
+    document.getElementById('pin-screen').style.display='none';
+    pinTentativas=0;
+    pinAtual='';
+    resetLockTimer();
+  } else {
+    pinTentativas++;
+    for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error');
+    document.getElementById('pin-error').textContent=
+      pinTentativas>=3?'PIN incorreto ('+pinTentativas+'x tentativas)':'PIN incorreto';
+    setTimeout(()=>{
+      pinAtual='';atuPinDots();
+      document.getElementById('pin-error').textContent='';
+    },600);
+  }
+}
+
+function removerPin(){
+  if(!localStorage.getItem('appPin')){toast('Nenhum PIN configurado','warn');return;}
+  if(confirm('Remover PIN? O app ficará sem proteção.')){
+    localStorage.removeItem('appPin');
+    atuPinStatus();
+    toast('✓ PIN removido!','ok');
+  }
+}
+function atuPinStatus(){
+  const el=document.getElementById('pin-status');
+  if(!el) return;
+  el.textContent=localStorage.getItem('appPin')?'🔒 PIN ativo neste dispositivo':'🔓 Sem PIN — app desprotegido';
+}
 function toast(msg,tipo){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(tipo||'');setTimeout(()=>t.className='toast',3200);}
 
 init();
