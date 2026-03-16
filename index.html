@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Financeiro Familiar | Gerado: 16/03/2026 22:25 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1734,20 +1735,15 @@ function renderCalendario(){
       if(!isPer){
         innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:4px;padding:2px 4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+t.titulo+'</div>';
       } else {
-        var isIni=t.data===dataStr;
-        var isFim=df===dataStr;
-        // Normaliza: garante que dataInicio <= dataFim
+        // Período: barra colorida em todos os dias + nome visível
         var dIni=t.data<=df?t.data:df;
         var dFim=t.data<=df?df:t.data;
-        var isFimReal=dataStr===dFim;
         var isPrimVis=(dataStr===dIni)||(dataStr===primeiroDiaMes&&dIni<primeiroDiaMes);
-        var isUltVis=isFimReal||(dataStr===ultimoDiaMes&&dFim>ultimoDiaMes);
+        var isUltVis=(dataStr===dFim)||(dataStr===ultimoDiaMes&&dFim>ultimoDiaMes);
         var br=isPrimVis&&isUltVis?'4px':isPrimVis?'4px 0 0 4px':isUltVis?'0 4px 4px 0':'0';
-        var ml=isPrimVis?'0':'-5px';
-        var mr=isUltVis?'0':'-5px';
-        // Mostra nome em TODOS os dias do período
-        var txt=t.titulo;
-        innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;background:'+cor+';border-radius:'+br+';padding:2px 4px;margin-bottom:2px;margin-left:'+ml+';margin-right:'+mr+';min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+txt+'</div>';
+        // Barra de fundo contínua (sem margem negativa, com opacity)
+        var bgStyle='background:'+cor+';opacity:0.85;border-radius:'+br+';padding:2px 4px;margin-bottom:2px;min-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;';
+        innerHtml+='<div style="font-size:9px;font-weight:600;color:#fff;'+bgStyle+'">'+t.titulo+'</div>';
       }
     });
 
