@@ -1479,8 +1479,18 @@ async function carregarGeral(){
       const chave=c.nome+'||'+MN[mesLabel].toUpperCase()+'||'+anoLabel;
       const paga=fatPagas.has(chave);
       // Vencida: fatura do mês anterior e hoje já passou do dia de fechamento+7
-      const fechDia=c.fechamento||1;
-      const vencida=isMesAnt&&!paga&&fat>0&&hoje.getDate()>fechDia+7;
+      const fechDia=c.fechamento||0;
+      // Data de fechamento = dia X do mês atual (para fatura do mês anterior)
+      // Data de vencimento estimada = fechamento + 7 dias (padrão)
+      const vencDia=fechDia>0?fechDia+7:0;
+      const vencMes=vencDia>28?(mesLabel===11?0:mesLabel+1):mesLabel;
+      const vencAno=vencDia>28&&mesLabel===11?anoLabel+1:anoLabel;
+      const vencDiaReal=vencDia>28?vencDia-28:vencDia;
+
+      const fechaTxt=fechDia>0?`Fecha: ${String(fechDia).padStart(2,'0')}/${String(mesLabel+1).padStart(2,'0')}/${anoLabel}`:'';
+      const venceTxt=vencDia>0?`Vence: ${String(vencDiaReal).padStart(2,'0')}/${String(vencMes+1).padStart(2,'0')}/${vencAno}`:'';
+
+      const vencida=isMesAnt&&!paga&&fat>0&&fechDia>0&&hoje>new Date(anoLabel,vencMes,vencDiaReal,23,59);
       const status=paga?'✅ Paga':vencida?'⚠️ Vencida':fat>0?'⏳ Em aberto':'—';
       const statusCor=paga?'#16a34a':vencida?'#ef4444':'#f59e0b';
       const borda=vencida?'border:1.5px solid #ef4444;':'';
@@ -1493,6 +1503,10 @@ async function carregarGeral(){
           <span style="font-size:11px;font-weight:600;color:${statusCor};">${status}</span>
           ${mostraBotao&&fat>0&&!paga?`<button class="pagar-btn" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar</button>`:''}
         </div>
+        ${fechaTxt||venceTxt?`<div style="display:flex;gap:10px;margin-top:4px;">
+          ${fechaTxt?`<span style="font-size:10px;color:var(--muted);">📅 ${fechaTxt}</span>`:''}
+          ${venceTxt?`<span style="font-size:10px;color:${vencida?'#ef4444':'var(--muted)'};">⏰ ${venceTxt}</span>`:''}
+        </div>`:''}
       </div>`;
     }).join('')}`;
   };
