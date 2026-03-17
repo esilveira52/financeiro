@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 10:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 11:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -261,6 +261,31 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .pin-cfg{margin-top:28px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:99px;padding:8px 20px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;}
 /* PIN CONFIG no app */
 .pin-config-sec{background:var(--card);border-radius:var(--r);padding:18px;margin-bottom:16px;border:1px solid var(--border);}
+/* HÁBITOS */
+.hab-item{background:var(--card);border-radius:var(--rs);padding:14px;margin-bottom:8px;border:1px solid var(--border);}
+.hab-row{display:flex;align-items:center;gap:10px;}
+.hab-icon{font-size:22px;flex-shrink:0;}
+.hab-info{flex:1;min-width:0;}
+.hab-nome{font-size:13px;font-weight:700;}
+.hab-pts{font-size:10px;color:var(--muted);margin-top:1px;}
+.hab-streak{font-size:11px;font-weight:700;color:#f97316;flex-shrink:0;}
+.hab-btns{display:flex;gap:6px;flex-shrink:0;}
+.hab-btn{height:32px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;}
+.hab-btn.pos{background:#dcfce7;border-color:#22c55e;color:#16a34a;}
+.hab-btn.neg{background:#fee2e2;border-color:#ef4444;color:#ef4444;}
+.hab-btn.neu{background:#e0f7fa;border-color:var(--c1);color:var(--c1);}
+/* Água especial */
+.agua-bar{background:var(--bg);border-radius:99px;height:8px;overflow:hidden;margin-top:6px;}
+.agua-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0ea5e9,#06b6d4);transition:width 0.4s;}
+/* Semana grid */
+.semana-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;}
+.semana-dia{text-align:center;}
+.semana-lbl{font-size:9px;color:var(--muted);font-weight:600;margin-bottom:3px;}
+.semana-dot{width:28px;height:28px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.semana-dot.ok{background:#dcfce7;color:#16a34a;}
+.semana-dot.fail{background:#fee2e2;color:#ef4444;}
+.semana-dot.skip{background:var(--bg);color:var(--muted);}
+.semana-dot.hoje{border:2px solid var(--c1);}
 .toast{display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;z-index:400;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
 .toast.show{display:block;}
 .toast.ok{background:linear-gradient(135deg,#16a34a,#22c55e);}
@@ -327,6 +352,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
   <div class="tab" onclick="ir('compras',this)">🛒 Compras</div>
+  <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
   <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
@@ -599,6 +625,45 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ HÁBITOS ─ -->
+<div class="page" id="page-habitos">
+  <div class="phdr">
+    <span class="phdr-title">🏆 Hábitos</span>
+    <div style="display:flex;gap:6px;">
+      <button class="rbtn" onclick="sincHabitos()">↻</button>
+      <button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirCfgHabitos()">⚙️ Config</button>
+    </div>
+  </div>
+
+  <!-- Placar do casal -->
+  <div id="hab-placar" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-radius:var(--r);padding:16px;margin-bottom:16px;color:#fff;">
+    <div style="font-size:11px;opacity:0.8;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">🏆 Placar da semana</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="hab-scores"></div>
+  </div>
+
+  <!-- Hábitos de hoje -->
+  <div class="slbl">Hoje</div>
+  <div id="hab-hoje"></div>
+
+  <!-- Semana -->
+  <div class="slbl" style="margin-top:16px;">Esta semana</div>
+  <div id="hab-semana"></div>
+</div>
+
+<!-- MODAL CONFIG HÁBITOS -->
+<div class="modal" id="modal-hab-cfg" onclick="fModalHabCfg(event)">
+  <div class="modal-in">
+    <div class="modal-ttl">⚙️ Configurar hábitos</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Configure seus hábitos pessoais. Cada pessoa tem os seus.</div>
+    <div id="hab-cfg-list"></div>
+    <button class="btnverde" style="margin-top:8px;" onclick="addHabitoCfg()">+ Novo hábito</button>
+    <div class="mbtns" style="margin-top:12px;">
+      <button class="mbtn-can" onclick="fecharCfgHabitos()">Fechar</button>
+      <button class="mbtn-ok" onclick="salvarCfgHabitos()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─ NOTAS ─ -->
 <div class="page" id="page-notas">
   <div class="phdr">
@@ -817,6 +882,7 @@ function ir(aba,el){
       });
     }
   }
+  if(aba==='habitos')carregarHabitos();
   if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){
@@ -2735,6 +2801,245 @@ function renderNotas(){
       </div>
     </div>`;
   }).join('');
+}
+
+// ── HÁBITOS ───────────────────────────────────────────────────
+const HAB_PAD=[
+  {id:'agua',   nome:'Água',        icone:'💧', tipo:'contador', meta:2000, passo:500, pts:1,  ptsMeta:3,  ptsNeg:0,  ativo:true},
+  {id:'treino', nome:'Treino',      icone:'🏋️', tipo:'bool',     pts:3,     ptsNeg:0,  ativo:true},
+  {id:'comida', nome:'Refeição',    icone:'🥗', tipo:'refeicao', pts:1,     ptsNeg:-2, ativo:true},
+  {id:'casa',   nome:'Org. Casa/Carro', icone:'🏠', tipo:'bool', pts:2,    ptsNeg:0,  ativo:true},
+  {id:'sono',   nome:'Dormir cedo', icone:'😴', tipo:'bool',     pts:1,     ptsNeg:0,  ativo:true},
+];
+
+function getHabCfg(){return JSON.parse(localStorage.getItem('hab_cfg_'+sNome)||JSON.stringify(HAB_PAD));}
+function getHabLog(){return JSON.parse(localStorage.getItem('hab_log')||'{}');}
+function saveHabLog(log){
+  localStorage.setItem('hab_log',JSON.stringify(log));
+  if(sUrl) api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(log)});
+}
+
+function dataHoje(){return new Date().toISOString().split('T')[0];}
+function dataSemana(){
+  const dias=[];const hoje=new Date();
+  for(let i=6;i>=0;i--){const d=new Date(hoje);d.setDate(hoje.getDate()-i);dias.push(d.toISOString().split('T')[0]);}
+  return dias;
+}
+
+async function sincHabitos(){
+  if(!sUrl)return;
+  toast('Sincronizando...','');
+  const j=await api({acao:'lerHabLogs'});
+  if(j&&j.sucesso&&j.logs){
+    localStorage.setItem('hab_log',JSON.stringify(j.logs));
+    renderHabitos();
+    toast('✓ Atualizado!','ok');
+  }
+}
+
+async function carregarHabitos(){
+  if(sUrl){
+    const j=await api({acao:'lerHabLogs'});
+    if(j&&j.sucesso&&j.logs) localStorage.setItem('hab_log',JSON.stringify(j.logs));
+  }
+  renderHabitos();
+}
+
+function renderHabitos(){
+  const cfg=getHabCfg().filter(h=>h.ativo);
+  const log=getHabLog();
+  const hoje=dataHoje();
+  const semana=dataSemana();
+  const DIAS_ABR=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  // ── Placar semana ──
+  const calcPts=(usuario)=>{
+    let pts=0;
+    semana.forEach(dia=>{
+      const d=log[usuario]?.[dia]||{};
+      cfg.forEach(h=>{
+        const v=d[h.id];
+        if(h.tipo==='agua'){
+          if(v){pts+=Math.floor(v/h.passo)*h.pts;if(v>=h.meta)pts+=h.ptsMeta;}
+        } else if(h.tipo==='refeicao'){
+          if(v==='boa') pts+=h.pts;
+          else if(v==='ruim') pts+=h.ptsNeg;
+        } else {
+          if(v===true) pts+=h.pts;
+          else if(v===false&&h.ptsNeg) pts+=h.ptsNeg;
+        }
+      });
+    });
+    return pts;
+  };
+  const ptsEdu=calcPts(pessoas[0]||'Edu');
+  const ptsLud=calcPts(pessoas[1]||'Lud');
+  const maxPts=Math.max(ptsEdu,ptsLud,1);
+  const scEl=document.getElementById('hab-scores');
+  if(scEl) scEl.innerHTML=[
+    {nome:pessoas[0]||'Edu',pts:ptsEdu},
+    {nome:pessoas[1]||'Lud',pts:ptsLud}
+  ].map(p=>{
+    const pct=Math.round(p.pts/maxPts*100);
+    const isLider=p.pts===Math.max(ptsEdu,ptsLud)&&p.pts>0;
+    return`<div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:700;">${isLider?'👑 ':''}${p.nome}</span>
+        <span style="font-size:16px;font-weight:800;">${p.pts}pts</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.2);border-radius:99px;height:8px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:#fff;border-radius:99px;transition:width 0.5s;"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Hábitos de hoje ──
+  const dHoje=log[sNome]?.[hoje]||{};
+  const habEl=document.getElementById('hab-hoje');
+  if(!habEl) return;
+  habEl.innerHTML=cfg.map(h=>{
+    const val=dHoje[h.id];
+    let botoesHTML='';
+    if(h.tipo==='agua'){
+      const atual=val||0;
+      const pct=Math.min(100,Math.round(atual/h.meta*100));
+      botoesHTML=`<div style="min-width:120px;text-align:right;">
+        <div style="font-size:12px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">${atual}/${h.meta}ml</div>
+        <div style="display:flex;gap:4px;justify-content:flex-end;">
+          <button class="hab-btn neu" onclick="regHab('${h.id}','agua',-${h.passo})">-${h.passo/1000<1?h.passo:h.passo/1000+'L'}</button>
+          <button class="hab-btn pos" onclick="regHab('${h.id}','agua',${h.passo})">+${h.passo>=1000?h.passo/1000+'L':h.passo+'ml'}</button>
+        </div>
+        <div class="agua-bar" style="margin-top:4px;width:120px;">
+          <div class="agua-fill" style="width:${pct}%;"></div>
+        </div>
+      </div>`;
+    } else if(h.tipo==='refeicao'){
+      botoesHTML=`<div style="display:flex;gap:4px;">
+        <button class="hab-btn pos${val==='boa'?' active':''}" style="${val==='boa'?'background:#16a34a;color:#fff;':''}" onclick="regHab('${h.id}','refeicao','boa')">✅ Boa</button>
+        <button class="hab-btn neg${val==='ruim'?' active':''}" style="${val==='ruim'?'background:#ef4444;color:#fff;':''}" onclick="regHab('${h.id}','refeicao','ruim')">❌ Ruim</button>
+      </div>`;
+    } else {
+      botoesHTML=`<div style="display:flex;gap:4px;">
+        <button class="hab-btn pos" style="${val===true?'background:#16a34a;color:#fff;':''}" onclick="regHab('${h.id}','bool',true)">✅ Fiz</button>
+        ${h.ptsNeg?`<button class="hab-btn neg" style="${val===false?'background:#ef4444;color:#fff;':''}" onclick="regHab('${h.id}','bool',false)">❌ Faltei</button>`:''}
+      </div>`;
+    }
+    // Streak
+    let streak=0;
+    for(let i=semana.length-2;i>=0;i--){
+      const v=(log[sNome]?.[semana[i]]||{})[h.id];
+      if(v!==undefined&&v!==null&&v!==false&&v!=='ruim') streak++;
+      else break;
+    }
+    const ptsDia=h.tipo==='agua'?(val?Math.floor(val/h.passo)*h.pts+(val>=h.meta?h.ptsMeta:0):0):h.tipo==='refeicao'?(val==='boa'?h.pts:val==='ruim'?h.ptsNeg:0):(val===true?h.pts:val===false&&h.ptsNeg?h.ptsNeg:0);
+    return`<div class="hab-item">
+      <div class="hab-row">
+        <div class="hab-icon">${h.icone}</div>
+        <div class="hab-info">
+          <div class="hab-nome">${h.nome}</div>
+          <div class="hab-pts">${ptsDia>0?'+'+ptsDia:ptsDia<0?ptsDia:''} pts hoje${streak>0?' · 🔥'+streak+' dias':''}</div>
+        </div>
+        ${botoesHTML}
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Semana ──
+  const semEl=document.getElementById('hab-semana');
+  if(!semEl) return;
+  semEl.innerHTML=cfg.map(h=>`
+    <div class="hab-item" style="padding:10px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:16px;">${h.icone}</span>
+        <span style="font-size:12px;font-weight:700;">${h.nome}</span>
+      </div>
+      <div class="semana-grid">
+        ${semana.map(dia=>{
+          const v=(log[sNome]?.[dia]||{})[h.id];
+          const dObj=new Date(dia+'T12:00');
+          const lbl=DIAS_ABR[dObj.getDay()];
+          const isHoje=dia===hoje;
+          let cls='skip',txt='·';
+          if(h.tipo==='agua'){if(v>=h.meta){cls='ok';txt='💧';}else if(v>0){cls='skip';txt='~';}}
+          else if(h.tipo==='refeicao'){if(v==='boa'){cls='ok';txt='✅';}else if(v==='ruim'){cls='fail';txt='❌';}}
+          else{if(v===true){cls='ok';txt='✅';}else if(v===false){cls='fail';txt='❌';}}
+          return`<div class="semana-dia">
+            <div class="semana-lbl">${lbl}</div>
+            <div class="semana-dot ${cls}${isHoje?' hoje':''}">${txt}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function regHab(habId, tipo, valor){
+  const log=getHabLog();
+  const hoje=dataHoje();
+  if(!log[sNome]) log[sNome]={};
+  if(!log[sNome][hoje]) log[sNome][hoje]={};
+  if(tipo==='agua'){
+    const atual=log[sNome][hoje][habId]||0;
+    log[sNome][hoje][habId]=Math.max(0,atual+valor);
+  } else {
+    log[sNome][hoje][habId]=valor;
+  }
+  saveHabLog(log);
+  renderHabitos();
+}
+
+// Config hábitos
+let habCfgTemp=[];
+function abrirCfgHabitos(){
+  habCfgTemp=JSON.parse(JSON.stringify(getHabCfg()));
+  renderHabCfgList();
+  document.getElementById('modal-hab-cfg').classList.add('open');
+}
+function fecharCfgHabitos(){document.getElementById('modal-hab-cfg').classList.remove('open');}
+function fModalHabCfg(e){if(e.target===document.getElementById('modal-hab-cfg'))fecharCfgHabitos();}
+
+function renderHabCfgList(){
+  document.getElementById('hab-cfg-list').innerHTML=habCfgTemp.map((h,i)=>`
+    <div style="background:var(--bg);border-radius:var(--rs);padding:12px;margin-bottom:8px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <input type="text" value="${h.icone}" style="width:40px;border:1px solid var(--border);border-radius:6px;padding:4px;font-size:16px;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;"
+          oninput="habCfgTemp[${i}].icone=this.value"/>
+        <input type="text" value="${h.nome}" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;"
+          oninput="habCfgTemp[${i}].nome=this.value"/>
+        <div class="rectog ${h.ativo?'on':''}" onclick="habCfgTemp[${i}].ativo=!habCfgTemp[${i}].ativo;renderHabCfgList()"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
+        <div><div class="fl">Tipo</div>
+          <select style="width:100%;border:1px solid var(--border);border-radius:6px;padding:4px;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;"
+            onchange="habCfgTemp[${i}].tipo=this.value">
+            <option value="bool" ${h.tipo==='bool'?'selected':''}>✅ Sim/Não</option>
+            <option value="agua" ${h.tipo==='agua'?'selected':''}>💧 Contador</option>
+            <option value="refeicao" ${h.tipo==='refeicao'?'selected':''}>🥗 Refeição</option>
+          </select>
+        </div>
+        <div><div class="fl">+Pts</div>
+          <input type="number" value="${h.pts||1}" min="0" max="10" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:4px;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;"
+            oninput="habCfgTemp[${i}].pts=parseInt(this.value)||1"/></div>
+        <div><div class="fl">-Pts</div>
+          <input type="number" value="${h.ptsNeg||0}" min="-10" max="0" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:4px;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;"
+            oninput="habCfgTemp[${i}].ptsNeg=parseInt(this.value)||0"/></div>
+      </div>
+      ${h.tipo==='agua'?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;font-size:11px;">
+        <div><div class="fl">Meta (ml)</div><input type="number" value="${h.meta||2000}" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:4px;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;" oninput="habCfgTemp[${i}].meta=parseInt(this.value)||2000"/></div>
+        <div><div class="fl">Passo (ml)</div><input type="number" value="${h.passo||500}" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:4px;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;" oninput="habCfgTemp[${i}].passo=parseInt(this.value)||500"/></div>
+      </div>`:''}
+    </div>`).join('');
+}
+
+function addHabitoCfg(){
+  habCfgTemp.push({id:'hab_'+Date.now(),nome:'Novo hábito',icone:'⭐',tipo:'bool',pts:1,ptsNeg:0,ativo:true});
+  renderHabCfgList();
+}
+
+function salvarCfgHabitos(){
+  localStorage.setItem('hab_cfg_'+sNome, JSON.stringify(habCfgTemp));
+  fecharCfgHabitos();
+  renderHabitos();
+  toast('✓ Hábitos salvos!','ok');
 }
 
 function removerPin(){
