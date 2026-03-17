@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 15:50 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 16:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v46</title>
+<title>Financeiro Familiar v47</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2829,8 +2829,26 @@ const HAB_PAD=[
 function getHabCfg(){return JSON.parse(localStorage.getItem('hab_cfg_'+sNome)||JSON.stringify(HAB_PAD));}
 function getHabLog(){return JSON.parse(localStorage.getItem('hab_log')||'{}');}
 function saveHabLog(log){
+  // Salva log completo localmente
   localStorage.setItem('hab_log',JSON.stringify(log));
-  if(sUrl) api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(log)});
+  // Envia só o log do usuário atual para a planilha
+  if(sUrl&&sNome) api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(log[sNome]||{})});
+}
+
+async function sincHabLog(){
+  // Busca logs de TODOS os usuários da planilha e mescla com local
+  if(!sUrl) return;
+  const j=await api({acao:'lerHabLogs'});
+  if(j&&j.sucesso&&j.logs){
+    // Merge: preserva dados locais do usuário atual, atualiza outros usuários
+    const logAtual=getHabLog();
+    const logMerged={...j.logs};
+    // Dados locais do usuário atual têm prioridade (mais recentes)
+    if(sNome&&logAtual[sNome]) logMerged[sNome]=logAtual[sNome];
+    localStorage.setItem('hab_log',JSON.stringify(logMerged));
+    return logMerged;
+  }
+  return getHabLog();
 }
 
 function dataHoje(){
@@ -2855,14 +2873,15 @@ function dataSemana(){
 }
 
 async function sincHabitos(){
-  if(!sUrl)return;
-  toast('Sincronizando...','');
-  const j=await api({acao:'lerHabLogs'});
-  if(j&&j.sucesso&&j.logs){localStorage.setItem('hab_log',JSON.stringify(j.logs));renderHabitos();toast('Atualizado!','ok');}
+  if(!sUrl){toast('URL não configurada!','err');return;}
+  toast('↻ Sincronizando...','');
+  await sincHabLog();
+  renderHabitos();
+  toast('✓ Hábitos sincronizados!','ok');
 }
 
 async function carregarHabitos(){
-  if(sUrl){const j=await api({acao:'lerHabLogs'});if(j&&j.sucesso&&j.logs)localStorage.setItem('hab_log',JSON.stringify(j.logs));}
+  await sincHabLog();
   window._habDiaEdit=dataHoje();
   renderHabitos();
 }
