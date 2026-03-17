@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 22:10 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 22:20 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v65</title>
+<title>Financeiro Familiar v66</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -3209,7 +3209,7 @@ function renderHabitos(){
     // Linha Edu
     semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:5px 12px;'+borderTop+'">';
     semHtml+='<span style="font-size:15px;">'+h.icone+'</span>';
-    semHtml+='<span style="font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+h.nome+'</span>';
+    semHtml+='<div style="min-width:0;"><div style="font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+h.nome+'</div><div style="font-size:10px;font-weight:600;color:#0ea5e9;">'+nEdu+'</div></div>';
     semana.forEach(function(dia){
       const c=fmtPts(h,logEdu,dia);
       const isHj=dia===hoje;
@@ -3220,7 +3220,7 @@ function renderHabitos(){
     // Linha Lud
     semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:5px 12px;border-bottom:0.5px solid var(--border);">';
     semHtml+='<div></div>';
-    semHtml+='<span style="font-size:10px;font-weight:600;color:#ec4899;">'+nLud+'</span>';
+    semHtml+='<span style="font-size:10px;font-weight:600;color:#ec4899;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nLud+'</span>';
     semana.forEach(function(dia){
       const c=fmtPts(h,logLud,dia);
       semHtml+='<div style="height:24px;border-radius:5px;background:'+c.bg+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';">'+c.txt+'</div>';
