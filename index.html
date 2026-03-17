@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 09:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 10:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -327,6 +327,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
   <div class="tab" onclick="ir('compras',this)">🛒 Compras</div>
+  <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
@@ -598,6 +599,30 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ NOTAS ─ -->
+<div class="page" id="page-notas">
+  <div class="phdr">
+    <span class="phdr-title">📓 Notas</span>
+    <button class="rbtn" onclick="abrirNovaNota()">+ Nova nota</button>
+  </div>
+  <div id="notas-list"><div class="loading">Carregando...</div></div>
+</div>
+
+<!-- MODAL NOTA -->
+<div class="modal" id="modal-nota" onclick="fModalNota(event)">
+  <div class="modal-in">
+    <div class="modal-ttl" id="modal-nota-ttl">📓 Nova nota</div>
+    <div class="fl req">Título</div>
+    <input type="text" class="tinput" id="nota-titulo" placeholder="Título da nota..." style="height:42px;margin-bottom:12px;"/>
+    <div class="fl">Conteúdo</div>
+    <textarea class="tinput" id="nota-conteudo" rows="8" placeholder="Escreva aqui..."></textarea>
+    <div class="mbtns">
+      <button class="mbtn-can" onclick="fecharModalNota()">Cancelar</button>
+      <button class="mbtn-ok" onclick="salvarNota()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─ ANUAL ─ -->
 <div class="page" id="page-anual">
   <div class="phdr"><span class="phdr-title">📈 Anual</span><button class="rbtn" onclick="buscarAnual()">↻ Atualizar</button></div>
@@ -778,6 +803,7 @@ function ir(aba,el){
   if(aba==='geral')carregarGeral();
   if(aba==='calendario')renderCalendario();
   if(aba==='compras'){irSubCompras('mercado',document.querySelector('#compras-subtabs .stab'));renderCompras('mercado');renderCompras('desejos');}
+  if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){
     renderTarefasFiltro();
@@ -2580,6 +2606,91 @@ function renderCompras(lista){
         <button onclick="deletarCompra('${lista}',${item.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;padding:0 2px;flex-shrink:0;">🗑</button>
       </div>
       ${item.quem?`<div style="font-size:10px;color:var(--muted);margin-top:4px;margin-left:36px;">👤 adicionado por ${item.quem}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── NOTAS ─────────────────────────────────────────────────────
+let editandoNota=null;
+
+function getNotas(){return JSON.parse(localStorage.getItem('notas_bkp')||'[]');}
+function saveNotas(lista){
+  localStorage.setItem('notas_bkp',JSON.stringify(lista));
+  if(sUrl) api({acao:'salvarNotas',notas:JSON.stringify(lista)});
+}
+
+function abrirNovaNota(){
+  editandoNota=null;
+  document.getElementById('modal-nota-ttl').textContent='📓 Nova nota';
+  document.getElementById('nota-titulo').value='';
+  document.getElementById('nota-conteudo').value='';
+  document.getElementById('modal-nota').classList.add('open');
+  setTimeout(()=>document.getElementById('nota-titulo').focus(),100);
+}
+
+function abrirEditNota(id){
+  const n=getNotas().find(x=>x.id===id);if(!n)return;
+  editandoNota=id;
+  document.getElementById('modal-nota-ttl').textContent='✏️ Editar nota';
+  document.getElementById('nota-titulo').value=n.titulo;
+  document.getElementById('nota-conteudo').value=n.conteudo||'';
+  document.getElementById('modal-nota').classList.add('open');
+}
+
+function fecharModalNota(){document.getElementById('modal-nota').classList.remove('open');editandoNota=null;}
+function fModalNota(e){if(e.target===document.getElementById('modal-nota'))fecharModalNota();}
+
+function salvarNota(){
+  const titulo=document.getElementById('nota-titulo').value.trim();
+  if(!titulo){toast('Digite um título!','err');return;}
+  const conteudo=document.getElementById('nota-conteudo').value.trim();
+  const lista=getNotas();
+  if(editandoNota){
+    const idx=lista.findIndex(x=>x.id===editandoNota);
+    if(idx>=0) lista[idx]={...lista[idx],titulo,conteudo,editadoEm:new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),editadoPor:sNome||''};
+  } else {
+    lista.unshift({id:Date.now(),titulo,conteudo,criadoEm:new Date().toLocaleDateString('pt-BR')+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),criadoPor:sNome||''});
+  }
+  saveNotas(lista);
+  fecharModalNota();
+  renderNotas();
+  toast(editandoNota?'✓ Nota editada!':'✓ Nota salva!','ok');
+}
+
+function deletarNota(id){
+  if(!confirm('Apagar esta nota permanentemente?'))return;
+  saveNotas(getNotas().filter(x=>x.id!==id));
+  renderNotas();
+  toast('✓ Nota apagada!','ok');
+}
+
+async function carregarNotas(){
+  if(sUrl){
+    const j=await api({acao:'lerNotas'});
+    if(j&&j.sucesso&&j.notas) localStorage.setItem('notas_bkp',JSON.stringify(j.notas));
+  }
+  renderNotas();
+}
+
+function renderNotas(){
+  const el=document.getElementById('notas-list');if(!el)return;
+  const lista=getNotas();
+  if(!lista.length){
+    el.innerHTML='<div class="empty"><div class="ico">📓</div><p>Nenhuma nota ainda<br><span style="font-size:11px;">Clique em "+ Nova nota" para começar</span></p></div>';
+    return;
+  }
+  el.innerHTML=lista.map(n=>{
+    const preview=n.conteudo?n.conteudo.substring(0,120)+(n.conteudo.length>120?'...':''):'';
+    const info=n.editadoEm?`✏️ ${n.editadoPor||''} em ${n.editadoEm}`:`📝 ${n.criadoPor||''} em ${n.criadoEm||''}`;
+    return`<div class="hitem" style="margin-bottom:10px;cursor:pointer;" onclick="abrirEditNota(${n.id})">
+      <div class="htop">
+        <div class="hname" style="font-size:15px;">${n.titulo}</div>
+        <button onclick="event.stopPropagation();deletarNota(${n.id})" style="background:none;border:none;font-size:16px;cursor:pointer;padding:0;flex-shrink:0;">🗑</button>
+      </div>
+      ${preview?`<div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;white-space:pre-wrap;">${preview}</div>`:''}
+      <div class="htags" style="margin-top:8px;">
+        <span class="htag" style="font-size:10px;">${info}</span>
+      </div>
     </div>`;
   }).join('');
 }
