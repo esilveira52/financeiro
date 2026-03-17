@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 15:00 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 15:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2170,20 +2170,22 @@ async function salvarTarefasAPI(lista){
 }
 
 async function sincTarefas(){
-  if(!sUrl){toast('Configure a URL!','err');return;}
-  toast('↻ Buscando na planilha...','');
-  try {
-    const j=await api({acao:'lerTarefas'});
-    if(j&&j.sucesso&&j.tarefas){
+  if(!sUrl){toast('URL não configurada!','err');return;}
+  toast('↻ Sincronizando...','');
+  try{
+    const r=await fetch(sUrl+'?acao=lerTarefas',{redirect:'follow'});
+    const txt=await r.text();
+    const j=JSON.parse(txt);
+    if(j&&j.tarefas&&Array.isArray(j.tarefas)){
       localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
       renderTarefas();
       renderLembretes();
       renderCalendario();
-      toast('✓ Sincronizado! '+j.tarefas.filter(t=>!t.lixeira).length+' tarefa(s)','ok');
+      toast('✓ '+j.tarefas.filter(t=>!t.lixeira).length+' tarefas carregadas','ok');
     } else {
-      toast('Erro na sincronização','err');
+      toast('Resposta inválida: '+txt.substring(0,60),'err');
     }
-  } catch(e) {
+  }catch(e){
     toast('Erro: '+e.message,'err');
   }
 }
@@ -2871,11 +2873,11 @@ function calcPtsDia(h,val){
   if(h.tipo==='horas'){const n=parseFloat(val)||0;return Math.floor(n)*(h.pts||1);}
   if(h.tipo==='contador'){if(val==='folga')return 0;const n=parseInt(val)||0;return Math.min(n,h.meta||4)*(h.pts||1);}
   if(h.tipo==='refeicao'){
-    if(!val) return 0;
-    if(typeof val==='string') return val==='boa'?(h.pts||1):val==='ruim'?(h.ptsNeg||0):0;
-    const boas=parseInt(val.boas)||0;
-    const ruins=parseInt(val.ruins)||0;
-    return (boas*(h.pts||1))+(ruins*(h.ptsNeg||0));
+    // val é número: cada +1 = boa (ganha pts), cada -1 = ruim (perde pts)
+    const n=parseInt(val)||0;
+    if(n===0) return 0;
+    if(n>0) return n*(h.pts||1);
+    return n*(h.pts||1); // negativo * positivo = negativo
   }
   if(h.tipo==='bool'){return val===true?(h.pts||1):val===false?(h.ptsNeg||0):0;}
   return 0;
@@ -2978,7 +2980,7 @@ function renderHabitos(){
         if(h.tipo==='ml'){if(v>=(h.meta||2000)){cls='ok';txt='💧';}else if(v>0){cls='skip';txt='~';}}
         else if(h.tipo==='horas'){if(v>0){cls='ok';txt=v+'h';}else{cls='skip';}}
         else if(h.tipo==='contador'){if(v==='folga'){cls='skip';txt='😴';}else if(v>=(h.meta||4)){cls='ok';txt='✅';}else if(v>0){cls='skip';txt=v;}}
-        else if(h.tipo==='refeicao'){if(v&&typeof v==='object'){const b=v.boas||0,r=v.ruins||0;if(b>0||r>0){cls=r>b?'fail':'ok';txt=b+'✅'+(r>0?'/'+r+'❌':'');}}}
+        else if(h.tipo==='refeicao'){const n=parseInt(v)||0;if(n!==0){cls=n>0?'ok':'fail';txt=(n>0?'+':'')+n;}}
         else{if(v===true){cls='ok';txt='✅';}else if(v===false){cls='fail';txt='❌';}}
       }
       return '<div class="semana-dia" onclick="window._habDiaEdit=\''+dia+'\';renderHabitos()" style="cursor:pointer;"><div class="semana-lbl">'+lbl+'</div><div class="semana-dot '+cls+'" style="'+(isHojeDia?'border:2px solid var(--c1);':'')+(isSel?'box-shadow:0 0 0 2px #8b5cf6;':'')+(isFut?'opacity:0.3;':'')+'">'+txt+'</div></div>';
@@ -3007,6 +3009,10 @@ function regHabDia(habId,tipo,valor,dia){
     log[sNome][dia][habId]=Math.max(0,atual+valor);
   } else if(tipo==='folga'){
     log[sNome][dia][habId]=log[sNome][dia][habId]==='folga'?undefined:'folga';
+  } else if(tipo==='refeicao'){
+    // Acumula: +1 por boa, -1 por ruim
+    const atual=parseInt(log[sNome][dia][habId])||0;
+    log[sNome][dia][habId]=atual+valor;
   } else if(tipo==='clear'){
     delete log[sNome][dia][habId];
   } else {
