@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 20:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 21:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v61</title>
+<title>Financeiro Familiar v62</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -700,6 +700,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <span class="phdr-title">🏆 Hábitos</span>
     <div style="display:flex;gap:6px;">
       <button class="rbtn" onclick="sincHabitos()">↻</button>
+      <button class="rbtn" onclick="zerarProgressoHab()" style="background:#fee2e2;border-color:#ef4444;color:#ef4444;">🗑 Zerar</button>
       <button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirCfgHabitos()">⚙️ Config</button>
     </div>
   </div>
@@ -3388,6 +3389,16 @@ function renderPlacarAvatar(log){
     const lider=p.pts===Math.max(p1,p2)&&p.pts>0;
     return '<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;">'+(lider?'👑 ':'')+p.nome+'</span><span style="font-size:16px;font-weight:800;">'+p.pts+'pts</span></div><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:8px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:#fff;border-radius:99px;"></div></div></div>';
   }).join('');
+}
+
+async function zerarProgressoHab(){
+  if(!confirm('Zerar TODO o progresso de hábitos?\n\nIsso apaga seus registros locais E da planilha.\nA Lud também perderá os dados ao reabrir o app.')) return;
+  // Zera local
+  localStorage.removeItem('hab_log');
+  // Zera na planilha — salva log vazio
+  if(sUrl) await api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify({})});
+  renderHabitos();
+  toast('✓ Progresso zerado!','ok');
 }
 
 function removerPin(){
