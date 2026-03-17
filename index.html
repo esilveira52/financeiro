@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 17:15 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 17:20 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v51</title>
+<title>Financeiro Familiar v52</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2114,11 +2114,8 @@ function abrirNovaTPorData(dataISO){
 function debugCalendario(){
   sincTarefas().then(()=>{
     const tarefas=getTarefas();
-    const info=tarefas.map(t=>'['+t.titulo+'] data='+JSON.stringify(t.data)+' datafim='+JSON.stringify(t.datafim)+' tag='+t.tag).join('
-');
-    alert('Total: '+tarefas.length+' tarefas
-
-'+info);
+    const linhas=tarefas.map(function(t){return '['+t.titulo+'] data='+t.data+' tag='+t.tag;});
+    alert('Total: '+tarefas.length+'\n\n'+linhas.join('\n'));
   });
 }
 
