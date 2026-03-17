@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 22:20 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 22:35 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v66</title>
+<title>Financeiro Familiar v67</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -699,8 +699,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="phdr">
     <span class="phdr-title">🏆 Hábitos</span>
     <div style="display:flex;gap:6px;">
-      <button class="rbtn" onclick="sincHabitos()">↻</button>
-      <button class="rbtn" onclick="zerarProgressoHab()" style="background:#fee2e2;border-color:#ef4444;color:#ef4444;">🗑 Zerar</button>
+      <button class="rbtn" onclick="sincHabitos()">↻ Atualizar</button>
       <button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirCfgHabitos()">⚙️ Config</button>
     </div>
   </div>
@@ -2989,11 +2988,15 @@ function getHabLog(){
   }
   return raw;
 }
-function saveHabLog(log){
-  // Salva log completo localmente
+async function saveHabLog(log){
+  // Salva local imediatamente
   localStorage.setItem('hab_log',JSON.stringify(log));
-  // Envia só o log do usuário atual para a planilha
-  if(sUrl&&sNome) api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(log[sNome]||{})});
+  // Envia para planilha e aguarda confirmação
+  if(sUrl&&sNome){
+    try{
+      await api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(log[sNome]||{})});
+    }catch(e){}
+  }
 }
 
 async function sincHabLog(){
@@ -3002,12 +3005,18 @@ async function sincHabLog(){
   try{
     const j=await api({acao:'lerHabLogs'});
     if(j&&j.sucesso&&j.logs){
-      // Começa com dados locais (sempre têm prioridade)
       const logMerged=JSON.parse(JSON.stringify(logLocal));
-      // Adiciona APENAS dados de outros usuários da planilha
       Object.keys(j.logs).forEach(function(u){
-        if(u===sNome) return; // nunca toca nos dados do usuário atual
-        logMerged[u]=j.logs[u];
+        if(u===sNome){
+          // Próprio usuário: merge dia a dia — local tem prioridade mas pega dias que só estão na planilha
+          if(!logMerged[u]) logMerged[u]={};
+          Object.keys(j.logs[u]||{}).forEach(function(dia){
+            if(!logMerged[u][dia]) logMerged[u][dia]=j.logs[u][dia];
+          });
+        } else {
+          // Outro usuário — sempre usa dados da planilha (mais recentes)
+          logMerged[u]=j.logs[u];
+        }
       });
       localStorage.setItem('hab_log',JSON.stringify(logMerged));
       return logMerged;
