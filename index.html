@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 12:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 13:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2891,6 +2891,13 @@ function renderHabitos(){
 
   const habEl=document.getElementById('hab-hoje');
   if(!habEl) return;
+
+  // Se não tiver nome configurado, avisa
+  if(!sNome){
+    habEl.innerHTML='<div class="aviso" style="display:block;">⚙️ Configure seu nome na aba <strong>Config</strong> para usar os hábitos.</div>';
+    return;
+  }
+
   const isHojeSel=diaAtual===hoje;
   const diaFmt=new Date(diaAtual+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
 
@@ -2905,6 +2912,12 @@ function renderHabitos(){
   </div>`;
 
   const dLog=(log[sNome]||{})[diaAtual]||{};
+
+  if(!cfg.length){
+    habEl.innerHTML='<div class="empty"><div class="ico">🏆</div><p>Nenhum hábito ativo<br><span style="font-size:11px;">Clique em ⚙️ Config para adicionar</span></p></div>';
+    return;
+  }
+
   html+=cfg.map(h=>{
     const val=dLog[h.id];
     const ptsDia=calcPtsDia(h,val);
