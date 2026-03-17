@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 17:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 18:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v54</title>
+<title>Financeiro Familiar v55</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -352,6 +352,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
   <div class="tab" onclick="ir('compras',this)">🛒 Compras</div>
+  <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
   <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
   <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
@@ -625,6 +626,74 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ AVATAR ─ -->
+<div class="page" id="page-avatar">
+  <div class="phdr">
+    <span class="phdr-title">🧍 Avatar</span>
+    <button class="rbtn" onclick="renderAvatar()">↻ Atualizar</button>
+  </div>
+
+  <!-- Placar casal -->
+  <div style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-radius:var(--r);padding:16px;margin-bottom:16px;color:#fff;">
+    <div style="font-size:11px;opacity:0.8;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">🏆 Placar da semana</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="av-placar"></div>
+  </div>
+
+  <!-- Avatares lado a lado -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <!-- Edu -->
+    <div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;text-align:center;">
+      <div style="position:relative;width:120px;height:160px;margin:0 auto;" id="av-edu-wrap">
+        <!-- Placeholder base -->
+        <div id="av-edu-base" style="position:absolute;inset:0;border-radius:12px;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:40px;">🧍</span>
+        </div>
+        <!-- Camadas de estado (aparecem sobre o base) -->
+        <div id="av-edu-gordinho" style="position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;font-size:28px;">🫃</div>
+        <div id="av-edu-bagunca" style="position:absolute;inset:0;display:none;align-items:center;justify-content:flex-start;font-size:20px;padding:4px;">🧦👟📦</div>
+        <div id="av-edu-cansado" style="position:absolute;top:4px;right:4px;display:none;font-size:18px;">😴</div>
+        <div id="av-edu-hidratado" style="position:absolute;top:4px;left:4px;display:none;font-size:18px;">💧</div>
+        <div id="av-edu-campeao" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);display:none;font-size:22px;">🏆</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin-top:8px;color:var(--text);" id="av-edu-nome">Edu</div>
+      <div style="font-size:11px;color:var(--muted);" id="av-edu-status">carregando...</div>
+      <div id="av-edu-badges" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px;"></div>
+    </div>
+    <!-- Lud -->
+    <div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;text-align:center;">
+      <div style="position:relative;width:120px;height:160px;margin:0 auto;" id="av-lud-wrap">
+        <div id="av-lud-base" style="position:absolute;inset:0;border-radius:12px;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;">
+          <span style="font-size:40px;">🧍‍♀️</span>
+        </div>
+        <div id="av-lud-gordinho" style="position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;font-size:28px;">🫃</div>
+        <div id="av-lud-bagunca" style="position:absolute;inset:0;display:none;align-items:center;justify-content:flex-start;font-size:20px;padding:4px;">🧦👟📦</div>
+        <div id="av-lud-cansado" style="position:absolute;top:4px;right:4px;display:none;font-size:18px;">😴</div>
+        <div id="av-lud-hidratado" style="position:absolute;top:4px;left:4px;display:none;font-size:18px;">💧</div>
+        <div id="av-lud-campeao" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);display:none;font-size:22px;">🏆</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin-top:8px;color:var(--text);" id="av-lud-nome">Lud</div>
+      <div style="font-size:11px;color:var(--muted);" id="av-lud-status">carregando...</div>
+      <div id="av-lud-badges" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Legenda dos estados -->
+  <div class="slbl">📋 Legenda dos estados</div>
+  <div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
+      <div>🫃 <strong>Gordinho</strong> — muita comida ruim</div>
+      <div>🧦 <strong>Bagunça</strong> — casa não organizada</div>
+      <div>😴 <strong>Cansado</strong> — dormiu pouco</div>
+      <div>💧 <strong>Hidratado</strong> — meta de água batida</div>
+      <div>🏆 <strong>Campeão</strong> — 10+ pontos no dia</div>
+      <div>⭐ <strong>Em dia</strong> — tudo normal</div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6;">
+      Quando você tiver as imagens PNG prontas, substitua os emojis pelas imagens reais — o sistema de camadas já está funcionando!
+    </div>
+  </div>
+</div>
+
 <!-- ─ HÁBITOS ─ -->
 <div class="page" id="page-habitos">
   <div class="phdr">
@@ -885,6 +954,7 @@ function ir(aba,el){
       });
     }
   }
+  if(aba==='avatar')renderAvatar();
   if(aba==='habitos')carregarHabitos();
   if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
@@ -2990,15 +3060,22 @@ function renderHabitos(){
   const isHojeSel=diaAtual===hoje;
   const diaFmt=new Date(diaAtual+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
 
-  let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--card);padding:10px 14px;border-radius:var(--rs);border:1px solid var(--border);">
-    <button onclick="mudarDiaHab(-1)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;">←</button>
-    <div style="flex:1;text-align:center;">
-      <div style="font-size:13px;font-weight:700;">${isHojeSel?'🔵 Hoje':'📅 '+diaFmt}</div>
-      <div style="font-size:10px;color:var(--muted);">${diaAtual}</div>
-    </div>
-    <button onclick="mudarDiaHab(1)" ${isHojeSel?'disabled':''}
-      style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;${isHojeSel?'opacity:0.3':''}">→</button>
-  </div>`;
+  // Pontos totais do dia
+  let ptsTotaisDia=0;
+  cfg.forEach(h=>{ptsTotaisDia+=calcPtsDia(h,(log[sNome]||{})[diaAtual]?.[h.id]);});
+
+  let html='<div style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;color:#fff;">'
+    +'<div style="font-size:11px;opacity:0.8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Pontos hoje</div>'
+    +'<div style="font-size:32px;font-weight:800;">'+ptsTotaisDia+'<span style="font-size:14px;font-weight:400;opacity:0.8;margin-left:4px;">pts</span></div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;background:var(--card);padding:10px 14px;border-radius:var(--rs);border:1px solid var(--border);">'
+    +'<button onclick="mudarDiaHab(-1)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;">←</button>'
+    +'<div style="flex:1;text-align:center;">'
+    +'<div style="font-size:13px;font-weight:700;">'+(isHojeSel?'🔵 Hoje':'📅 '+diaFmt)+'</div>'
+    +'<div style="font-size:10px;color:var(--muted);">'+diaAtual+'</div>'
+    +'</div>'
+    +'<button onclick="mudarDiaHab(1)" '+(isHojeSel?'disabled':'')+' style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;'+(isHojeSel?'opacity:0.3;':'')+'">→</button>'
+    +'</div>';
 
   const dLog=(log[sNome]||{})[diaAtual]||{};
 
@@ -3038,8 +3115,14 @@ function renderHabitos(){
       botoes='<div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'bool\',true,\''+diaAtual+'\')">✅ Fiz</button>'+(h.ptsNeg?'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'bool\',false,\''+diaAtual+'\')">❌ Faltei</button>':'')+(val!==undefined&&val!==null?'<button class="hab-btn" onclick="regHabDia(\''+h.id+'\',\'clear\',null,\''+diaAtual+'\')">↺</button>':'')+'</div>';
     }
 
-    const ptsHtml=ptsDia>0?'<span style="color:#16a34a;font-weight:700;">+'+ptsDia+'pts</span>':ptsDia<0?'<span style="color:#ef4444;font-weight:700;">'+ptsDia+'pts</span>':'<span style="color:var(--muted);">0pts</span>';
-    return '<div class="hab-item"><div class="hab-row"><div class="hab-icon">'+h.icone+'</div><div class="hab-info"><div class="hab-nome">'+h.nome+'</div><div class="hab-pts">'+ptsHtml+'</div></div>'+botoes+'</div></div>';
+    const ptsCor=ptsDia>0?'#16a34a':ptsDia<0?'#ef4444':'var(--muted)';
+    const ptsStr=ptsDia>0?'+'+ptsDia:String(ptsDia);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border-radius:var(--rs);border:1px solid var(--border);margin-bottom:8px;">'
+      +'<span style="font-size:20px;flex-shrink:0;">'+h.icone+'</span>'
+      +'<span style="font-size:13px;font-weight:600;flex:1;color:var(--text);">'+h.nome+'</span>'
+      +'<span style="font-size:13px;font-weight:700;color:'+ptsCor+';flex-shrink:0;min-width:36px;text-align:right;">'+ptsStr+'</span>'
+      +'<div style="flex-shrink:0;">'+botoes+'</div>'
+      +'</div>';
   }).join('');
   habEl.innerHTML=html;
 
@@ -3166,6 +3249,104 @@ function renderHabCfgList(){
 function remHabitoCfg(i){habCfgTemp.splice(i,1);renderHabCfgList();}
 function addHabitoCfg(){habCfgTemp.push({id:'hab_'+Date.now(),nome:'Novo hábito',icone:'⭐',tipo:'bool',pts:1,ptsNeg:0,ativo:true});renderHabCfgList();}
 function salvarCfgHabitos(){localStorage.setItem('hab_cfg_'+sNome,JSON.stringify(habCfgTemp));fecharCfgHabitos();renderHabitos();toast('Hábitos salvos!','ok');}
+
+// ── AVATAR / ESTADOS ──────────────────────────────────────────
+function renderAvatar(){
+  const log=getHabLog();
+  const hoje=dataHoje();
+  const ontem=(function(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+
+  [pessoas[0]||'Edu', pessoas[1]||'Lud'].forEach(function(nome){
+    const id=nome.toLowerCase();
+    const cfgU=JSON.parse(localStorage.getItem('hab_cfg_'+nome)||JSON.stringify(HAB_PAD)).filter(function(h){return h.ativo;});
+    const logHoje=(log[nome]||{})[hoje]||{};
+    const logOntem=(log[nome]||{})[ontem]||{};
+
+    // Calcula pontos hoje
+    let ptsHoje=0;
+    cfgU.forEach(function(h){ptsHoje+=calcPtsDia(h,logHoje[h.id]);});
+
+    // Regra gordinho: média refeições (últimos 3 dias)
+    let totalBoas=0,totalRuins=0;
+    [hoje,ontem].forEach(function(dia){
+      const v=(log[nome]||{})[dia]?.refeicao;
+      const n=parseInt(v)||0;
+      if(n>0)totalBoas+=n; else if(n<0)totalRuins+=Math.abs(n);
+    });
+    const mediaRuim=totalBoas+totalRuins>0?totalRuins/(totalBoas+totalRuins):0;
+    const gordinho=mediaRuim>0.2; // mais de 20% ruins
+
+    // Regra bagunça: hábito casa não marcado hoje
+    const hCasa=cfgU.find(function(h){return h.id==='casa';});
+    const bagunca=hCasa&&!logHoje['casa'];
+
+    // Regra cansado: hábito sono não marcado
+    const hSono=cfgU.find(function(h){return h.id==='sono';});
+    const cansado=hSono&&logOntem['sono']===false;
+
+    // Regra hidratado: água bateu meta hoje
+    const hAgua=cfgU.find(function(h){return h.id==='agua';});
+    const metaAgua=hAgua?hAgua.meta||2000:2000;
+    const hidratado=hAgua&&(parseFloat(logHoje['agua'])||0)>=metaAgua;
+
+    // Regra campeão: 10+ pontos hoje
+    const campeao=ptsHoje>=10;
+
+    // Aplica estados
+    function setEl(elId,show){
+      const el=document.getElementById('av-'+id+'-'+elId);
+      if(el) el.style.display=show?'flex':'none';
+    }
+    setEl('gordinho',gordinho);
+    setEl('bagunca',bagunca);
+    setEl('cansado',cansado);
+    setEl('hidratado',hidratado);
+    setEl('campeao',campeao);
+
+    // Status texto
+    const statusEl=document.getElementById('av-'+id+'-status');
+    if(statusEl){
+      const estados=[];
+      if(campeao) estados.push('🏆 Campeão!');
+      if(hidratado) estados.push('💧 Hidratado');
+      if(gordinho) estados.push('🫃 Comendo mal');
+      if(bagunca) estados.push('🧦 Casa bagunçada');
+      if(cansado) estados.push('😴 Cansado');
+      statusEl.textContent=estados.length?estados.join(' · '):'⭐ Em dia';
+    }
+
+    // Badges pontos
+    const badgesEl=document.getElementById('av-'+id+'-badges');
+    if(badgesEl){
+      const cor=ptsHoje>0?'#16a34a':ptsHoje<0?'#ef4444':'var(--muted)';
+      badgesEl.innerHTML='<span style="font-size:11px;font-weight:700;color:'+cor+';background:'+cor+'18;border:1px solid '+cor+'40;border-radius:99px;padding:2px 10px;">'+(ptsHoje>0?'+':'')+ptsHoje+' pts hoje</span>';
+    }
+  });
+
+  // Placar semana
+  renderPlacarAvatar(log);
+}
+
+function renderPlacarAvatar(log){
+  const el=document.getElementById('av-placar');if(!el)return;
+  const semana=dataSemana();
+  const calcPts=function(nome){
+    const cfgU=JSON.parse(localStorage.getItem('hab_cfg_'+nome)||JSON.stringify(HAB_PAD)).filter(function(h){return h.ativo;});
+    let pts=0;
+    semana.forEach(function(dia){
+      const d=(log[nome]||{})[dia]||{};
+      cfgU.forEach(function(h){pts+=calcPtsDia(h,d[h.id]);});
+    });
+    return Math.max(0,pts);
+  };
+  const p1=calcPts(pessoas[0]||'Edu'),p2=calcPts(pessoas[1]||'Lud');
+  const mx=Math.max(p1,p2,1);
+  el.innerHTML=[{nome:pessoas[0]||'Edu',pts:p1},{nome:pessoas[1]||'Lud',pts:p2}].map(function(p){
+    const pct=Math.round(p.pts/mx*100);
+    const lider=p.pts===Math.max(p1,p2)&&p.pts>0;
+    return '<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;">'+(lider?'👑 ':'')+p.nome+'</span><span style="font-size:16px;font-weight:800;">'+p.pts+'pts</span></div><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:8px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:#fff;border-radius:99px;"></div></div></div>';
+  }).join('');
+}
 
 function removerPin(){
   if(!localStorage.getItem('appPin')){toast('Nenhum PIN configurado','warn');return;}
