@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 16:15 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 16:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v47</title>
+<title>Financeiro Familiar v48</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -711,6 +711,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;" id="cal-header"></div>
   <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
   <div id="cal-detalhe" style="margin-top:14px;"></div>
+  <div id="cal-debug" style="margin-top:10px;background:var(--card);border-radius:var(--rs);padding:12px;border:1px solid var(--border);font-size:11px;display:none;"></div>
 </div>
 
 <!-- ─ PARCELAS ─ -->
@@ -870,9 +871,8 @@ function ir(aba,el){
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
   if(aba==='geral')carregarGeral();
   if(aba==='calendario'){
-    // Sincroniza tarefas antes de renderizar calendário
-    if(sUrl){api({acao:'lerTarefas'}).then(j=>{if(j&&j.sucesso&&j.tarefas){localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));}renderCalendario();});}
-    else renderCalendario();
+    // Sincroniza com merge antes de renderizar
+    sincTarefas();
   }
   if(aba==='compras'){
     irSubCompras('mercado',document.querySelector('#compras-subtabs .stab'));
@@ -1989,6 +1989,20 @@ function renderCalendario(){
     g.appendChild(el);
   }
 
+  // Debug: mostra tarefas com datas para diagnóstico
+  const dbgEl=document.getElementById('cal-debug');
+  if(dbgEl){
+    const todas=getTarefas();
+    if(todas.length>0){
+      dbgEl.style.display='block';
+      dbgEl.innerHTML='<strong>🔍 Debug tarefas ('+todas.length+'):</strong><br>'+
+        todas.slice(0,5).map(t=>'📌 '+t.titulo+' | data: ['+t.data+'] | datafim: ['+t.datafim+']').join('<br>');
+    } else {
+      dbgEl.style.display='block';
+      dbgEl.innerHTML='<strong>🔍 Nenhuma tarefa no localStorage!</strong>';
+    }
+  }
+
   // Dias do mês
   for(let dia=1;dia<=diasMes;dia++){
     const dataStr=calAno+'-'+mes2+'-'+String(dia).padStart(2,'0');
@@ -2177,11 +2191,24 @@ async function sincTarefas(){
     const txt=await r.text();
     const j=JSON.parse(txt);
     if(j&&j.tarefas&&Array.isArray(j.tarefas)){
-      localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
+      // Merge: une tarefas da planilha com tarefas locais (por ID)
+      const local=getTodas();
+      const remotasPorId={};
+      j.tarefas.forEach(t=>remotasPorId[t.id]=t);
+      // Tarefas locais que não estão na planilha ainda (recém criadas)
+      const soPlanilha=j.tarefas;
+      const soLocal=local.filter(t=>!remotasPorId[t.id]);
+      // Merge final: planilha + locais novas
+      const merged=[...soPlanilha,...soLocal];
+      localStorage.setItem('tarefas_bkp',JSON.stringify(merged));
+      // Envia tarefas locais novas para a planilha
+      if(soLocal.length>0){
+        api({acao:'salvarTarefas',tarefas:JSON.stringify(merged)});
+      }
       renderTarefas();
       renderLembretes();
       renderCalendario();
-      toast('✓ '+j.tarefas.filter(t=>!t.lixeira).length+' tarefas carregadas','ok');
+      toast('✓ '+merged.filter(t=>!t.lixeira).length+' tarefas','ok');
     } else {
       toast('Resposta inválida: '+txt.substring(0,60),'err');
     }
