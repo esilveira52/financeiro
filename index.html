@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 15:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 15:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar</title>
+<title>Financeiro Familiar v45</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2954,7 +2954,15 @@ function renderHabitos(){
       botoes='<div style="min-width:130px;text-align:right;">'+(val==='folga'?'<div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:4px;">😴 Dia de folga</div>':'<div style="font-size:12px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+'/'+meta+'</div>')+'<div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">'+(val!=='folga'?'<button class="hab-btn neu" onclick="regHabDia(\''+h.id+'\',\'contador\',-1,\''+diaAtual+'\')">-1</button><button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'contador\',1,\''+diaAtual+'\')">+1</button>':'')+(h.temFolga?'<button class="hab-btn" style="'+(val==='folga'?'background:#f59e0b;color:#fff;border-color:#f59e0b;':'')+'" onclick="regHabDia(\''+h.id+'\',\'folga\',null,\''+diaAtual+'\')">😴 Folga</button>':'')+'</div></div>';
 
     } else if(h.tipo==='refeicao'){
-      botoes='<div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="hab-btn pos" style="'+(val==='boa'?'background:#16a34a;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'refeicao\',\'boa\',\''+diaAtual+'\')">Boa</button><button class="hab-btn neg" style="'+(val==='ruim'?'background:#ef4444;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'refeicao\',\'ruim\',\''+diaAtual+'\')">Ruim</button>'+(val?'<button class="hab-btn" onclick="regHabDia(\''+h.id+'\',\'clear\',null,\''+diaAtual+'\')">↺</button>':'')+'</div>';
+      const rfN=parseInt(val)||0;
+      const rfCor=rfN>0?'#16a34a':rfN<0?'#ef4444':'var(--muted)';
+      botoes='<div style="text-align:right;min-width:130px;">'
+        +'<div style="font-size:20px;font-weight:800;color:'+rfCor+';margin-bottom:4px;">'+(rfN>0?'+':'')+rfN+'</div>'
+        +'<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">pontos hoje</div>'
+        +'<div style="display:flex;gap:6px;justify-content:flex-end;">'
+        +'<button class="hab-btn neg" onclick="regHabDia(\''+h.id+'\',\'refeicao\',-1,\''+diaAtual+'\')">❌ -1</button>'
+        +'<button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'refeicao\',1,\''+diaAtual+'\')">✅ +1</button>'
+        +'</div></div>';
 
     } else {
       botoes='<div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'bool\',true,\''+diaAtual+'\')">✅ Fiz</button>'+(h.ptsNeg?'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'bool\',false,\''+diaAtual+'\')">❌ Faltei</button>':'')+(val!==undefined&&val!==null?'<button class="hab-btn" onclick="regHabDia(\''+h.id+'\',\'clear\',null,\''+diaAtual+'\')">↺</button>':'')+'</div>';
