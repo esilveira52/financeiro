@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 17:00 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 17:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v50</title>
+<title>Financeiro Familiar v51</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -706,6 +706,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <button onclick="mudCalMes(1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">→</button>
     </div>
     <button class="rbtn" onclick="sincTarefas()">↻ Atualizar</button>
+    <button class="rbtn" onclick="debugCalendario()" style="background:#f59e0b;color:#fff;border:none;">🔍 Debug</button>
   </div>
   <!-- Dias da semana -->
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;" id="cal-header"></div>
@@ -2110,6 +2111,17 @@ function abrirNovaTPorData(dataISO){
 }
 
 // Normaliza data: converte objeto Date, timestamps ou strings para YYYY-MM-DD
+function debugCalendario(){
+  sincTarefas().then(()=>{
+    const tarefas=getTarefas();
+    const info=tarefas.map(t=>'['+t.titulo+'] data='+JSON.stringify(t.data)+' datafim='+JSON.stringify(t.datafim)+' tag='+t.tag).join('
+');
+    alert('Total: '+tarefas.length+' tarefas
+
+'+info);
+  });
+}
+
 function normData(d){
   if(!d||d===''||d===null||d===undefined) return '';
   // Se for objeto Date (vindo do Google Sheets via JSON)
