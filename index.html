@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 16:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 16:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v48</title>
+<title>Financeiro Familiar v49</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -711,7 +711,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;" id="cal-header"></div>
   <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
   <div id="cal-detalhe" style="margin-top:14px;"></div>
-  <div id="cal-debug" style="margin-top:10px;background:var(--card);border-radius:var(--rs);padding:12px;border:1px solid var(--border);font-size:11px;display:none;"></div>
+
 </div>
 
 <!-- ─ PARCELAS ─ -->
@@ -1990,13 +1990,6 @@ function renderCalendario(){
   }
 
   // Debug: mostra tarefas com datas para diagnóstico
-  const dbgEl=document.getElementById('cal-debug');
-  if(dbgEl){
-    const todas=getTarefas();
-    if(todas.length>0){
-      dbgEl.style.display='block';
-      dbgEl.innerHTML='<strong>🔍 Debug tarefas ('+todas.length+'):</strong><br>'+
-        todas.slice(0,5).map(t=>'📌 '+t.titulo+' | data: ['+t.data+'] | datafim: ['+t.datafim+']').join('<br>');
     } else {
       dbgEl.style.display='block';
       dbgEl.innerHTML='<strong>🔍 Nenhuma tarefa no localStorage!</strong>';
@@ -2011,13 +2004,14 @@ function renderCalendario(){
     // Filtra tarefas deste dia — normaliza início/fim para caso estejam trocados
     const tDia=tarefas.filter(function(t){
       if(!t.data) return false;
-      var df=t.datafim||'';
+      var td=normData(t.data);
+      var df=t.datafim?normData(t.datafim):'';
       if(df!==''){
-        var dIni=t.data<=df?t.data:df;
-        var dFim=t.data<=df?df:t.data;
+        var dIni=td<=df?td:df;
+        var dFim=td<=df?df:td;
         return dataStr>=dIni && dataStr<=dFim;
       }
-      return t.data===dataStr;
+      return td===dataStr;
     });
 
     const cel=document.createElement('div');
@@ -2105,9 +2099,10 @@ function mostrarDetalheDia(dia){
   const dataStr=calAno+'-'+String(calMes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
   const tDia=tarefas.filter(function(t){
     if(!t.data) return false;
-    var df=t.datafim||'';
-    if(df!==''){var dIni=t.data<=df?t.data:df;var dFim=t.data<=df?df:t.data;return dataStr>=dIni&&dataStr<=dFim;}
-    return t.data===dataStr;
+    var td=normData(t.data);
+    var df=t.datafim?normData(t.datafim):'';
+    if(df!==''){var dIni=td<=df?td:df;var dFim=td<=df?df:td;return dataStr>=dIni&&dataStr<=dFim;}
+    return td===dataStr;
   });
   mostrarDetalhe(dia,tDia);
 }
@@ -2119,6 +2114,20 @@ function abrirNovaTPorData(dataISO){
     const inp=document.getElementById('t-data');
     if(inp) inp.value=dataISO;
   },50);
+}
+
+// Normaliza data: converte objeto Date, timestamps ou strings para YYYY-MM-DD
+function normData(d){
+  if(!d||d===''||d===null||d===undefined) return '';
+  // Se for objeto Date (vindo do Google Sheets via JSON)
+  if(typeof d==='object'&&d instanceof Date) return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const s=String(d);
+  // Se tiver "Thu Mar 19" ou formato longo
+  if(s.includes(' ')&&!s.match(/^\d{4}-\d{2}-\d{2}/)){
+    try{const dt=new Date(s);if(!isNaN(dt))return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}catch(e){}
+  }
+  // Pega só YYYY-MM-DD
+  return s.substring(0,10);
 }
 
 function fmtDataBR(d){
@@ -2217,7 +2226,11 @@ async function sincTarefas(){
   }
 }
 
-function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>!x.lixeira);}
+function getTarefas(){
+  return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]')
+    .filter(x=>!x.lixeira)
+    .map(x=>({...x, data:normData(x.data), datafim:normData(x.datafim)}));
+}
 function getTodas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]');}
 function getLixeira(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>x.lixeira);}
 function saveTarefas(l){
