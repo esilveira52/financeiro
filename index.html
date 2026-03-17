@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 16:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 17:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v49</title>
+<title>Financeiro Familiar v50</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1989,13 +1989,6 @@ function renderCalendario(){
     g.appendChild(el);
   }
 
-  // Debug: mostra tarefas com datas para diagnóstico
-    } else {
-      dbgEl.style.display='block';
-      dbgEl.innerHTML='<strong>🔍 Nenhuma tarefa no localStorage!</strong>';
-    }
-  }
-
   // Dias do mês
   for(let dia=1;dia<=diasMes;dia++){
     const dataStr=calAno+'-'+mes2+'-'+String(dia).padStart(2,'0');
@@ -2562,11 +2555,12 @@ function atuPinDots(){
 }
 
 function pinVerificar(){
-  const pinSalvo=localStorage.getItem('appPin')||'';
-  if(pinAtual===pinSalvo){
+  if(pinAtual===PIN_FIXO){
+    sessionStorage.setItem('autenticado','1');
     document.getElementById('pin-screen').style.display='none';
     pinTentativas=0;
     pinAtual='';
+    resetLockTimer();
   } else {
     pinTentativas++;
     for(let i=0;i<4;i++) document.getElementById('pd'+i).classList.add('error');
@@ -2575,7 +2569,6 @@ function pinVerificar(){
     setTimeout(()=>{
       pinAtual='';atuPinDots();
       document.getElementById('pin-error').textContent='';
-      // Depois de 5 tentativas mostra opção de entrar sem senha
       if(pinTentativas>=5) document.getElementById('pin-cfg-btn').style.display='block';
     },600);
   }
