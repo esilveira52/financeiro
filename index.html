@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 19:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 20:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v57</title>
+<title>Financeiro Familiar v58</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2959,20 +2959,22 @@ function saveHabLog(log){
 
 async function sincHabLog(){
   if(!sUrl) return getHabLog();
-  const j=await api({acao:'lerHabLogs'});
-  if(j&&j.sucesso&&j.logs){
-    const logLocal=getHabLog();
-    // Merge: começa com dados da planilha
-    const logMerged={...j.logs};
-    // Dados locais do usuário atual SEMPRE têm prioridade
-    if(sNome&&logLocal[sNome]&&Object.keys(logLocal[sNome]).length>0){
-      logMerged[sNome]=logLocal[sNome];
+  const logLocal=getHabLog();
+  try{
+    const j=await api({acao:'lerHabLogs'});
+    if(j&&j.sucesso&&j.logs){
+      // Começa com dados locais (sempre têm prioridade)
+      const logMerged=JSON.parse(JSON.stringify(logLocal));
+      // Adiciona APENAS dados de outros usuários da planilha
+      Object.keys(j.logs).forEach(function(u){
+        if(u===sNome) return; // nunca toca nos dados do usuário atual
+        logMerged[u]=j.logs[u];
+      });
+      localStorage.setItem('hab_log',JSON.stringify(logMerged));
+      return logMerged;
     }
-    // Salva merge localmente
-    localStorage.setItem('hab_log',JSON.stringify(logMerged));
-    return logMerged;
-  }
-  return getHabLog();
+  }catch(e){}
+  return logLocal;
 }
 
 function dataHoje(){
