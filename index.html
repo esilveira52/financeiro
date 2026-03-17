@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 21:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 22:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v63</title>
+<title>Financeiro Familiar v64</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -3169,28 +3169,87 @@ function renderHabitos(){
   }).join('');
   habEl.innerHTML=html;
 
-  // Semana grid
+  // Esta semana — pontuação por hábito, Edu e Lud separados
   const semEl=document.getElementById('hab-semana');
   if(!semEl) return;
-  semEl.innerHTML=cfg.map(h=>{
-    let cells=semana.map((dia,idx)=>{
-      const v=(log[sNome]?.[dia]||{})[h.id];
-      const lbl=DIAS_ABR[idx]||'';
-      const isHojeDia=dia===hoje;
-      const isSel=dia===diaAtual;
-      const isFut=dia>hoje;
-      let cls='skip',txt='·';
-      if(!isFut){
-        if(h.tipo==='ml'){if(v>=(h.meta||2000)){cls='ok';txt='💧';}else if(v>0){cls='skip';txt='~';}}
-        else if(h.tipo==='horas'){if(v>0){cls='ok';txt=v+'h';}else{cls='skip';}}
-        else if(h.tipo==='contador'){if(v==='folga'){cls='skip';txt='😴';}else if(v>=(h.meta||4)){cls='ok';txt='✅';}else if(v>0){cls='skip';txt=v;}}
-        else if(h.tipo==='refeicao'){const n=parseInt(v)||0;if(n!==0){cls=n>0?'ok':'fail';txt=(n>0?'+':'')+n;}}
-        else{if(v===true){cls='ok';txt='✅';}else if(v===false){cls='fail';txt='❌';}}
-      }
-      return '<div class="semana-dia" onclick="window._habDiaEdit=\''+dia+'\';renderHabitos()" style="cursor:pointer;"><div class="semana-lbl">'+lbl+'</div><div class="semana-dot '+cls+'" style="'+(isHojeDia?'border:2px solid var(--c1);':'')+(isSel?'box-shadow:0 0 0 2px #8b5cf6;':'')+(isFut?'opacity:0.3;':'')+'">'+txt+'</div></div>';
-    }).join('');
-    return '<div class="hab-item" style="padding:10px 14px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:16px;">'+h.icone+'</span><span style="font-size:12px;font-weight:700;">'+h.nome+'</span></div><div class="semana-grid">'+cells+'</div></div>';
-  }).join('');
+
+  const logEdu=log[pessoas[0]||'Edu']||{};
+  const logLud=log[pessoas[1]||'Lud']||{};
+  const nEdu=pessoas[0]||'Edu';
+  const nLud=pessoas[1]||'Lud';
+
+  function fmtPts(h,logU,dia){
+    const v=(logU[dia]||{})[h.id];
+    if(dia>hoje) return {txt:'',cor:'var(--muted)',bg:'transparent'};
+    if(v===undefined||v===null) return {txt:'·',cor:'var(--muted)',bg:'transparent'};
+    if(v==='folga') return {txt:'F',cor:'#94a3b8',bg:'#f1f5f9'};
+    const pts=calcPtsDia(h,v);
+    if(pts>0) return {txt:'+'+pts,cor:'#16a34a',bg:'#dcfce7'};
+    if(pts<0) return {txt:String(pts),cor:'#ef4444',bg:'#fee2e2'};
+    if(h.tipo==='ml'&&(parseFloat(v)||0)>0) return {txt:'~',cor:'#b45309',bg:'#fef9c3'};
+    if(h.tipo==='contador'&&parseInt(v)>0) return {txt:String(parseInt(v)),cor:'#b45309',bg:'#fef9c3'};
+    return {txt:'·',cor:'var(--muted)',bg:'transparent'};
+  }
+
+  let semHtml='<div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;">';
+
+  // Cabeçalho dias
+  semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;padding:8px 12px;border-bottom:1.5px solid var(--border);">';
+  semHtml+='<div></div><div></div>';
+  semana.forEach(function(dia,idx){
+    const isHj=dia===hoje;
+    semHtml+='<div style="text-align:center;font-size:10px;font-weight:'+(isHj?'800':'600')+';color:'+(isHj?'var(--c1)':'var(--muted)')+';">'+DIAS_ABR[idx]+'</div>';
+  });
+  semHtml+='</div>';
+
+  // Linhas por hábito
+  cfg.forEach(function(h,hi){
+    var borderTop=hi>0?'border-top:1.5px solid var(--border);':'';
+
+    // Linha Edu
+    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:5px 12px;'+borderTop+'">';
+    semHtml+='<span style="font-size:15px;">'+h.icone+'</span>';
+    semHtml+='<span style="font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+h.nome+'</span>';
+    semana.forEach(function(dia){
+      const c=fmtPts(h,logEdu,dia);
+      const isHj=dia===hoje;
+      semHtml+='<div onclick="window._habDiaEdit=''+dia+'';renderHabitos()" style="height:24px;border-radius:5px;background:'+c.bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';cursor:pointer;">'+c.txt+'</div>';
+    });
+    semHtml+='</div>';
+
+    // Linha Lud
+    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:5px 12px;border-bottom:0.5px solid var(--border);">';
+    semHtml+='<div></div>';
+    semHtml+='<span style="font-size:10px;font-weight:600;color:#ec4899;">'+nLud+'</span>';
+    semana.forEach(function(dia){
+      const c=fmtPts(h,logLud,dia);
+      semHtml+='<div style="height:24px;border-radius:5px;background:'+c.bg+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';">'+c.txt+'</div>';
+    });
+    semHtml+='</div>';
+  });
+
+  // Total Edu e Lud
+  const totEdu=semana.map(function(dia){var t=0;cfg.forEach(function(h){t+=calcPtsDia(h,(logEdu[dia]||{})[h.id]);});return t;});
+  const totLud=semana.map(function(dia){var t=0;cfg.forEach(function(h){t+=calcPtsDia(h,(logLud[dia]||{})[h.id]);});return t;});
+
+  ['edu','lud'].forEach(function(u){
+    var tots=u==='edu'?totEdu:totLud;
+    var nome=u==='edu'?nEdu:nLud;
+    var cor=u==='edu'?'var(--c1)':'#ec4899';
+    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:7px 12px;background:var(--bg);border-top:'+(u==='edu'?'1.5px':'0.5px')+' solid var(--border);">';
+    semHtml+='<span style="font-size:13px;">'+(u==='edu'?'🏆':'')+'</span>';
+    semHtml+='<span style="font-size:11px;font-weight:700;color:'+cor+';">'+nome+'</span>';
+    tots.forEach(function(t,i){
+      const isHj=semana[i]===hoje;
+      const c=t>0?'#16a34a':t<0?'#ef4444':'var(--muted)';
+      const bg=t>0?'#dcfce7':t<0?'#fee2e2':'transparent';
+      semHtml+='<div style="height:24px;border-radius:5px;background:'+bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:'+c+';">'+(t!==0?(t>0?'+':'')+t:'·')+'</div>';
+    });
+    semHtml+='</div>';
+  });
+
+  semHtml+='</div>';
+  semEl.innerHTML=semHtml;
 }
 
 function mudarDiaHab(delta){
