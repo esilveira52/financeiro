@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 20:15 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 20:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v59</title>
+<title>Financeiro Familiar v61</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2939,16 +2939,34 @@ function renderNotas(){
 
 // ── HÁBITOS ───────────────────────────────────────────────────
 const HAB_PAD=[
-  {id:'agua',    nome:'Água',            icone:'💧', tipo:'ml',      meta:2000, passo:500, pts:1, ptsMeta:3, ptsNeg:0, ativo:true},
-  {id:'treino',  nome:'Treino',          icone:'🏋️', tipo:'bool',    pts:3,     ptsNeg:-1, ativo:true},
-  {id:'refeicao',nome:'Refeição',        icone:'🥗', tipo:'refeicao',pts:1,     ptsNeg:-2, ativo:true},
-  {id:'estudo',  nome:'Horas de estudo', icone:'📚', tipo:'horas',   meta:1,    pts:2,     ptsNeg:0, ativo:true},
-  {id:'ponto',   nome:'Bater ponto',     icone:'✅', tipo:'contador',meta:4,    pts:1,     ptsNeg:0, temFolga:true, ativo:true},
-  {id:'casa',    nome:'Org. Casa/Carro', icone:'🏠', tipo:'bool',    pts:2,     ptsNeg:0,  ativo:true},
-  {id:'sono',    nome:'Dormir cedo',     icone:'😴', tipo:'bool',    pts:1,     ptsNeg:0,  ativo:true},
+  {id:'agua',   nome:'Água',              icone:'💧', tipo:'ml',      meta:2000, passo:500, pts:1, ptsMeta:3, ptsNeg:0, ativo:true},
+  {id:'treino', nome:'Treino',            icone:'🏋️', tipo:'bool',    pts:3,     ptsNeg:-1, ativo:true},
+  {id:'refeicao',nome:'Refeição',         icone:'🥗', tipo:'refeicao',pts:1,     ptsNeg:-2, ativo:true},
+  {id:'estudo', nome:'Horas de estudo',   icone:'📚', tipo:'horas',   meta:1,    pts:2,     ptsNeg:0, ativo:true},
+  {id:'ponto',  nome:'Bater ponto',       icone:'✅', tipo:'contador',meta:4,    pts:1,     ptsNeg:0, temFolga:true, ativo:true},
+  {id:'casa',   nome:'Org. Casa/Carro',   icone:'🏠', tipo:'bool',    pts:2,     ptsNeg:0,  ativo:true},
+  {id:'sono',   nome:'Dormir cedo',       icone:'😴', tipo:'bool',    pts:1,     ptsNeg:0,  ativo:true},
 ];
 
-function getHabCfg(){return JSON.parse(localStorage.getItem('hab_cfg_'+sNome)||JSON.stringify(HAB_PAD));}
+function getHabCfg(){
+  const cfg=JSON.parse(localStorage.getItem('hab_cfg_'+sNome)||JSON.stringify(HAB_PAD));
+  // Auto-fix: corrige tipos errados que podem vir de versões antigas
+  let fixado=false;
+  cfg.forEach(function(h){
+    // Água deve ser 'ml', não 'agua' ou 'contador'
+    if(h.id==='agua'&&h.tipo!=='ml'){h.tipo='ml';h.meta=h.meta||2000;h.passo=h.passo||500;fixado=true;}
+    // Bater ponto deve ser 'contador'
+    if((h.id==='ponto'||h.nome==='Bater ponto')&&h.tipo!=='contador'){
+      h.tipo='contador';h.meta=h.meta||4;h.temFolga=true;fixado=true;
+    }
+    // Refeição deve ser 'refeicao'
+    if((h.id==='refeicao'||h.id==='comida')&&h.tipo!=='refeicao'){h.tipo='refeicao';fixado=true;}
+    // Horas de estudo deve ser 'horas'
+    if(h.id==='estudo'&&h.tipo!=='horas'){h.tipo='horas';h.meta=h.meta||1;fixado=true;}
+  });
+  if(fixado) localStorage.setItem('hab_cfg_'+sNome,JSON.stringify(cfg));
+  return cfg;
+}
 function getHabLog(){
   const raw=JSON.parse(localStorage.getItem('hab_log')||'{}');
   // Auto-fix: detecta estrutura corrompida onde log[user][user] existe
