@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 15:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 15:50 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v45</title>
+<title>Financeiro Familiar v46</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2957,8 +2957,7 @@ function renderHabitos(){
       const rfN=parseInt(val)||0;
       const rfCor=rfN>0?'#16a34a':rfN<0?'#ef4444':'var(--muted)';
       botoes='<div style="text-align:right;min-width:130px;">'
-        +'<div style="font-size:20px;font-weight:800;color:'+rfCor+';margin-bottom:4px;">'+(rfN>0?'+':'')+rfN+'</div>'
-        +'<div style="font-size:10px;color:var(--muted);margin-bottom:6px;">pontos hoje</div>'
+        +'<div style="font-size:13px;font-weight:800;color:'+rfCor+';margin-bottom:4px;">'+(rfN>0?'+':'')+rfN+' pts</div>'
         +'<div style="display:flex;gap:6px;justify-content:flex-end;">'
         +'<button class="hab-btn neg" onclick="regHabDia(\''+h.id+'\',\'refeicao\',-1,\''+diaAtual+'\')">❌ -1</button>'
         +'<button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'refeicao\',1,\''+diaAtual+'\')">✅ +1</button>'
