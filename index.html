@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 13:45 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 14:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -705,7 +705,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <span class="phdr-title" id="cal-titulo">Março 2026</span>
       <button onclick="mudCalMes(1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">→</button>
     </div>
-    <button class="rbtn" onclick="sincTarefas().then(()=>renderCalendario())">↻ Atualizar</button>
+    <button class="rbtn" onclick="sincTarefas()">↻ Atualizar</button>
   </div>
   <!-- Dias da semana -->
   <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;" id="cal-header"></div>
@@ -2177,6 +2177,9 @@ async function sincTarefas(){
     localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
     renderTarefas();
     renderLembretes();
+    // Atualiza calendário se estiver visível
+    const calPage=document.getElementById('page-calendario');
+    if(calPage&&calPage.classList.contains('on')) renderCalendario();
     toast('✓ Tarefas atualizadas!','ok');
   } else toast('Erro ao sincronizar.','err');
 }
@@ -2863,7 +2866,22 @@ function calcPtsDia(h,val){
   if(h.tipo==='ml'){const n=parseFloat(val)||0;return Math.floor(n/(h.passo||500))*(h.pts||1)+(n>=(h.meta||2000)?(h.ptsMeta||0):0);}
   if(h.tipo==='horas'){const n=parseFloat(val)||0;return Math.floor(n)*(h.pts||1);}
   if(h.tipo==='contador'){if(val==='folga')return 0;const n=parseInt(val)||0;return Math.min(n,h.meta||4)*(h.pts||1);}
-  if(h.tipo==='refeicao'){if(!val||typeof val!=='object') return 0; return ((val.boas||0)*(h.pts||1))+((val.ruins||0)*(h.ptsNeg||0));}
+  if(h.tipo==='refeicao'){
+    // val pode ser objeto {boas:N, ruins:N} ou string legada 'boa'/'ruim'
+    if(!val) return 0;
+    if(typeof val==='string'){
+      // compatibilidade com formato antigo
+      return val==='boa'?(h.pts||1):val==='ruim'?(h.ptsNeg||0):0;
+    }
+    if(typeof val==='object'){
+      const boas=parseInt(val.boas)||0;
+      const ruins=parseInt(val.ruins)||0;
+      const ptsBoas=boas*(h.pts||1);
+      const ptsRuins=ruins*(h.ptsNeg||0); // ptsNeg é negativo ex: -2
+      return ptsBoas+ptsRuins;
+    }
+    return 0;
+  }
   if(h.tipo==='bool'){return val===true?(h.pts||1):val===false?(h.ptsNeg||0):0;}
   return 0;
 }
