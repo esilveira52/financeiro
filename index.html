@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 13:15 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 13:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -699,7 +699,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <!-- ─ CALENDÁRIO ─ -->
 <div class="page" id="page-calendario">
-  <div class="phdr">
+  <div class="phdr" style="display:flex;justify-content:space-between;align-items:center;">
+    <button class="rbtn" onclick="sincTarefas().then(()=>renderCalendario())">↻ Atualizar</button>
     <button onclick="mudCalMes(-1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">←</button>
     <span class="phdr-title" id="cal-titulo">Março 2026</span>
     <button onclick="mudCalMes(1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">→</button>
@@ -2860,7 +2861,7 @@ function calcPtsDia(h,val){
   if(h.tipo==='ml'){const n=parseFloat(val)||0;return Math.floor(n/(h.passo||500))*(h.pts||1)+(n>=(h.meta||2000)?(h.ptsMeta||0):0);}
   if(h.tipo==='horas'){const n=parseFloat(val)||0;return Math.floor(n)*(h.pts||1);}
   if(h.tipo==='contador'){if(val==='folga')return 0;const n=parseInt(val)||0;return Math.min(n,h.meta||4)*(h.pts||1);}
-  if(h.tipo==='refeicao'){return val==='boa'?(h.pts||1):val==='ruim'?(h.ptsNeg||0):0;}
+  if(h.tipo==='refeicao'){if(!val||typeof val!=='object') return 0; return ((val.boas||0)*(h.pts||1))+((val.ruins||0)*(h.ptsNeg||0));}
   if(h.tipo==='bool'){return val===true?(h.pts||1):val===false?(h.ptsNeg||0):0;}
   return 0;
 }
@@ -2962,7 +2963,7 @@ function renderHabitos(){
         if(h.tipo==='ml'){if(v>=(h.meta||2000)){cls='ok';txt='💧';}else if(v>0){cls='skip';txt='~';}}
         else if(h.tipo==='horas'){if(v>0){cls='ok';txt=v+'h';}else{cls='skip';}}
         else if(h.tipo==='contador'){if(v==='folga'){cls='skip';txt='😴';}else if(v>=(h.meta||4)){cls='ok';txt='✅';}else if(v>0){cls='skip';txt=v;}}
-        else if(h.tipo==='refeicao'){if(v==='boa'){cls='ok';txt='✅';}else if(v==='ruim'){cls='fail';txt='❌';}}
+        else if(h.tipo==='refeicao'){if(v&&typeof v==='object'){const b=v.boas||0,r=v.ruins||0;if(b>0||r>0){cls=r>b?'fail':'ok';txt=b+'✅'+(r>0?'/'+r+'❌':'');}}}
         else{if(v===true){cls='ok';txt='✅';}else if(v===false){cls='fail';txt='❌';}}
       }
       return '<div class="semana-dia" onclick="window._habDiaEdit=\''+dia+'\';renderHabitos()" style="cursor:pointer;"><div class="semana-lbl">'+lbl+'</div><div class="semana-dot '+cls+'" style="'+(isHojeDia?'border:2px solid var(--c1);':'')+(isSel?'box-shadow:0 0 0 2px #8b5cf6;':'')+(isFut?'opacity:0.3;':'')+'">'+txt+'</div></div>';
@@ -2997,6 +2998,18 @@ function regHabDia(habId,tipo,valor,dia){
     log[sNome][dia][habId]=valor;
   }
   saveHabLog(log);renderHabitos();
+}
+
+function regRefeicao(habId, campo, delta, dia){
+  const log=getHabLog();
+  if(!log[sNome]) log[sNome]={};
+  if(!log[sNome][dia]) log[sNome][dia]={};
+  const atual=log[sNome][dia][habId];
+  const obj=(atual&&typeof atual==='object')?{...atual}:{boas:0,ruins:0};
+  obj[campo]=Math.max(0,(obj[campo]||0)+delta);
+  log[sNome][dia][habId]=obj;
+  saveHabLog(log);
+  renderHabitos();
 }
 
 let habCfgTemp=[];
