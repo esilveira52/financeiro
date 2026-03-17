@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 22:00 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 22:10 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v64</title>
+<title>Financeiro Familiar v65</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -3213,7 +3213,7 @@ function renderHabitos(){
     semana.forEach(function(dia){
       const c=fmtPts(h,logEdu,dia);
       const isHj=dia===hoje;
-      semHtml+='<div onclick="window._habDiaEdit=''+dia+'';renderHabitos()" style="height:24px;border-radius:5px;background:'+c.bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';cursor:pointer;">'+c.txt+'</div>';
+      semHtml+='<div onclick="window._habDiaEdit=\''+dia+'\';renderHabitos()" style="height:24px;border-radius:5px;background:'+c.bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';cursor:pointer;">'+c.txt+'</div>';
     });
     semHtml+='</div>';
 
