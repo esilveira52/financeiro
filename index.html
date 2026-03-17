@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 14:30 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 15:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -2171,17 +2171,21 @@ async function salvarTarefasAPI(lista){
 
 async function sincTarefas(){
   if(!sUrl){toast('Configure a URL!','err');return;}
-  toast('Sincronizando...','');
-  const j=await api({acao:'lerTarefas'});
-  if(j&&j.sucesso&&j.tarefas){
-    localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
-    renderTarefas();
-    renderLembretes();
-    // Atualiza calendário se estiver visível
-    const calPage=document.getElementById('page-calendario');
-    if(calPage&&calPage.classList.contains('on')) renderCalendario();
-    toast('✓ Tarefas atualizadas!','ok');
-  } else toast('Erro ao sincronizar.','err');
+  toast('↻ Buscando na planilha...','');
+  try {
+    const j=await api({acao:'lerTarefas'});
+    if(j&&j.sucesso&&j.tarefas){
+      localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
+      renderTarefas();
+      renderLembretes();
+      renderCalendario();
+      toast('✓ Sincronizado! '+j.tarefas.filter(t=>!t.lixeira).length+' tarefa(s)','ok');
+    } else {
+      toast('Erro na sincronização','err');
+    }
+  } catch(e) {
+    toast('Erro: '+e.message,'err');
+  }
 }
 
 function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>!x.lixeira);}
@@ -2867,20 +2871,11 @@ function calcPtsDia(h,val){
   if(h.tipo==='horas'){const n=parseFloat(val)||0;return Math.floor(n)*(h.pts||1);}
   if(h.tipo==='contador'){if(val==='folga')return 0;const n=parseInt(val)||0;return Math.min(n,h.meta||4)*(h.pts||1);}
   if(h.tipo==='refeicao'){
-    // val pode ser objeto {boas:N, ruins:N} ou string legada 'boa'/'ruim'
     if(!val) return 0;
-    if(typeof val==='string'){
-      // compatibilidade com formato antigo
-      return val==='boa'?(h.pts||1):val==='ruim'?(h.ptsNeg||0):0;
-    }
-    if(typeof val==='object'){
-      const boas=parseInt(val.boas)||0;
-      const ruins=parseInt(val.ruins)||0;
-      const ptsBoas=boas*(h.pts||1);
-      const ptsRuins=ruins*(h.ptsNeg||0); // ptsNeg é negativo ex: -2
-      return ptsBoas+ptsRuins;
-    }
-    return 0;
+    if(typeof val==='string') return val==='boa'?(h.pts||1):val==='ruim'?(h.ptsNeg||0):0;
+    const boas=parseInt(val.boas)||0;
+    const ruins=parseInt(val.ruins)||0;
+    return (boas*(h.pts||1))+(ruins*(h.ptsNeg||0));
   }
   if(h.tipo==='bool'){return val===true?(h.pts||1):val===false?(h.ptsNeg||0):0;}
   return 0;
@@ -3025,8 +3020,10 @@ function regRefeicao(habId, campo, delta, dia){
   if(!log[sNome]) log[sNome]={};
   if(!log[sNome][dia]) log[sNome][dia]={};
   const atual=log[sNome][dia][habId];
-  const obj=(atual&&typeof atual==='object')?{...atual}:{boas:0,ruins:0};
-  obj[campo]=Math.max(0,(obj[campo]||0)+delta);
+  // Garante que é um objeto {boas, ruins}
+  let obj={boas:0,ruins:0};
+  if(atual&&typeof atual==='object') obj={boas:parseInt(atual.boas)||0,ruins:parseInt(atual.ruins)||0};
+  obj[campo]=Math.max(0,obj[campo]+delta);
   log[sNome][dia][habId]=obj;
   saveHabLog(log);
   renderHabitos();
