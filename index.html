@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 10:15 -->
+<!-- Financeiro Familiar | Gerado: 17/03/2026 10:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -564,7 +564,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <!-- ─ COMPRAS ─ -->
 <div class="page" id="page-compras">
-  <div class="phdr"><span class="phdr-title">🛒 Listas de Compras</span></div>
+  <div class="phdr"><span class="phdr-title">🛒 Listas de Compras</span><button class="rbtn" onclick="sincCompras()">↻ Atualizar</button></div>
   <div class="subtabs" id="compras-subtabs">
     <button class="stab on" onclick="irSubCompras('mercado',this)">🛒 Mercado</button>
     <button class="stab" onclick="irSubCompras('desejos',this)">✨ Desejos</button>
@@ -603,7 +603,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="page" id="page-notas">
   <div class="phdr">
     <span class="phdr-title">📓 Notas</span>
-    <button class="rbtn" onclick="abrirNovaNota()">+ Nova nota</button>
+    <div style="display:flex;gap:8px;"><button class="rbtn" onclick="carregarNotas()">↻ Atualizar</button><button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirNovaNota()">+ Nova</button></div>
   </div>
   <div id="notas-list"><div class="loading">Carregando...</div></div>
 </div>
@@ -655,7 +655,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <!-- ─ TAREFAS ─ -->
 <div class="page" id="page-tarefas">
   <div class="phdr"><span class="phdr-title">✅ Tarefas</span>
-    <button class="rbtn" onclick="abrirNovaT()">+ Nova</button>
+    <div style="display:flex;gap:8px;"><button class="rbtn" onclick="sincTarefas()">↻ Atualizar</button><button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirNovaT()">+ Nova</button></div>
   </div>
 
   <!-- Filtro tags -->
@@ -801,8 +801,22 @@ function ir(aba,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
   if(aba==='geral')carregarGeral();
-  if(aba==='calendario')renderCalendario();
-  if(aba==='compras'){irSubCompras('mercado',document.querySelector('#compras-subtabs .stab'));renderCompras('mercado');renderCompras('desejos');}
+  if(aba==='calendario'){
+    // Sincroniza tarefas antes de renderizar calendário
+    if(sUrl){api({acao:'lerTarefas'}).then(j=>{if(j&&j.sucesso&&j.tarefas){localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));}renderCalendario();});}
+    else renderCalendario();
+  }
+  if(aba==='compras'){
+    irSubCompras('mercado',document.querySelector('#compras-subtabs .stab'));
+    // Sincroniza da planilha ao abrir
+    if(sUrl){
+      Promise.all([api({acao:'lerCompras',lista:'mercado'}),api({acao:'lerCompras',lista:'desejos'})]).then(([jm,jd])=>{
+        if(jm&&jm.sucesso&&jm.items) localStorage.setItem('compras_mercado',JSON.stringify(jm.items));
+        if(jd&&jd.sucesso&&jd.items) localStorage.setItem('compras_desejos',JSON.stringify(jd.items));
+        renderCompras('mercado');renderCompras('desejos');
+      });
+    }
+  }
   if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){
@@ -2086,6 +2100,18 @@ async function salvarTarefasAPI(lista){
   if(sUrl) await apiNC({acao:'salvarTarefas',tarefas:JSON.stringify(lista)});
 }
 
+async function sincTarefas(){
+  if(!sUrl){toast('Configure a URL!','err');return;}
+  toast('Sincronizando...','');
+  const j=await api({acao:'lerTarefas'});
+  if(j&&j.sucesso&&j.tarefas){
+    localStorage.setItem('tarefas_bkp',JSON.stringify(j.tarefas));
+    renderTarefas();
+    renderLembretes();
+    toast('✓ Tarefas atualizadas!','ok');
+  } else toast('Erro ao sincronizar.','err');
+}
+
 function getTarefas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>!x.lixeira);}
 function getTodas(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]');}
 function getLixeira(){return JSON.parse(localStorage.getItem('tarefas_bkp')||'[]').filter(x=>x.lixeira);}
@@ -2508,6 +2534,20 @@ function atuBadgeMensal(){
 }
 
 // ── LISTA DE COMPRAS ──────────────────────────────────────────
+async function sincCompras(){
+  if(!sUrl){toast('Configure a URL!','err');return;}
+  toast('Sincronizando...','');
+  const [jm,jd]=await Promise.all([
+    api({acao:'lerCompras',lista:'mercado'}),
+    api({acao:'lerCompras',lista:'desejos'})
+  ]);
+  if(jm&&jm.sucesso&&jm.items) localStorage.setItem('compras_mercado',JSON.stringify(jm.items));
+  if(jd&&jd.sucesso&&jd.items) localStorage.setItem('compras_desejos',JSON.stringify(jd.items));
+  renderCompras('mercado');
+  renderCompras('desejos');
+  toast('✓ Lista atualizada!','ok');
+}
+
 function irSubCompras(sub, el){
   document.querySelectorAll('#compras-subtabs .stab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('#page-compras .subpage').forEach(p=>p.classList.remove('on'));
@@ -2665,6 +2705,8 @@ function deletarNota(id){
 }
 
 async function carregarNotas(){
+  const el=document.getElementById('notas-list');
+  if(el) el.innerHTML='<div class="loading">Sincronizando notas...</div>';
   if(sUrl){
     const j=await api({acao:'lerNotas'});
     if(j&&j.sucesso&&j.notas) localStorage.setItem('notas_bkp',JSON.stringify(j.notas));
