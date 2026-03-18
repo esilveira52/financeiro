@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 10:00 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 10:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v79</title>
+<title>Financeiro Familiar v80</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -873,7 +873,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v79</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v80</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1465,37 +1465,43 @@ async function verLancamentosCartao(cartao){
   lista.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">⏳ Carregando...</div>';
   el.classList.add('open');
 
-  // Calcula período da fatura atual
+  // Usa exatamente o mesmo cálculo de período da abrirPagarFatura
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
-  const hoje=new Date();
-  const mes=hoje.getMonth();
-  const ano=hoje.getFullYear();
-  let mesIni=mes,anoIni=ano,mesRef=mes,anoRef=ano;
-  if(hoje.getDate()>=fechDia){mesRef=mes;anoRef=ano;mesIni=mes===0?11:mes-1;anoIni=mes===0?ano-1:ano;}
-  else{mesRef=mes===0?11:mes-1;anoRef=mes===0?ano-1:ano;mesIni=mes<=1?mes===0?10:11:mes-2;anoIni=mes<=1?ano-1:ano;}
+  const mesRef=mes===0?11:mes-1;
+  const anoRef=mes===0?ano-1:ano;
+  const mesIni=mesRef===0?11:mesRef-1;
+  const anoIni=mesRef===0?anoRef-1:anoRef;
+  const diaFim=fechDia-1>0?fechDia-1:28;
+  const periodoTxt=`${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
 
   try{
     const j=await api({acao:'lerGastosCartao',cartao,mes:MN[mesIni],ano:anoIni,mes2:MN[mesRef],ano2:anoRef,fechDia});
-    if(j&&j.itens&&j.itens.length){
-      const total=j.total||j.itens.reduce((s,i)=>s+i.valor,0);
-      lista.innerHTML='<div style="margin-bottom:12px;padding:10px 14px;background:#fef3c7;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">'
-        +'<span style="font-size:12px;font-weight:600;color:#92400e;">Total da fatura</span>'
-        +'<span style="font-size:16px;font-weight:800;color:#d97706;">'+fmt(total)+'</span>'
-        +'</div>'
-        +j.itens.map(i=>'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">'
-          +'<div style="flex:1;min-width:0;">'
-          +'<div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+i.descricao+'</div>'
-          +'<div style="font-size:10px;color:var(--muted);">'+i.categoria+(i.data?' · '+new Date(i.data).toLocaleDateString('pt-BR'):'')+'</div>'
+    if(j&&j.sucesso&&j.gastos){
+      const itens=j.gastos.itens||[];
+      const total=j.gastos.total||0;
+      if(itens.length>0){
+        lista.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">📅 '+periodoTxt+'</div>'
+          +'<div style="margin-bottom:12px;padding:10px 14px;background:#fef3c7;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">'
+          +'<span style="font-size:12px;font-weight:600;color:#92400e;">Total da fatura</span>'
+          +'<span style="font-size:16px;font-weight:800;color:#d97706;">'+fmt(total)+'</span>'
           +'</div>'
-          +'<span style="font-size:13px;font-weight:700;color:#ef4444;flex-shrink:0;">'+fmt(i.valor)+'</span>'
-          +'</div>'
-        ).join('');
+          +itens.map(i=>'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">'
+            +'<div style="flex:1;min-width:0;">'
+            +'<div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(i.descricao||i.categoria||'—')+'</div>'
+            +'<div style="font-size:10px;color:var(--muted);">'+cap(i.categoria||'')+(i.data?' · '+new Date(i.data).toLocaleDateString('pt-BR'):'')+'</div>'
+            +'</div>'
+            +'<span style="font-size:13px;font-weight:700;color:#ef4444;flex-shrink:0;">'+fmt(i.valor)+'</span>'
+            +'</div>'
+          ).join('');
+      } else {
+        lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum lançamento encontrado nesta fatura.<br><small>'+periodoTxt+'</small></div>';
+      }
     } else {
-      lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum lançamento encontrado nesta fatura.</div>';
+      lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.</div>';
     }
   }catch(e){
-    lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.</div>';
+    lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro: '+e.message+'</div>';
   }
 }
 
