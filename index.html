@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 17/03/2026 23:15 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 00:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v70</title>
+<title>Financeiro Familiar v71</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -2943,88 +2943,28 @@ function renderNotas(){
 
 // ── HÁBITOS ───────────────────────────────────────────────────
 const HAB_PAD=[
-  {id:'agua',   nome:'Água',              icone:'💧', tipo:'ml',      meta:2000, passo:500, pts:1, ptsMeta:3, ptsNeg:0, ativo:true},
-  {id:'treino', nome:'Treino',            icone:'🏋️', tipo:'bool',    pts:3,     ptsNeg:-1, ativo:true},
-  {id:'refeicao',nome:'Refeição',         icone:'🥗', tipo:'refeicao',pts:1,     ptsNeg:-2, ativo:true},
-  {id:'estudo', nome:'Horas de estudo',   icone:'📚', tipo:'horas',   meta:1,    pts:2,     ptsNeg:0, ativo:true},
-  {id:'ponto',  nome:'Bater ponto',       icone:'✅', tipo:'contador',meta:4,    pts:1,     ptsNeg:0, temFolga:true, ativo:true},
-  {id:'casa',   nome:'Org. Casa/Carro',   icone:'🏠', tipo:'bool',    pts:2,     ptsNeg:0,  ativo:true},
-  {id:'sono',   nome:'Dormir cedo',       icone:'😴', tipo:'bool',    pts:1,     ptsNeg:0,  ativo:true},
+  {id:'agua',   nome:'Água',              icone:'💧', tipo:'ml',    passo:500, pts:1},
+  {id:'ponto',  nome:'Bater ponto',       icone:'✅', tipo:'cont',  meta:4,   pts:1, folga:4},
+  {id:'estudo', nome:'Horas de estudo',   icone:'📚', tipo:'horas', passo:1,  pts:1},
+  {id:'treino', nome:'Treino',            icone:'🏋️', tipo:'bool',  pts:1},
+  {id:'sono',   nome:'Dormir cedo',       icone:'😴', tipo:'bool',  pts:1},
+  {id:'acordar',nome:'Acordar cedo',      icone:'🌅', tipo:'bool',  pts:1},
+  {id:'casa',   nome:'Organizar cômodo',  icone:'🏠', tipo:'bool',  pts:1},
+  {id:'marmita',nome:'Tirar marmita',     icone:'🚗', tipo:'bool',  pts:1},
+  {id:'deus',   nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',  pts:1},
 ];
+
+// ── NOVA ARQUITETURA: cada marcação = nova linha na planilha ──────
+// Igual ao financeiro — nunca sobrescreve, só adiciona/subtrai
 
 function getHabCfg(){
   const cfg=JSON.parse(localStorage.getItem('hab_cfg_'+sNome)||JSON.stringify(HAB_PAD));
-  // Auto-fix: corrige tipos errados que podem vir de versões antigas
-  let fixado=false;
-  cfg.forEach(function(h){
-    // Água deve ser 'ml', não 'agua' ou 'contador'
-    if(h.id==='agua'&&h.tipo!=='ml'){h.tipo='ml';h.meta=h.meta||2000;h.passo=h.passo||500;fixado=true;}
-    // Bater ponto deve ser 'contador'
-    if((h.id==='ponto'||h.nome==='Bater ponto')&&h.tipo!=='contador'){
-      h.tipo='contador';h.meta=h.meta||4;h.temFolga=true;fixado=true;
-    }
-    // Refeição deve ser 'refeicao'
-    if((h.id==='refeicao'||h.id==='comida')&&h.tipo!=='refeicao'){h.tipo='refeicao';fixado=true;}
-    // Horas de estudo deve ser 'horas'
-    if(h.id==='estudo'&&h.tipo!=='horas'){h.tipo='horas';h.meta=h.meta||1;fixado=true;}
-  });
-  if(fixado) localStorage.setItem('hab_cfg_'+sNome,JSON.stringify(cfg));
   return cfg;
 }
-function getHabLog(){
-  const raw=JSON.parse(localStorage.getItem('hab_log')||'{}');
-  // Auto-fix: detecta estrutura corrompida onde log[user][user] existe
-  let fixado=false;
-  Object.keys(raw).forEach(function(u){
-    if(raw[u]&&raw[u][u]&&typeof raw[u][u]==='object'){
-      // Estrutura corrompida — achata
-      const dadosReais=raw[u][u];
-      Object.keys(dadosReais).forEach(function(dia){
-        if(!raw[u][dia]) raw[u][dia]=dadosReais[dia];
-      });
-      delete raw[u][u];
-      fixado=true;
-    }
-  });
-  if(fixado){
-    localStorage.setItem('hab_log',JSON.stringify(raw));
-    if(sUrl&&sNome) api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(raw[sNome]||{})});
-  }
-  return raw;
-}
-function saveHabLog(log){
-  // 1. Salva local
-  localStorage.setItem('hab_log',JSON.stringify(log));
-  // 2. Envia para planilha
-  if(sUrl&&sNome){
-    api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify(log[sNome]||{})})
-      .then(function(r){
-        if(!r||!r.sucesso) toast('⚠️ Erro ao salvar na planilha','err');
-      });
-  }
-}
 
-async function sincHabLog(){
-  if(!sUrl) return getHabLog();
-  try{
-    const j=await api({acao:'lerHabLogs'});
-    if(j&&j.sucesso&&j.logs){
-      // Lê local atual
-      const logLocal=getHabLog();
-      // Monta objeto final: dados locais do usuário atual + dados da planilha para outros
-      const logFinal={};
-      // Próprio usuário: sempre usa local (mais recente)
-      logFinal[sNome]=logLocal[sNome]||{};
-      // Outros usuários: usa planilha
-      Object.keys(j.logs).forEach(function(u){
-        if(u!==sNome) logFinal[u]=j.logs[u];
-      });
-      localStorage.setItem('hab_log',JSON.stringify(logFinal));
-      return logFinal;
-    }
-  }catch(e){}
-  return getHabLog();
-}
+// Cache local: {Edu: {2026-03-17: {agua:1000, ponto:2, ...}}, Lud: {...}}
+function getHabCache(){return JSON.parse(localStorage.getItem('hab_cache')||'{}');}
+function saveHabCache(c){localStorage.setItem('hab_cache',JSON.stringify(c));}
 
 function dataHoje(){
   const d=new Date();
@@ -3032,27 +2972,96 @@ function dataHoje(){
 }
 
 function dataSemana(){
-  const dias=[];
-  const hoje=new Date();
-  const diaSem=hoje.getDay();
-  const diasDesdeSegunda=(diaSem===0?6:diaSem-1);
-  for(let i=diasDesdeSegunda;i>=0;i--){
-    const d=new Date(hoje);d.setDate(hoje.getDate()-i);
-    dias.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
-  }
-  while(dias.length<7){
-    const prox=new Date(hoje);prox.setDate(hoje.getDate()+(7-diasDesdeSegunda-(7-dias.length)));
-    dias.push(prox.getFullYear()+'-'+String(prox.getMonth()+1).padStart(2,'0')+'-'+String(prox.getDate()).padStart(2,'0'));
-  }
+  const dias=[];const hoje=new Date();
+  const dow=hoje.getDay();const diasDesde=dow===0?6:dow-1;
+  for(let i=diasDesde;i>=0;i--){const d=new Date(hoje);d.setDate(hoje.getDate()-i);dias.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));}
+  while(dias.length<7){const d=new Date(hoje);d.setDate(hoje.getDate()+(7-diasDesde-(7-dias.length)));dias.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));}
   return dias;
 }
 
+// Registra marcação — envia para planilha E atualiza cache local
+async function marcarHabito(habId, valor, dia){
+  dia=dia||dataHoje();
+  const cache=getHabCache();
+  if(!cache[sNome])cache[sNome]={};
+  if(!cache[sNome][dia])cache[sNome][dia]={};
+
+  const h=getHabCfg().find(x=>x.id===habId);
+  if(!h)return;
+
+  // Atualiza cache local
+  if(h.tipo==='ml'||h.tipo==='horas'||h.tipo==='cont'){
+    if(valor==='folga'){
+      cache[sNome][dia][habId]={folga:true, val:h.folga||4};
+    } else if(cache[sNome][dia][habId]&&cache[sNome][dia][habId].folga){
+      // Desfaz folga
+      delete cache[sNome][dia][habId];
+    } else {
+      const atual=(cache[sNome][dia][habId]&&cache[sNome][dia][habId].val)||0;
+      const novo=Math.max(0,atual+valor);
+      cache[sNome][dia][habId]={val:novo};
+    }
+  } else {
+    // bool: toggle ou set
+    if(cache[sNome][dia][habId]&&cache[sNome][dia][habId].val===valor){
+      delete cache[sNome][dia][habId]; // desfaz
+    } else {
+      cache[sNome][dia][habId]={val:valor};
+    }
+  }
+
+  saveHabCache(cache);
+
+  // Envia para planilha (nova linha — igual ao financeiro)
+  if(sUrl&&sNome){
+    await apiNC({
+      acao:'marcarHabito',
+      usuario:sNome,
+      dia,
+      habito:habId,
+      valor:JSON.stringify(valor),
+      ts:Date.now()
+    });
+  }
+
+  renderHabitos();
+}
+
+// Sincroniza — busca TODAS as linhas da planilha e reconstrói cache
+async function sincHabLog(){
+  if(!sUrl)return getHabCache();
+  const j=await api({acao:'lerHabitos'});
+  if(j&&j.sucesso&&j.registros){
+    // Reconstrói cache do zero a partir das linhas
+    const novoCache={};
+    j.registros.forEach(function(r){
+      const u=r.usuario,dia=r.dia,hab=r.habito;
+      const val=JSON.parse(r.valor);
+      if(!novoCache[u])novoCache[u]={};
+      if(!novoCache[u][dia])novoCache[u][dia]={};
+      if(!novoCache[u][dia][hab])novoCache[u][dia][hab]={val:0};
+      // Acumula igual ao financeiro
+      if(val==='folga'){
+        novoCache[u][dia][hab]={folga:true,val:4};
+      } else if(typeof val==='number'){
+        if(novoCache[u][dia][hab].folga) return; // folga tem prioridade
+        novoCache[u][dia][hab].val=(novoCache[u][dia][hab].val||0)+val;
+        if(novoCache[u][dia][hab].val<0) novoCache[u][dia][hab].val=0;
+      } else {
+        novoCache[u][dia][hab]={val};
+      }
+    });
+    saveHabCache(novoCache);
+    return novoCache;
+  }
+  return getHabCache();
+}
+
 async function sincHabitos(){
-  if(!sUrl){toast('URL não configurada!','err');return;}
   toast('↻ Sincronizando...','');
   await sincHabLog();
   renderHabitos();
-  toast('✓ Hábitos sincronizados!','ok');
+  toast('✓ Sincronizado!','ok');
 }
 
 async function carregarHabitos(){
@@ -3061,203 +3070,188 @@ async function carregarHabitos(){
   renderHabitos();
 }
 
-function calcPtsDia(h,val){
-  if(val===undefined||val===null) return 0;
-  if(h.tipo==='ml'){const n=parseFloat(val)||0;return Math.floor(n/(h.passo||500))*(h.pts||1)+(n>=(h.meta||2000)?(h.ptsMeta||0):0);}
-  if(h.tipo==='horas'){const n=parseFloat(val)||0;return Math.floor(n)*(h.pts||1);}
-  if(h.tipo==='contador'){if(val==='folga')return 0;const n=parseInt(val)||0;return Math.min(n,h.meta||4)*(h.pts||1);}
-  if(h.tipo==='refeicao'){
-    // val é número: cada +1 = boa (ganha pts), cada -1 = ruim (perde pts)
-    const n=parseInt(val)||0;
-    if(n===0) return 0;
-    if(n>0) return n*(h.pts||1);
-    return n*(h.pts||1); // negativo * positivo = negativo
-  }
-  if(h.tipo==='bool'){return val===true?(h.pts||1):val===false?(h.ptsNeg||0):0;}
+function calcPtsDia(h,entry){
+  if(!entry)return 0;
+  if(entry.folga)return h.folga||4;
+  const v=entry.val;
+  if(v===undefined||v===null)return 0;
+  if(h.tipo==='ml')return Math.floor((v||0)/h.passo)*h.pts;
+  if(h.tipo==='horas')return Math.floor(v||0)*h.pts;
+  if(h.tipo==='cont')return Math.min(v||0,h.meta||4)*h.pts;
+  if(h.tipo==='bool')return v===true?h.pts:0;
   return 0;
 }
 
 function renderHabitos(){
-  const cfg=getHabCfg().filter(h=>h.ativo);
-  const log=getHabLog();
+  const cfg=getHabCfg();
+  const cache=getHabCache();
   const hoje=dataHoje();
   const diaAtual=window._habDiaEdit||hoje;
   const semana=dataSemana();
-  const DIAS_ABR=['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
+  const DIAS=['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
+  const nEdu=pessoas[0]||'Edu';
+  const nLud=pessoas[1]||'Lud';
 
   // Placar
-  const calcPtsSemana=(usuario)=>{
-    const cfgU=JSON.parse(localStorage.getItem('hab_cfg_'+usuario)||JSON.stringify(HAB_PAD)).filter(h=>h.ativo);
+  const calcPtsSem=function(u){
     let pts=0;
-    semana.forEach(dia=>{const d=(log[usuario]||{})[dia]||{};cfgU.forEach(h=>{pts+=calcPtsDia(h,d[h.id]);});});
+    semana.forEach(function(dia){
+      cfg.forEach(function(h){
+        pts+=calcPtsDia(h,(cache[u]||{})[dia]?.[h.id]);
+      });
+    });
     return Math.max(0,pts);
   };
-  const p1=calcPtsSemana(pessoas[0]||'Edu'),p2=calcPtsSemana(pessoas[1]||'Lud');
-  const mx=Math.max(p1,p2,1);
+  const p1=calcPtsSem(nEdu),p2=calcPtsSem(nLud),mx=Math.max(p1,p2,1);
   const scEl=document.getElementById('hab-scores');
-  if(scEl) scEl.innerHTML=[{nome:pessoas[0]||'Edu',pts:p1},{nome:pessoas[1]||'Lud',pts:p2}].map(p=>{
-    const pct=Math.round(p.pts/mx*100);
-    const lider=p.pts===Math.max(p1,p2)&&p.pts>0;
-    return '<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;">'+(lider?'👑 ':'')+p.nome+'</span><span style="font-size:16px;font-weight:800;">'+p.pts+'pts</span></div><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:8px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:#fff;border-radius:99px;"></div></div></div>';
+  if(scEl) scEl.innerHTML=[{n:nEdu,p:p1},{n:nLud,p:p2}].map(function(x){
+    const pct=Math.round(x.p/mx*100);
+    const lider=x.p===Math.max(p1,p2)&&x.p>0;
+    return '<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;">'+(lider?'👑 ':'')+x.n+'</span><span style="font-size:16px;font-weight:800;">'+x.p+'pts</span></div><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:8px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:#fff;border-radius:99px;"></div></div></div>';
   }).join('');
 
+  // Pontos do dia selecionado
   const habEl=document.getElementById('hab-hoje');
-  if(!habEl) return;
-
-  // Se não tiver nome configurado, avisa
-  if(!sNome){
-    habEl.innerHTML='<div class="aviso" style="display:block;">⚙️ Configure seu nome na aba <strong>Config</strong> para usar os hábitos.</div>';
-    return;
-  }
+  if(!habEl)return;
+  if(!sNome){habEl.innerHTML='<div class="aviso" style="display:block;">⚙️ Configure seu nome em Config.</div>';return;}
 
   const isHojeSel=diaAtual===hoje;
   const diaFmt=new Date(diaAtual+'T12:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+  let ptsDia=0;
+  const cDia=(cache[sNome]||{})[diaAtual]||{};
+  cfg.forEach(function(h){ptsDia+=calcPtsDia(h,cDia[h.id]);});
 
-  // Pontos totais do dia
-  let ptsTotaisDia=0;
-  cfg.forEach(h=>{ptsTotaisDia+=calcPtsDia(h,(log[sNome]||{})[diaAtual]?.[h.id]);});
+  let html='<div style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;color:#fff;display:flex;justify-content:space-between;align-items:center;">'
+    +'<div><div style="font-size:11px;opacity:0.8;text-transform:uppercase;letter-spacing:0.05em;">Pontos '+( isHojeSel?'hoje':diaFmt)+'</div>'
+    +'<div style="font-size:32px;font-weight:800;">'+ptsDia+'<span style="font-size:14px;font-weight:400;opacity:0.8;margin-left:4px;">pts</span></div></div>'
+    +'<div style="display:flex;gap:6px;">'
+    +'<button onclick="mudarDiaHab(-1)" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;color:#fff;">←</button>'
+    +'<button onclick="mudarDiaHab(1)" '+(isHojeSel?'disabled style="opacity:0.3;"':'')+' style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;color:#fff;">→</button>'
+    +'</div></div>';
 
-  let html='<div style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;color:#fff;">'
-    +'<div style="font-size:11px;opacity:0.8;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Pontos hoje</div>'
-    +'<div style="font-size:32px;font-weight:800;">'+ptsTotaisDia+'<span style="font-size:14px;font-weight:400;opacity:0.8;margin-left:4px;">pts</span></div>'
-    +'</div>'
-    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;background:var(--card);padding:10px 14px;border-radius:var(--rs);border:1px solid var(--border);">'
-    +'<button onclick="mudarDiaHab(-1)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;">←</button>'
-    +'<div style="flex:1;text-align:center;">'
-    +'<div style="font-size:13px;font-weight:700;">'+(isHojeSel?'🔵 Hoje':'📅 '+diaFmt)+'</div>'
-    +'<div style="font-size:10px;color:var(--muted);">'+diaAtual+'</div>'
-    +'</div>'
-    +'<button onclick="mudarDiaHab(1)" '+(isHojeSel?'disabled':'')+' style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:14px;'+(isHojeSel?'opacity:0.3;':'')+'">→</button>'
-    +'</div>';
-
-  const dLog=(log[sNome]||{})[diaAtual]||{};
-
-  if(!cfg.length){
-    habEl.innerHTML='<div class="empty"><div class="ico">🏆</div><p>Nenhum hábito ativo<br><span style="font-size:11px;">Clique em ⚙️ Config para adicionar</span></p></div>';
-    return;
-  }
-
-  html+=cfg.map(h=>{
-    const val=dLog[h.id];
-    const ptsDia=calcPtsDia(h,val);
+  // Cada hábito — linha compacta
+  html+=cfg.map(function(h){
+    const entry=cDia[h.id];
+    const pts=calcPtsDia(h,entry);
+    const ptsCor=pts>0?'#16a34a':'var(--muted)';
+    const ptsStr=pts>0?'+'+pts:'0';
     let botoes='';
 
     if(h.tipo==='ml'){
-      const atual=parseFloat(val)||0,pct=Math.min(100,Math.round(atual/(h.meta||2000)*100)),ps=h.passo||500;
-      botoes='<div style="min-width:130px;text-align:right;"><div style="font-size:12px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+'/'+(h.meta||2000)+'ml</div><div style="display:flex;gap:4px;justify-content:flex-end;"><button class="hab-btn neu" onclick="regHabDia(\''+h.id+'\',\'ml\',-'+ps+',\''+diaAtual+'\')">-'+ps+'ml</button><button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'ml\','+ps+',\''+diaAtual+'\')">+'+ps+'ml</button></div><div class="agua-bar" style="margin-top:4px;"><div class="agua-fill" style="width:'+pct+'%;"></div></div></div>';
+      const atual=(entry&&entry.val)||0;
+      const pct=Math.min(100,Math.round(atual/((h.passo||500)*4)*100));
+      botoes='<div style="text-align:right;">'
+        +'<div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+'ml</div>'
+        +'<div style="display:flex;gap:4px;">'
+        +'<button class="hab-btn neu" onclick="marcarHabito(\''+h.id+'\','+(-h.passo)+',\''+diaAtual+'\')">-'+h.passo+'</button>'
+        +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\','+h.passo+',\''+diaAtual+'\')">+'+h.passo+'</button>'
+        +'</div>'
+        +'<div class="agua-bar" style="margin-top:4px;width:100px;"><div class="agua-fill" style="width:'+pct+'%;"></div></div>'
+        +'</div>';
 
     } else if(h.tipo==='horas'){
-      const atual=parseFloat(val)||0;
-      botoes='<div style="min-width:130px;text-align:right;"><div style="font-size:12px;font-weight:700;color:#8b5cf6;margin-bottom:4px;">'+atual+'h estudadas</div><div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;"><button class="hab-btn neu" onclick="regHabDia(\''+h.id+'\',\'horas\',-0.5,\''+diaAtual+'\')">-30m</button><button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'horas\',0.5,\''+diaAtual+'\')">+30m</button><button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'horas\',1,\''+diaAtual+'\')">+1h</button></div></div>';
+      const atual=(entry&&entry.val)||0;
+      botoes='<div style="text-align:right;">'
+        +'<div style="font-size:11px;font-weight:700;color:#8b5cf6;margin-bottom:4px;">'+atual+'h</div>'
+        +'<div style="display:flex;gap:4px;">'
+        +'<button class="hab-btn neu" onclick="marcarHabito(\''+h.id+'\','+(-h.passo)+',\''+diaAtual+'\')">-1h</button>'
+        +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\','+h.passo+',\''+diaAtual+'\')">+1h</button>'
+        +'</div></div>';
 
-    } else if(h.tipo==='contador'){
-      const atual=val==='folga'?'folga':(parseInt(val)||0),meta=h.meta||4;
-      botoes='<div style="min-width:130px;text-align:right;">'+(val==='folga'?'<div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:4px;">😴 Dia de folga</div>':'<div style="font-size:12px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+'/'+meta+'</div>')+'<div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">'+(val!=='folga'?'<button class="hab-btn neu" onclick="regHabDia(\''+h.id+'\',\'contador\',-1,\''+diaAtual+'\')">-1</button><button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'contador\',1,\''+diaAtual+'\')">+1</button>':'')+(h.temFolga?'<button class="hab-btn" style="'+(val==='folga'?'background:#f59e0b;color:#fff;border-color:#f59e0b;':'')+'" onclick="regHabDia(\''+h.id+'\',\'folga\',null,\''+diaAtual+'\')">😴 Folga</button>':'')+'</div></div>';
-
-    } else if(h.tipo==='refeicao'){
-      const rfN=parseInt(val)||0;
-      const rfCor=rfN>0?'#16a34a':rfN<0?'#ef4444':'var(--muted)';
-      botoes='<div style="text-align:right;min-width:130px;">'
-        +'<div style="font-size:13px;font-weight:800;color:'+rfCor+';margin-bottom:4px;">'+(rfN>0?'+':'')+rfN+' pts</div>'
-        +'<div style="display:flex;gap:6px;justify-content:flex-end;">'
-        +'<button class="hab-btn neg" onclick="regHabDia(\''+h.id+'\',\'refeicao\',-1,\''+diaAtual+'\')">❌ -1</button>'
-        +'<button class="hab-btn pos" onclick="regHabDia(\''+h.id+'\',\'refeicao\',1,\''+diaAtual+'\')">✅ +1</button>'
+    } else if(h.tipo==='cont'){
+      const isFolga=entry&&entry.folga;
+      const atual=isFolga?'folga':((entry&&entry.val)||0);
+      const meta=h.meta||4;
+      botoes='<div style="text-align:right;">'
+        +(isFolga?'<div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:4px;">😴 Folga (+'+h.folga+'pts)</div>'
+                 :'<div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+'/'+meta+'</div>')
+        +'<div style="display:flex;gap:4px;">'
+        +(isFolga
+          ?'<button class="hab-btn" style="font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">↺ Desfazer</button>'
+          :'<button class="hab-btn neu" onclick="marcarHabito(\''+h.id+'\''+',-1,\''+diaAtual+'\')">-1</button>'
+           +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\',1,\''+diaAtual+'\')">+1</button>'
+           +'<button class="hab-btn" style="'+(isFolga?'background:#f59e0b;color:#fff;':'')+';font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">😴 Folga</button>')
         +'</div></div>';
 
     } else {
-      botoes='<div style="display:flex;gap:4px;flex-wrap:wrap;"><button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'bool\',true,\''+diaAtual+'\')">✅ Fiz</button>'+(h.ptsNeg?'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="regHabDia(\''+h.id+'\',\'bool\',false,\''+diaAtual+'\')">❌ Faltei</button>':'')+(val!==undefined&&val!==null?'<button class="hab-btn" onclick="regHabDia(\''+h.id+'\',\'clear\',null,\''+diaAtual+'\')">↺</button>':'')+'</div>';
+      const val=entry&&entry.val;
+      botoes='<div style="display:flex;gap:4px;">'
+        +'<button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',true,\''+diaAtual+'\')">✅ Sim</button>'
+        +'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',false,\''+diaAtual+'\')">❌ Não</button>'
+        +'</div>';
     }
 
-    const ptsCor=ptsDia>0?'#16a34a':ptsDia<0?'#ef4444':'var(--muted)';
-    const ptsStr=ptsDia>0?'+'+ptsDia:String(ptsDia);
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border-radius:var(--rs);border:1px solid var(--border);margin-bottom:8px;">'
       +'<span style="font-size:20px;flex-shrink:0;">'+h.icone+'</span>'
       +'<span style="font-size:13px;font-weight:600;flex:1;color:var(--text);">'+h.nome+'</span>'
-      +'<span style="font-size:13px;font-weight:700;color:'+ptsCor+';flex-shrink:0;min-width:36px;text-align:right;">'+ptsStr+'</span>'
+      +'<span style="font-size:13px;font-weight:700;color:'+ptsCor+';min-width:32px;text-align:right;">'+ptsStr+'</span>'
       +'<div style="flex-shrink:0;">'+botoes+'</div>'
       +'</div>';
   }).join('');
   habEl.innerHTML=html;
 
-  // Esta semana — pontuação por hábito, Edu e Lud separados
+  // Esta semana
   const semEl=document.getElementById('hab-semana');
-  if(!semEl) return;
+  if(!semEl)return;
+  const cEdu=cache[nEdu]||{};
+  const cLud=cache[nLud]||{};
 
-  const logEdu=log[pessoas[0]||'Edu']||{};
-  const logLud=log[pessoas[1]||'Lud']||{};
-  const nEdu=pessoas[0]||'Edu';
-  const nLud=pessoas[1]||'Lud';
-
-  function fmtPts(h,logU,dia){
-    const v=(logU[dia]||{})[h.id];
-    if(dia>hoje) return {txt:'',cor:'var(--muted)',bg:'transparent'};
-    if(v===undefined||v===null) return {txt:'·',cor:'var(--muted)',bg:'transparent'};
-    if(v==='folga') return {txt:'F',cor:'#94a3b8',bg:'#f1f5f9'};
-    const pts=calcPtsDia(h,v);
+  function fmtCell(h,c,dia){
+    const entry=(c[dia]||{})[h.id];
+    if(!entry) return {txt:'·',cor:'var(--muted)',bg:'transparent'};
+    if(entry.folga) return {txt:'F',cor:'#f59e0b',bg:'#fef9c3'};
+    const pts=calcPtsDia(h,entry);
     if(pts>0) return {txt:'+'+pts,cor:'#16a34a',bg:'#dcfce7'};
-    if(pts<0) return {txt:String(pts),cor:'#ef4444',bg:'#fee2e2'};
-    if(h.tipo==='ml'&&(parseFloat(v)||0)>0) return {txt:'~',cor:'#b45309',bg:'#fef9c3'};
-    if(h.tipo==='contador'&&parseInt(v)>0) return {txt:String(parseInt(v)),cor:'#b45309',bg:'#fef9c3'};
+    if(entry.val===false) return {txt:'✗',cor:'#ef4444',bg:'#fee2e2'};
+    if(h.tipo==='ml'&&(entry.val||0)>0) return {txt:'~',cor:'#b45309',bg:'#fef9c3'};
     return {txt:'·',cor:'var(--muted)',bg:'transparent'};
   }
 
   let semHtml='<div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden;">';
-
-  // Cabeçalho dias
-  semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;padding:8px 12px;border-bottom:1.5px solid var(--border);">';
+  // Header
+  semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,30px);gap:3px;padding:8px 12px;border-bottom:1.5px solid var(--border);">';
   semHtml+='<div></div><div></div>';
-  semana.forEach(function(dia,idx){
+  semana.forEach(function(dia,i){
     const isHj=dia===hoje;
-    semHtml+='<div style="text-align:center;font-size:10px;font-weight:'+(isHj?'800':'600')+';color:'+(isHj?'var(--c1)':'var(--muted)')+';">'+DIAS_ABR[idx]+'</div>';
+    semHtml+='<div style="text-align:center;font-size:10px;font-weight:'+(isHj?'800':'600')+';color:'+(isHj?'var(--c1)':'var(--muted)')+';">'+DIAS[i]+'</div>';
   });
   semHtml+='</div>';
 
-  // Linhas por hábito
   cfg.forEach(function(h,hi){
-    var borderTop=hi>0?'border-top:1.5px solid var(--border);':'';
-
-    // Linha Edu
-    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:5px 12px;'+borderTop+'">';
+    // Edu
+    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,30px);gap:3px;align-items:center;padding:5px 12px;border-top:'+(hi>0?'1.5px solid var(--border)':'none')+'">';
     semHtml+='<span style="font-size:15px;">'+h.icone+'</span>';
-    semHtml+='<div style="min-width:0;"><div style="font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+h.nome+'</div><div style="font-size:10px;font-weight:600;color:#0ea5e9;">'+nEdu+'</div></div>';
+    semHtml+='<div><div style="font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+h.nome+'</div><div style="font-size:10px;color:#0ea5e9;font-weight:600;">'+nEdu+'</div></div>';
     semana.forEach(function(dia){
-      const c=fmtPts(h,logEdu,dia);
-      const isHj=dia===hoje;
-      semHtml+='<div onclick="window._habDiaEdit=\''+dia+'\';renderHabitos()" style="height:24px;border-radius:5px;background:'+c.bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';cursor:pointer;">'+c.txt+'</div>';
+      const c=fmtCell(h,cEdu,dia);const isHj=dia===hoje;
+      semHtml+='<div style="height:24px;border-radius:5px;background:'+c.bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';">'+c.txt+'</div>';
     });
     semHtml+='</div>';
-
-    // Linha Lud
-    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:5px 12px;border-bottom:0.5px solid var(--border);">';
-    semHtml+='<div></div>';
-    semHtml+='<span style="font-size:10px;font-weight:600;color:#ec4899;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nLud+'</span>';
+    // Lud
+    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,30px);gap:3px;align-items:center;padding:5px 12px;border-bottom:0.5px solid var(--border);">';
+    semHtml+='<div></div><div style="font-size:10px;font-weight:600;color:#ec4899;">'+nLud+'</div>';
     semana.forEach(function(dia){
-      const c=fmtPts(h,logLud,dia);
+      const c=fmtCell(h,cLud,dia);
       semHtml+='<div style="height:24px;border-radius:5px;background:'+c.bg+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+c.cor+';">'+c.txt+'</div>';
     });
     semHtml+='</div>';
   });
 
-  // Total Edu e Lud
-  const totEdu=semana.map(function(dia){var t=0;cfg.forEach(function(h){t+=calcPtsDia(h,(logEdu[dia]||{})[h.id]);});return t;});
-  const totLud=semana.map(function(dia){var t=0;cfg.forEach(function(h){t+=calcPtsDia(h,(logLud[dia]||{})[h.id]);});return t;});
-
-  ['edu','lud'].forEach(function(u){
-    var tots=u==='edu'?totEdu:totLud;
-    var nome=u==='edu'?nEdu:nLud;
-    var cor=u==='edu'?'var(--c1)':'#ec4899';
-    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,32px);gap:3px;align-items:center;padding:7px 12px;background:var(--bg);border-top:'+(u==='edu'?'1.5px':'0.5px')+' solid var(--border);">';
-    semHtml+='<span style="font-size:13px;">'+(u==='edu'?'🏆':'')+'</span>';
-    semHtml+='<span style="font-size:11px;font-weight:700;color:'+cor+';">'+nome+'</span>';
+  // Totais
+  [nEdu,nLud].forEach(function(u,ui){
+    const cu=ui===0?cEdu:cLud;
+    const tots=semana.map(function(dia){let t=0;cfg.forEach(function(h){t+=calcPtsDia(h,(cu[dia]||{})[h.id]);});return t;});
+    semHtml+='<div style="display:grid;grid-template-columns:20px 1fr repeat(7,30px);gap:3px;align-items:center;padding:7px 12px;background:var(--bg);border-top:'+(ui===0?'1.5px':'0.5px')+' solid var(--border);">';
+    semHtml+='<span>'+(ui===0?'🏆':'')+'</span>';
+    semHtml+='<span style="font-size:11px;font-weight:700;color:'+(ui===0?'var(--c1)':'#ec4899')+';">'+u+'</span>';
     tots.forEach(function(t,i){
       const isHj=semana[i]===hoje;
-      const c=t>0?'#16a34a':t<0?'#ef4444':'var(--muted)';
+      const cor=t>0?'#16a34a':t<0?'#ef4444':'var(--muted)';
       const bg=t>0?'#dcfce7':t<0?'#fee2e2':'transparent';
-      semHtml+='<div style="height:24px;border-radius:5px;background:'+bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:'+c+';">'+(t!==0?(t>0?'+':'')+t:'·')+'</div>';
+      semHtml+='<div style="height:24px;border-radius:5px;background:'+bg+';border:1px solid '+(isHj?'var(--c1)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:'+cor+';">'+(t!==0?(t>0?'+':'')+t:'·')+'</div>';
     });
     semHtml+='</div>';
   });
-
   semHtml+='</div>';
   semEl.innerHTML=semHtml;
 }
@@ -3266,208 +3260,16 @@ function mudarDiaHab(delta){
   const atual=window._habDiaEdit||dataHoje();
   const d=new Date(atual+'T12:00');d.setDate(d.getDate()+delta);
   const novo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  if(novo>dataHoje()) return;
+  if(novo>dataHoje())return;
   window._habDiaEdit=novo;renderHabitos();
 }
 
-function regHabDia(habId,tipo,valor,dia){
-  const log=getHabLog();
-  if(!log[sNome])log[sNome]={};
-  if(!log[sNome][dia])log[sNome][dia]={};
-  if(tipo==='ml'||tipo==='horas'){
-    const atual=parseFloat(log[sNome][dia][habId])||0;
-    log[sNome][dia][habId]=Math.max(0,Math.round((atual+valor)*10)/10);
-  } else if(tipo==='contador'){
-    const atual=log[sNome][dia][habId]==='folga'?0:(parseInt(log[sNome][dia][habId])||0);
-    log[sNome][dia][habId]=Math.max(0,atual+valor);
-  } else if(tipo==='folga'){
-    log[sNome][dia][habId]=log[sNome][dia][habId]==='folga'?undefined:'folga';
-  } else if(tipo==='refeicao'){
-    // Acumula: +1 por boa, -1 por ruim
-    const atual=parseInt(log[sNome][dia][habId])||0;
-    log[sNome][dia][habId]=atual+valor;
-  } else if(tipo==='clear'){
-    delete log[sNome][dia][habId];
-  } else {
-    log[sNome][dia][habId]=valor;
-  }
-  saveHabLog(log);renderHabitos();
-}
-
-function regRefeicao(habId, campo, delta, dia){
-  const log=getHabLog();
-  if(!log[sNome]) log[sNome]={};
-  if(!log[sNome][dia]) log[sNome][dia]={};
-  const atual=log[sNome][dia][habId];
-  // Garante que é um objeto {boas, ruins}
-  let obj={boas:0,ruins:0};
-  if(atual&&typeof atual==='object') obj={boas:parseInt(atual.boas)||0,ruins:parseInt(atual.ruins)||0};
-  obj[campo]=Math.max(0,obj[campo]+delta);
-  log[sNome][dia][habId]=obj;
-  saveHabLog(log);
-  renderHabitos();
-}
-
-let habCfgTemp=[];
-function abrirCfgHabitos(){
-  habCfgTemp=JSON.parse(JSON.stringify(getHabCfg()));
-  renderHabCfgList();
-  document.getElementById('modal-hab-cfg').classList.add('open');
-}
-function fecharCfgHabitos(){document.getElementById('modal-hab-cfg').classList.remove('open');}
-function fModalHabCfg(e){if(e.target===document.getElementById('modal-hab-cfg'))fecharCfgHabitos();}
-
-function renderHabCfgList(){
-  document.getElementById('hab-cfg-list').innerHTML=habCfgTemp.map((h,i)=>`
-    <div style="background:var(--bg);border-radius:var(--rs);padding:12px;margin-bottom:8px;border:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <input type="text" value="${h.icone}" maxlength="2" style="width:42px;border:1px solid var(--border);border-radius:6px;padding:4px;font-size:18px;text-align:center;" oninput="habCfgTemp[${i}].icone=this.value"/>
-        <input type="text" value="${h.nome}" placeholder="Nome" style="flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;" oninput="habCfgTemp[${i}].nome=this.value"/>
-        <div class="rectog ${h.ativo?'on':''}" onclick="habCfgTemp[${i}].ativo=!habCfgTemp[${i}].ativo;renderHabCfgList()"></div>
-      </div>
-      <div style="margin-bottom:8px;">
-        <div class="fl">Tipo</div>
-        <select style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px;font-size:12px;background:var(--bg);" onchange="habCfgTemp[${i}].tipo=this.value;renderHabCfgList()">
-          <option value="bool"     ${h.tipo==='bool'?'selected':''}>✅ Sim/Não</option>
-          <option value="refeicao" ${h.tipo==='refeicao'?'selected':''}>🥗 Boa/Ruim (ganha e perde pts)</option>
-          <option value="ml"       ${h.tipo==='ml'?'selected':''}>💧 Contador em ml (água)</option>
-          <option value="horas"    ${h.tipo==='horas'?'selected':''}>⏱ Contador de horas (estudo)</option>
-          <option value="contador" ${h.tipo==='contador'?'selected':''}>🔢 Contador com meta (ex: bater ponto)</option>
-        </select>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;">
-        <div><div class="fl">+Pts por unidade</div>
-          <input type="number" value="${h.pts||1}" min="0" max="20" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].pts=parseInt(this.value)||1"/></div>
-        <div><div class="fl">-Pts (negativo)</div>
-          <input type="number" value="${h.ptsNeg||0}" min="-20" max="0" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].ptsNeg=parseInt(this.value)||0"/></div>
-      </div>
-      ${h.tipo==='ml'?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px;font-size:11px;">
-        <div><div class="fl">Meta (ml)</div><input type="number" value="${h.meta||2000}" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].meta=parseInt(this.value)||2000"/></div>
-        <div><div class="fl">Passo (ml)</div><input type="number" value="${h.passo||500}" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].passo=parseInt(this.value)||500"/></div>
-        <div><div class="fl">Bônus meta</div><input type="number" value="${h.ptsMeta||0}" min="0" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].ptsMeta=parseInt(this.value)||0"/></div>
-      </div>`:''}
-      ${h.tipo==='horas'?`<div style="margin-top:6px;font-size:11px;"><div class="fl">Meta diária (horas)</div>
-        <input type="number" value="${h.meta||1}" min="0.5" step="0.5" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].meta=parseFloat(this.value)||1"/></div>`:''}
-      ${h.tipo==='contador'?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;font-size:11px;">
-        <div><div class="fl">Meta por dia</div><input type="number" value="${h.meta||4}" min="1" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:5px;text-align:center;" oninput="habCfgTemp[${i}].meta=parseInt(this.value)||4"/></div>
-        <div><div class="fl">Permite folga?</div><label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding-top:6px;"><input type="checkbox" ${h.temFolga?'checked':''} onchange="habCfgTemp[${i}].temFolga=this.checked" style="width:16px;height:16px;"/> Sim</label></div>
-      </div>`:''}
-      <div style="margin-top:8px;text-align:right;">
-        <button onclick="remHabitoCfg(${i})" style="background:#fee2e2;border:1px solid #ef4444;border-radius:8px;padding:4px 12px;font-size:11px;font-weight:700;color:#ef4444;cursor:pointer;">🗑 Remover</button>
-      </div>
-    </div>`).join('');
-}
-
-function remHabitoCfg(i){habCfgTemp.splice(i,1);renderHabCfgList();}
-function addHabitoCfg(){habCfgTemp.push({id:'hab_'+Date.now(),nome:'Novo hábito',icone:'⭐',tipo:'bool',pts:1,ptsNeg:0,ativo:true});renderHabCfgList();}
-function salvarCfgHabitos(){localStorage.setItem('hab_cfg_'+sNome,JSON.stringify(habCfgTemp));fecharCfgHabitos();renderHabitos();toast('Hábitos salvos!','ok');}
-
-// ── AVATAR / ESTADOS ──────────────────────────────────────────
-function renderAvatar(){
-  const log=getHabLog();
-  const hoje=dataHoje();
-  const ontem=(function(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
-
-  [pessoas[0]||'Edu', pessoas[1]||'Lud'].forEach(function(nome){
-    const id=nome.toLowerCase();
-    const cfgU=JSON.parse(localStorage.getItem('hab_cfg_'+nome)||JSON.stringify(HAB_PAD)).filter(function(h){return h.ativo;});
-    const logHoje=(log[nome]||{})[hoje]||{};
-    const logOntem=(log[nome]||{})[ontem]||{};
-
-    // Calcula pontos hoje
-    let ptsHoje=0;
-    cfgU.forEach(function(h){ptsHoje+=calcPtsDia(h,logHoje[h.id]);});
-
-    // Regra gordinho: média refeições (últimos 3 dias)
-    let totalBoas=0,totalRuins=0;
-    [hoje,ontem].forEach(function(dia){
-      const v=(log[nome]||{})[dia]?.refeicao;
-      const n=parseInt(v)||0;
-      if(n>0)totalBoas+=n; else if(n<0)totalRuins+=Math.abs(n);
-    });
-    const mediaRuim=totalBoas+totalRuins>0?totalRuins/(totalBoas+totalRuins):0;
-    const gordinho=mediaRuim>0.2; // mais de 20% ruins
-
-    // Regra bagunça: hábito casa não marcado hoje
-    const hCasa=cfgU.find(function(h){return h.id==='casa';});
-    const bagunca=hCasa&&!logHoje['casa'];
-
-    // Regra cansado: hábito sono não marcado
-    const hSono=cfgU.find(function(h){return h.id==='sono';});
-    const cansado=hSono&&logOntem['sono']===false;
-
-    // Regra hidratado: água bateu meta hoje
-    const hAgua=cfgU.find(function(h){return h.id==='agua';});
-    const metaAgua=hAgua?hAgua.meta||2000:2000;
-    const hidratado=hAgua&&(parseFloat(logHoje['agua'])||0)>=metaAgua;
-
-    // Regra campeão: 10+ pontos hoje
-    const campeao=ptsHoje>=10;
-
-    // Aplica estados
-    function setEl(elId,show){
-      const el=document.getElementById('av-'+id+'-'+elId);
-      if(el) el.style.display=show?'flex':'none';
-    }
-    setEl('gordinho',gordinho);
-    setEl('bagunca',bagunca);
-    setEl('cansado',cansado);
-    setEl('hidratado',hidratado);
-    setEl('campeao',campeao);
-
-    // Status texto
-    const statusEl=document.getElementById('av-'+id+'-status');
-    if(statusEl){
-      const estados=[];
-      if(campeao) estados.push('🏆 Campeão!');
-      if(hidratado) estados.push('💧 Hidratado');
-      if(gordinho) estados.push('🫃 Comendo mal');
-      if(bagunca) estados.push('🧦 Casa bagunçada');
-      if(cansado) estados.push('😴 Cansado');
-      statusEl.textContent=estados.length?estados.join(' · '):'⭐ Em dia';
-    }
-
-    // Badges pontos
-    const badgesEl=document.getElementById('av-'+id+'-badges');
-    if(badgesEl){
-      const cor=ptsHoje>0?'#16a34a':ptsHoje<0?'#ef4444':'var(--muted)';
-      badgesEl.innerHTML='<span style="font-size:11px;font-weight:700;color:'+cor+';background:'+cor+'18;border:1px solid '+cor+'40;border-radius:99px;padding:2px 10px;">'+(ptsHoje>0?'+':'')+ptsHoje+' pts hoje</span>';
-    }
-  });
-
-  // Placar semana
-  renderPlacarAvatar(log);
-}
-
-function renderPlacarAvatar(log){
-  const el=document.getElementById('av-placar');if(!el)return;
-  const semana=dataSemana();
-  const calcPts=function(nome){
-    const cfgU=JSON.parse(localStorage.getItem('hab_cfg_'+nome)||JSON.stringify(HAB_PAD)).filter(function(h){return h.ativo;});
-    let pts=0;
-    semana.forEach(function(dia){
-      const d=(log[nome]||{})[dia]||{};
-      cfgU.forEach(function(h){pts+=calcPtsDia(h,d[h.id]);});
-    });
-    return Math.max(0,pts);
-  };
-  const p1=calcPts(pessoas[0]||'Edu'),p2=calcPts(pessoas[1]||'Lud');
-  const mx=Math.max(p1,p2,1);
-  el.innerHTML=[{nome:pessoas[0]||'Edu',pts:p1},{nome:pessoas[1]||'Lud',pts:p2}].map(function(p){
-    const pct=Math.round(p.pts/mx*100);
-    const lider=p.pts===Math.max(p1,p2)&&p.pts>0;
-    return '<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:13px;font-weight:700;">'+(lider?'👑 ':'')+p.nome+'</span><span style="font-size:16px;font-weight:800;">'+p.pts+'pts</span></div><div style="background:rgba(255,255,255,0.2);border-radius:99px;height:8px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:#fff;border-radius:99px;"></div></div></div>';
-  }).join('');
-}
-
 async function zerarProgressoHab(){
-  if(!confirm('Zerar TODO o progresso de hábitos?\n\nIsso apaga seus registros locais E da planilha.\nA Lud também perderá os dados ao reabrir o app.')) return;
-  // Zera local
-  localStorage.removeItem('hab_log');
-  // Zera na planilha — salva log vazio
-  if(sUrl) await api({acao:'salvarHabLog',usuario:sNome,log:JSON.stringify({})});
+  if(!confirm('Zerar TODO o progresso?'))return;
+  localStorage.removeItem('hab_cache');
+  if(sUrl) await api({acao:'zerarHabitos',usuario:sNome});
   renderHabitos();
-  toast('✓ Progresso zerado!','ok');
+  toast('✓ Zerado!','ok');
 }
 
 function removerPin(){
