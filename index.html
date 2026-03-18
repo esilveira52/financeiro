@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 02:00 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 01:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v78</title>
+<title>Financeiro Familiar v77</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -862,7 +862,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v78</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v77</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -2371,14 +2371,13 @@ function renderTarefasFiltro(){
   const g=document.getElementById('tag-filtros');if(!g)return;g.innerHTML='';
   const filtros=[
     {id:'todas',label:'📋 Todas',cor:'var(--c1)'},
-    {id:'urgente',label:'🚨 Urgentes',cor:'#ef4444'},
     {id:'pendentes',label:'⏳ Pendentes',cor:'#f59e0b'},
     {id:'feitas',label:'✅ Concluídas',cor:'#22c55e'},
     {id:'edu',label:'👤 '+(pessoas[0]||'Edu'),cor:'#0ea5e9'},
     {id:'lud',label:'👤 '+(pessoas[1]||'Lud'),cor:'#ec4899'},
     {id:'casal',label:'👫 Casal',cor:'#14b8a6'},
     {id:'lixeira',label:'🗑 Lixeira',cor:'#ef4444'},
-    ...TAGS_DEF.filter(t=>t.id!=='urgente')
+    ...TAGS_DEF
   ];
   filtros.forEach(t=>{
     const b=document.createElement('button');
