@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 01:45 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 10:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v77</title>
+<title>Financeiro Familiar v79</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -351,7 +351,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
-  <div class="tab" onclick="ir('compras',this)">🛒 Compras</div>
+  <div class="tab" onclick="ir('compras',this)">🛒 L. Compras</div>
   <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
   <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
@@ -648,6 +648,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 </div>
 
+<!-- MODAL LANÇAMENTOS CARTÃO -->
+<div class="modal" id="modal-lanc-cartao" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-in" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-ttl" id="lanc-cartao-titulo">📋 Lançamentos</div>
+    <div id="lanc-cartao-lista"></div>
+    <div class="mbtns" style="margin-top:16px;">
+      <button class="mbtn-ok" onclick="document.getElementById('modal-lanc-cartao').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CONFIG HÁBITOS -->
 <div class="modal" id="modal-hab-cfg" onclick="fModalHabCfg(event)">
   <div class="modal-in">
@@ -862,7 +873,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v77</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v79</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1368,7 +1379,10 @@ async function renderCartCreditoResumo(){
       </div>`:''}
       ${c.limite>0?`<div class="cart-bar"><div class="cart-bar-fill" style="width:${pct}%;background:${cls==='neg'?'#ef4444':cls==='warn'?'#f59e0b':'#22c55e'}"></div></div>
       <div class="cart-info">Limite: ${fmt(c.limite)} • Usado: ${fmt(usado)}${fechTxt?' • '+fechTxt:''}</div>`:''}
-      <button class="pagar-btn" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="pagar-btn" style="flex:1;" onclick="abrirPagarFatura('${c.nome}')">💳 Pagar fatura</button>
+        <button class="pagar-btn" style="flex:1;background:#eff6ff;border-color:#0ea5e9;color:#0ea5e9;" onclick="verLancamentosCartao('${c.nome}')">📋 Ver lançamentos</button>
+      </div>
     </div>`;
   }).join('');
   atuPrivacy();
@@ -1441,6 +1455,50 @@ async function fazerTransferencia(){
 }
 
 // PAGAR FATURA
+// Modal lançamentos do cartão
+async function verLancamentosCartao(cartao){
+  const el=document.getElementById('modal-lanc-cartao');
+  const titulo=document.getElementById('lanc-cartao-titulo');
+  const lista=document.getElementById('lanc-cartao-lista');
+  if(!el)return;
+  titulo.textContent='📋 '+cartao+' — lançamentos do mês';
+  lista.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">⏳ Carregando...</div>';
+  el.classList.add('open');
+
+  // Calcula período da fatura atual
+  const c=carteiras.find(x=>x.nome===cartao);
+  const fechDia=c&&c.fechamento>0?c.fechamento:1;
+  const hoje=new Date();
+  const mes=hoje.getMonth();
+  const ano=hoje.getFullYear();
+  let mesIni=mes,anoIni=ano,mesRef=mes,anoRef=ano;
+  if(hoje.getDate()>=fechDia){mesRef=mes;anoRef=ano;mesIni=mes===0?11:mes-1;anoIni=mes===0?ano-1:ano;}
+  else{mesRef=mes===0?11:mes-1;anoRef=mes===0?ano-1:ano;mesIni=mes<=1?mes===0?10:11:mes-2;anoIni=mes<=1?ano-1:ano;}
+
+  try{
+    const j=await api({acao:'lerGastosCartao',cartao,mes:MN[mesIni],ano:anoIni,mes2:MN[mesRef],ano2:anoRef,fechDia});
+    if(j&&j.itens&&j.itens.length){
+      const total=j.total||j.itens.reduce((s,i)=>s+i.valor,0);
+      lista.innerHTML='<div style="margin-bottom:12px;padding:10px 14px;background:#fef3c7;border-radius:10px;display:flex;justify-content:space-between;align-items:center;">'
+        +'<span style="font-size:12px;font-weight:600;color:#92400e;">Total da fatura</span>'
+        +'<span style="font-size:16px;font-weight:800;color:#d97706;">'+fmt(total)+'</span>'
+        +'</div>'
+        +j.itens.map(i=>'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);">'
+          +'<div style="flex:1;min-width:0;">'
+          +'<div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+i.descricao+'</div>'
+          +'<div style="font-size:10px;color:var(--muted);">'+i.categoria+(i.data?' · '+new Date(i.data).toLocaleDateString('pt-BR'):'')+'</div>'
+          +'</div>'
+          +'<span style="font-size:13px;font-weight:700;color:#ef4444;flex-shrink:0;">'+fmt(i.valor)+'</span>'
+          +'</div>'
+        ).join('');
+    } else {
+      lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum lançamento encontrado nesta fatura.</div>';
+    }
+  }catch(e){
+    lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.</div>';
+  }
+}
+
 async function abrirPagarFatura(cartao){
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
@@ -2371,13 +2429,14 @@ function renderTarefasFiltro(){
   const g=document.getElementById('tag-filtros');if(!g)return;g.innerHTML='';
   const filtros=[
     {id:'todas',label:'📋 Todas',cor:'var(--c1)'},
+    {id:'urgente',label:'🚨 Urgentes',cor:'#ef4444'},
     {id:'pendentes',label:'⏳ Pendentes',cor:'#f59e0b'},
     {id:'feitas',label:'✅ Concluídas',cor:'#22c55e'},
     {id:'edu',label:'👤 '+(pessoas[0]||'Edu'),cor:'#0ea5e9'},
     {id:'lud',label:'👤 '+(pessoas[1]||'Lud'),cor:'#ec4899'},
     {id:'casal',label:'👫 Casal',cor:'#14b8a6'},
     {id:'lixeira',label:'🗑 Lixeira',cor:'#ef4444'},
-    ...TAGS_DEF
+    ...TAGS_DEF.filter(t=>t.id!=='urgente')
   ];
   filtros.forEach(t=>{
     const b=document.createElement('button');
