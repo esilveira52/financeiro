@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 00:30 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 00:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v72</title>
+<title>Financeiro Familiar v73</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -931,7 +931,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v70</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v73</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3010,16 +3010,21 @@ async function marcarHabito(habId, valor, dia){
 
   saveHabCache(cache);
 
-  // Envia para planilha (nova linha — igual ao financeiro)
+  // Envia para planilha com confirmação
   if(sUrl&&sNome){
-    await apiNC({
-      acao:'marcarHabito',
-      usuario:sNome,
-      dia,
-      habito:habId,
-      valor:JSON.stringify(valor),
-      ts:Date.now()
-    });
+    try{
+      const r=await api({
+        acao:'marcarHabito',
+        usuario:sNome,
+        dia,
+        habito:habId,
+        valor:JSON.stringify(valor),
+        ts:Date.now()
+      });
+      if(!r||!r.sucesso) toast('⚠️ Erro ao salvar na planilha','err');
+    }catch(e){
+      toast('⚠️ Sem conexão — salvo só local','err');
+    }
   }
 
   renderHabitos();
