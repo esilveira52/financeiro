@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 01:15 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 01:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v75</title>
+<title>Financeiro Familiar v76</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -352,7 +352,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('recorrentes',this)">🔄 Recorrentes</div>
   <div class="tab" onclick="ir('parcelas',this)">📦 Parcelas</div>
   <div class="tab" onclick="ir('compras',this)">🛒 Compras</div>
-  <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
   <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
   <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
@@ -626,74 +625,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
-<!-- ─ AVATAR ─ -->
-<div class="page" id="page-avatar">
-  <div class="phdr">
-    <span class="phdr-title">🧍 Avatar</span>
-    <button class="rbtn" onclick="renderAvatar()">↻ Atualizar</button>
-  </div>
-
-  <!-- Placar casal -->
-  <div style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);border-radius:var(--r);padding:16px;margin-bottom:16px;color:#fff;">
-    <div style="font-size:11px;opacity:0.8;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">🏆 Placar da semana</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="av-placar"></div>
-  </div>
-
-  <!-- Avatares lado a lado -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-    <!-- Edu -->
-    <div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;text-align:center;">
-      <div style="position:relative;width:120px;height:160px;margin:0 auto;" id="av-edu-wrap">
-        <!-- Placeholder base -->
-        <div id="av-edu-base" style="position:absolute;inset:0;border-radius:12px;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:40px;">🧍</span>
-        </div>
-        <!-- Camadas de estado (aparecem sobre o base) -->
-        <div id="av-edu-gordinho" style="position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;font-size:28px;">🫃</div>
-        <div id="av-edu-bagunca" style="position:absolute;inset:0;display:none;align-items:center;justify-content:flex-start;font-size:20px;padding:4px;">🧦👟📦</div>
-        <div id="av-edu-cansado" style="position:absolute;top:4px;right:4px;display:none;font-size:18px;">😴</div>
-        <div id="av-edu-hidratado" style="position:absolute;top:4px;left:4px;display:none;font-size:18px;">💧</div>
-        <div id="av-edu-campeao" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);display:none;font-size:22px;">🏆</div>
-      </div>
-      <div style="font-size:13px;font-weight:700;margin-top:8px;color:var(--text);" id="av-edu-nome">Edu</div>
-      <div style="font-size:11px;color:var(--muted);" id="av-edu-status">carregando...</div>
-      <div id="av-edu-badges" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px;"></div>
-    </div>
-    <!-- Lud -->
-    <div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;text-align:center;">
-      <div style="position:relative;width:120px;height:160px;margin:0 auto;" id="av-lud-wrap">
-        <div id="av-lud-base" style="position:absolute;inset:0;border-radius:12px;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;">
-          <span style="font-size:40px;">🧍‍♀️</span>
-        </div>
-        <div id="av-lud-gordinho" style="position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;font-size:28px;">🫃</div>
-        <div id="av-lud-bagunca" style="position:absolute;inset:0;display:none;align-items:center;justify-content:flex-start;font-size:20px;padding:4px;">🧦👟📦</div>
-        <div id="av-lud-cansado" style="position:absolute;top:4px;right:4px;display:none;font-size:18px;">😴</div>
-        <div id="av-lud-hidratado" style="position:absolute;top:4px;left:4px;display:none;font-size:18px;">💧</div>
-        <div id="av-lud-campeao" style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);display:none;font-size:22px;">🏆</div>
-      </div>
-      <div style="font-size:13px;font-weight:700;margin-top:8px;color:var(--text);" id="av-lud-nome">Lud</div>
-      <div style="font-size:11px;color:var(--muted);" id="av-lud-status">carregando...</div>
-      <div id="av-lud-badges" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px;"></div>
-    </div>
-  </div>
-
-  <!-- Legenda dos estados -->
-  <div class="slbl">📋 Legenda dos estados</div>
-  <div style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:14px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;">
-      <div>🫃 <strong>Gordinho</strong> — muita comida ruim</div>
-      <div>🧦 <strong>Bagunça</strong> — casa não organizada</div>
-      <div>😴 <strong>Cansado</strong> — dormiu pouco</div>
-      <div>💧 <strong>Hidratado</strong> — meta de água batida</div>
-      <div>🏆 <strong>Campeão</strong> — 10+ pontos no dia</div>
-      <div>⭐ <strong>Em dia</strong> — tudo normal</div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--muted);line-height:1.6;">
-      Quando você tiver as imagens PNG prontas, substitua os emojis pelas imagens reais — o sistema de camadas já está funcionando!
-    </div>
-  </div>
-</div>
-
 <!-- ─ HÁBITOS ─ -->
 <div class="page" id="page-habitos">
   <div class="phdr">
@@ -931,7 +862,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v75</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v76</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -956,7 +887,6 @@ function ir(aba,el){
       });
     }
   }
-  if(aba==='avatar')renderAvatar();
   if(aba==='habitos')carregarHabitos();
   if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
