@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 00:00 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 00:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v71</title>
+<title>Financeiro Familiar v72</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -714,9 +714,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="slbl">Hoje</div>
   <div id="hab-hoje"></div>
 
-  <!-- Semana -->
-  <div class="slbl" style="margin-top:16px;">Esta semana</div>
-  <div id="hab-semana"></div>
+
 </div>
 
 <!-- MODAL CONFIG HÁBITOS -->
@@ -3262,6 +3260,16 @@ function mudarDiaHab(delta){
   const novo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   if(novo>dataHoje())return;
   window._habDiaEdit=novo;renderHabitos();
+}
+
+function abrirCfgHabitos(){
+  document.getElementById('modal-hab-cfg').classList.add('open');
+}
+function fecharCfgHabitos(){
+  document.getElementById('modal-hab-cfg').classList.remove('open');
+}
+function fModalHabCfg(e){
+  if(e.target===document.getElementById('modal-hab-cfg')) fecharCfgHabitos();
 }
 
 async function zerarProgressoHab(){
