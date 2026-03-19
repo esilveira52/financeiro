@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 12:45 -->
+<!-- LIFE | Gerado: 18/03/2026 13:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v88</title>
+<title>LIFE v89</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -885,7 +885,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v88</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v89</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -894,6 +894,20 @@ function ir(aba,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   el.classList.add('on');document.getElementById('page-'+aba).classList.add('on');
+
+  // Muda cor do header e abas conforme a seção
+  const coresAba={
+    geral:'verde',gastos:'verde',historico:'verde',mensal:'verde',
+    carteiras:'verde',parcelas:'verde',recorrentes:'verde',
+    receita:'verde',reserva:'verde',anual:'verde',
+    tarefas:'azul',calendario:'azul',
+    habitos:'roxo',
+    compras:'laranja',
+    notas:'cinza',config:'cinza'
+  };
+  const novaCor=coresAba[aba]||'verde';
+  document.body.classList.remove('cor-verde','cor-azul','cor-roxo','cor-laranja','cor-cinza');
+  document.body.classList.add('cor-'+novaCor);
   if(aba==='geral')carregarGeral();
   if(aba==='calendario'){
     // Sincroniza com merge antes de renderizar
