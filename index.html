@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 14:00 -->
+<!-- LIFE | Gerado: 18/03/2026 14:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v91</title>
+<title>LIFE v92</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -891,7 +891,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v91</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v92</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -2342,12 +2342,17 @@ async function sincTarefas(){
     if(j&&j.tarefas&&Array.isArray(j.tarefas)){
       // Merge: une tarefas da planilha com tarefas locais (por ID)
       const local=getTodas();
+      const localPorId={};
+      local.forEach(t=>localPorId[t.id]=t);
       const remotasPorId={};
       j.tarefas.forEach(t=>remotasPorId[t.id]=t);
       // Tarefas locais que não estão na planilha ainda (recém criadas)
-      const soPlanilha=j.tarefas;
       const soLocal=local.filter(t=>!remotasPorId[t.id]);
-      // Merge final: planilha + locais novas
+      // Merge: planilha + preserva campos locais que planilha não tem (ex: prioridade)
+      const soPlanilha=j.tarefas.map(t=>({
+        ...t,
+        prioridade:(localPorId[t.id]&&localPorId[t.id].prioridade)||t.prioridade||''
+      }));
       const merged=[...soPlanilha,...soLocal];
       localStorage.setItem('tarefas_bkp',JSON.stringify(merged));
       // Envia tarefas locais novas para a planilha
@@ -2481,7 +2486,7 @@ function salvarTarefa(){
   const obj={titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,para:paraSel,prioridade:prioSel,data,hora,datafim,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')};
   if(editandoT){
     const idx=lista.findIndex(x=>x.id===editandoT);
-    if(idx>=0) lista[idx]={...lista[idx],titulo:obj.titulo,desc:obj.desc,tag:obj.tag,para:obj.para,data:obj.data,hora:obj.hora,datafim:obj.datafim};
+    if(idx>=0) lista[idx]={...lista[idx],titulo:obj.titulo,desc:obj.desc,tag:obj.tag,para:obj.para,prioridade:obj.prioridade,data:obj.data,hora:obj.hora,datafim:obj.datafim};
   } else {
     lista.unshift({id:Date.now(),...obj,lixeira:false});
   }
