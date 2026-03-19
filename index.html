@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 12:15 -->
+<!-- LIFE | Gerado: 18/03/2026 12:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v86</title>
+<title>LIFE v87</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -30,7 +30,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .mbadge{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.28);border-radius:99px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;}
 .icobtn{background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.28);border-radius:99px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;flex-shrink:0;}
 /* TABS principais */
-.tabs{display:flex;background:linear-gradient(135deg,#0ea5e9,#06b6d4,#14b8a6);padding:0 4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,0.15);}
+.tabs{display:flex;background:linear-gradient(135deg,var(--hdr-c1,#16a34a),var(--hdr-c2,#15803d),var(--hdr-c3,#4ade80));padding:0 4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid rgba(255,255,255,0.15);transition:background 0.4s;}
 .tabs::-webkit-scrollbar{display:none;}
 .tab{flex-shrink:0;padding:10px 12px 12px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.55);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
 .tab.on{color:#fff;border-bottom-color:#fff;}
@@ -878,7 +878,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v86</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v87</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
