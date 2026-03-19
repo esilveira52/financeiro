@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 13:00 -->
+<!-- LIFE | Gerado: 18/03/2026 13:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,9 +7,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v89</title>
+<title>LIFE v90</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
+<style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
   --c1:#0ea5e9;--c2:#14b8a6;--c3:#ef4444;--c5:#22c55e;
   --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#94a3b8;
@@ -339,7 +339,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="hdr">
   <div class="hdr-top">
     <div>
-      <h1 style="font-size:28px;font-weight:800;letter-spacing:4px;text-transform:uppercase;font-family:'Plus Jakarta Sans',sans-serif;text-shadow:0 2px 8px rgba(0,0,0,0.15);">✨ LIFE</h1>
+      <h1 style="font-size:32px;font-weight:700;letter-spacing:6px;font-family:'Google Sans','Nunito','Plus Jakarta Sans',sans-serif;text-shadow:0 2px 12px rgba(0,0,0,0.18);opacity:0.97;">✨ LIFE</h1>
       <p id="hdr-sub">Carregando...</p>
     </div>
     <div class="hdr-r">
@@ -771,6 +771,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="tipogrid" id="t-tags" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"></div>
     <div class="fl">Para quem</div>
     <div class="pessogrid" id="t-para-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;"></div>
+    <div class="fl">Prioridade <span style="font-weight:400;text-transform:none;font-size:10px">(opcional)</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button id="prio-btn-none" onclick="setPrio('')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);">— Nenhuma</button>
+      <button id="prio-btn-urgente" onclick="setPrio('urgente')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid #ef4444;background:#fee2e2;font-size:12px;font-weight:700;cursor:pointer;color:#ef4444;">🚨 Urgente</button>
+      <button id="prio-btn-breve" onclick="setPrio('breve')" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid #6366f1;background:#e0e7ff;font-size:12px;font-weight:700;cursor:pointer;color:#6366f1;">🕐 Breve</button>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
         <div class="fl">Data início</div>
@@ -885,7 +891,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v89</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v90</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -2311,7 +2317,7 @@ const TAGS_DEF=[
   {id:'folga',label:'😴 Folga',cor:'#a78bfa'},
   {id:'breve',label:'🕐 Breve',cor:'#6366f1'},
 ];
-let tagAtiva='todas', editandoT=null, tagSel='', paraSel='';
+let tagAtiva='todas', editandoT=null, tagSel='', paraSel='', prioSel='';
 
 // Tarefas ficam na planilha para compartilhar entre os dois usuários
 async function getTarefasAPI(){
@@ -2385,6 +2391,8 @@ function abrirNovaT(){
   document.getElementById('t-datafim').value='';
   tagSel='';
   paraSel='';
+  prioSel='';
+  setPrio('');
   renderTagsSel();
   renderParaGrid();
   document.getElementById('modal-tarefa').classList.add('open');
@@ -2401,10 +2409,31 @@ function abrirEditT(id){
   document.getElementById('t-hora').value=t.hora||'';
   document.getElementById('t-datafim').value=t.datafim||'';
   tagSel=t.tag||'';
+  prioSel=t.prioridade||'';
+  setTimeout(function(){setPrio(t.prioridade||'');},50);
   paraSel=t.para||'';
   renderTagsSel();
   renderParaGrid();
   document.getElementById('modal-tarefa').classList.add('open');
+}
+
+function setPrio(p){
+  prioSel=p;
+  ['none','urgente','breve'].forEach(function(x){
+    const btn=document.getElementById('prio-btn-'+x);
+    if(!btn)return;
+    if(x==='none'){
+      btn.style.background=p===''?'var(--c1)':'var(--bg)';
+      btn.style.color=p===''?'#fff':'var(--muted)';
+      btn.style.borderColor=p===''?'var(--c1)':'var(--border)';
+    } else if(x==='urgente'){
+      btn.style.background=p==='urgente'?'#ef4444':'#fee2e2';
+      btn.style.color=p==='urgente'?'#fff':'#ef4444';
+    } else {
+      btn.style.background=p==='breve'?'#6366f1':'#e0e7ff';
+      btn.style.color=p==='breve'?'#fff':'#6366f1';
+    }
+  });
 }
 
 function fecharModalT(){document.getElementById('modal-tarefa').classList.remove('open');editandoT=null;}
@@ -2451,7 +2480,7 @@ function salvarTarefa(){
   const hora=document.getElementById('t-hora').value;
   const datafim=(document.getElementById('t-datafim').value||'').substring(0,10);
   const lista=getTodas();
-  const obj={titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,para:paraSel,data,hora,datafim,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')};
+  const obj={titulo,desc:document.getElementById('t-desc').value.trim(),tag:tagSel,para:paraSel,prioridade:prioSel,data,hora,datafim,feito:false,criadoEm:new Date().toLocaleDateString('pt-BR')};
   if(editandoT){
     const idx=lista.findIndex(x=>x.id===editandoT);
     if(idx>=0) lista[idx]={...lista[idx],titulo:obj.titulo,desc:obj.desc,tag:obj.tag,para:obj.para,data:obj.data,hora:obj.hora,datafim:obj.datafim};
