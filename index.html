@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 14:15 -->
+<!-- LIFE | Gerado: 18/03/2026 14:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v92</title>
+<title>LIFE v93</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -891,7 +891,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v92</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v93</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1213,6 +1213,7 @@ async function confirmarEstorno(){
 
 // HISTÓRICO
 async function carregarHist(){
+  toast('🕓 Carregando histórico...','');
   if(!sUrl){document.getElementById('hist-list').innerHTML='<div class="empty"><div class="ico">🔗</div><p>Configure a URL</p></div>';return;}
   document.getElementById('hist-list').innerHTML='<div class="loading">Carregando...</div>';
   const j=await api({acao:'lerLog',mes:MN[mes],ano});
@@ -1288,6 +1289,7 @@ async function lancarReceita(){
   }
 }
 async function carregarReceita(){
+  toast('💰 Carregando receitas...','');
   if(!sUrl)return;
   await buscarTotais();
   const j=await api({acao:'lerReceitas',mes:MN[mes],ano});
@@ -1370,6 +1372,7 @@ async function carregarCarteirasAPI(){
   }
 }
 async function carregarCarteiras(){
+  toast('💳 Carregando carteiras...','');
   await carregarCarteirasAPI();
   renderCartDebitoResumo();
   await renderCartCreditoResumo();
@@ -1626,6 +1629,7 @@ async function lancarReserva(){
   } else toast('Erro ao registrar reserva.','err');
 }
 async function carregarReserva(){
+  toast('🏦 Carregando reserva...','');
   if(!sUrl){document.getElementById('res-list').innerHTML='<div class="empty"><div class="ico">🔗</div><p>Configure a URL</p></div>';return;}
   const j=await api({acao:'lerReserva'});
   if(j&&j.sucesso){
@@ -1751,6 +1755,7 @@ function fmtData(d){
 }
 // ── GERAL ─────────────────────────────────────────────────────
 async function carregarGeral(){
+  toast('🏠 Carregando geral...','');
   // Sincroniza tarefas da planilha
   if(sUrl){
     const jt=await api({acao:'lerTarefas'});
@@ -1936,6 +1941,7 @@ async function carregarGeral(){
 
 // ── PARCELAS ──────────────────────────────────────────────────
 async function carregarParcelas(){
+  toast('📦 Carregando parcelas...','');
   if(!sUrl){document.getElementById('parcelas-list').innerHTML='<div class="empty"><div class="ico">🔗</div><p>Configure a URL</p></div>';return;}
   document.getElementById('parcelas-list').innerHTML='<div class="loading">Carregando parcelas...</div>';
 
@@ -2995,6 +3001,7 @@ function deletarNota(id){
 }
 
 async function carregarNotas(){
+  toast('📓 Carregando notas...','');
   const el=document.getElementById('notas-list');
   if(el) el.innerHTML='<div class="loading">Sincronizando notas...</div>';
   if(sUrl){
