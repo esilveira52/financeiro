@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 10:30 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 11:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v81</title>
+<title>Financeiro Familiar v82</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -275,6 +275,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .hab-btn.neg{background:#fee2e2;border-color:#ef4444;color:#ef4444;}
 .hab-btn.neu{background:#e0f7fa;border-color:var(--c1);color:var(--c1);}
 /* Água especial */
+.page-financeiro{background:linear-gradient(180deg,#eff6ff 0%,var(--bg) 120px)!important;}
+.page-tarefas-cal{background:linear-gradient(180deg,#f0fdf4 0%,var(--bg) 120px)!important;}
+.page-habitos-bg{background:linear-gradient(180deg,#faf5ff 0%,var(--bg) 120px)!important;}
+.page-compras-bg{background:linear-gradient(180deg,#fff7ed 0%,var(--bg) 120px)!important;}
+.page-notas-bg{background:linear-gradient(180deg,#fdf4ff 0%,var(--bg) 120px)!important;}
 .agua-bar{background:var(--bg);border-radius:99px;height:8px;overflow:hidden;margin-top:6px;}
 .agua-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0ea5e9,#06b6d4);transition:width 0.4s;}
 /* Semana grid */
@@ -427,7 +432,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ GASTOS ─ -->
-<div class="page" id="page-gastos">
+<div class="page page-financeiro" id="page-gastos">
   <div class="aviso" id="av-cfg" style="display:none">⚙️ Configure <strong>nome</strong> e <strong>URL</strong> na aba Config. <button onclick="irCfg()" style="background:#fcd34d;border:none;border-radius:6px;padding:3px 9px;font-size:10px;font-weight:700;cursor:pointer;color:#78350f;margin-left:6px;">Configurar</button></div>
   <div class="slbl">Categoria</div>
   <div class="cats" id="cats"></div>
@@ -458,7 +463,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ MENSAL ─ -->
-<div class="page" id="page-mensal">
+<div class="page page-financeiro" id="page-mensal">
   <div class="phdr"><span class="phdr-title">📊 Gastos do mês</span><button class="rbtn" onclick="buscarTotais().then(()=>renderGraf())">↻ Atualizar</button></div>
   <div class="gcrd">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;">
@@ -471,13 +476,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ HISTÓRICO ─ -->
-<div class="page" id="page-historico">
+<div class="page page-financeiro" id="page-historico">
   <div class="phdr"><span class="phdr-title">🕓 Histórico</span><button class="rbtn" onclick="carregarHist()">↻ Atualizar</button></div>
   <div id="hist-list"><div class="loading">Carregando...</div></div>
 </div>
 
 <!-- ─ RECEITA ─ -->
-<div class="page" id="page-receita">
+<div class="page page-financeiro" id="page-receita">
   <div class="phdr"><span class="phdr-title">💰 Receita</span><button class="rbtn" onclick="carregarReceita()">↻ Atualizar</button></div>
   <div class="saldo-box">
     <div class="saldo-lbl">Saldo do mês (receita - gastos)</div>
@@ -510,7 +515,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ CARTEIRAS ─ -->
-<div class="page" id="page-carteiras">
+<div class="page page-financeiro" id="page-carteiras">
   <div class="phdr"><span class="phdr-title">💳 Carteiras</span><button class="rbtn" onclick="carregarCarteiras()">↻ Atualizar</button></div>
   <div class="subtabs">
     <button class="stab on" onclick="irSubCart('contas',this)">💵 Contas</button>
@@ -554,7 +559,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ RESERVA ─ -->
-<div class="page" id="page-reserva">
+<div class="page page-financeiro" id="page-reserva">
   <div class="phdr"><span class="phdr-title">🏦 Reserva</span><button class="rbtn" onclick="carregarReserva()">↻ Atualizar</button></div>
   <div class="saldo-box"><div class="saldo-lbl">💰 Saldo da reserva</div><div class="saldo-val val-priv" id="saldo-res">R$ 0,00</div></div>
   <div class="form-crd">
@@ -576,7 +581,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ RECORRENTES ─ -->
-<div class="page" id="page-recorrentes">
+<div class="page page-financeiro" id="page-recorrentes">
   <div class="phdr"><span class="phdr-title">🔄 Recorrentes</span><button class="rbtn" onclick="carregarRec()">↻ Atualizar</button></div>
   <div class="form-crd" style="padding:14px 16px;">
     <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Lançar tudo de uma vez</div>
@@ -589,7 +594,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ COMPRAS ─ -->
-<div class="page" id="page-compras">
+<div class="page page-compras-bg" id="page-compras">
   <div class="phdr"><span class="phdr-title">🛒 Listas de Compras</span><button class="rbtn" onclick="sincCompras()">↻ Atualizar</button></div>
   <div class="subtabs" id="compras-subtabs">
     <button class="stab on" onclick="irSubCompras('mercado',this)">🛒 Mercado</button>
@@ -626,7 +631,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ HÁBITOS ─ -->
-<div class="page" id="page-habitos">
+<div class="page page-habitos-bg" id="page-habitos">
   <div class="phdr">
     <span class="phdr-title">🏆 Hábitos</span>
     <div style="display:flex;gap:6px;">
@@ -678,7 +683,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ NOTAS ─ -->
-<div class="page" id="page-notas">
+<div class="page page-notas-bg" id="page-notas">
   <div class="phdr">
     <span class="phdr-title">📓 Notas</span>
     <div style="display:flex;gap:8px;"><button class="rbtn" onclick="carregarNotas()">↻ Atualizar</button><button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirNovaNota()">+ Nova</button></div>
@@ -702,7 +707,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ ANUAL ─ -->
-<div class="page" id="page-anual">
+<div class="page page-financeiro" id="page-anual">
   <div class="phdr"><span class="phdr-title">📈 Anual</span><button class="rbtn" onclick="buscarAnual()">↻ Atualizar</button></div>
   <div class="gcrd">
     <div class="anav"><button onclick="mudAno(-1)">←</button><span id="ano-lbl">2026</span><button onclick="mudAno(1)">→</button></div>
@@ -711,7 +716,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ CALENDÁRIO ─ -->
-<div class="page" id="page-calendario">
+<div class="page page-tarefas-cal" id="page-calendario">
   <div class="phdr">
     <div style="display:flex;align-items:center;gap:8px;">
       <button onclick="mudCalMes(-1)" style="background:var(--card);border:1.5px solid var(--border);border-radius:9px;width:34px;height:34px;font-size:14px;cursor:pointer;">←</button>
@@ -728,14 +733,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ PARCELAS ─ -->
-<div class="page" id="page-parcelas">
+<div class="page page-financeiro" id="page-parcelas">
   <div class="phdr"><span class="phdr-title">📦 Parcelamentos</span><button class="rbtn" onclick="carregarParcelas()">↻ Atualizar</button></div>
   <div class="aviso" id="parc-resumo" style="display:none;background:#e0f7fa;border-color:var(--c1);color:#0369a1;"></div>
   <div id="parcelas-list"><div class="loading">Carregando...</div></div>
 </div>
 
 <!-- ─ TAREFAS ─ -->
-<div class="page" id="page-tarefas">
+<div class="page page-tarefas-cal" id="page-tarefas">
   <div class="phdr"><span class="phdr-title">✅ Tarefas</span>
     <div style="display:flex;gap:8px;"><button class="rbtn" onclick="sincTarefas()">↻ Atualizar</button><button class="rbtn" style="background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;border:none;" onclick="abrirNovaT()">+ Nova</button></div>
   </div>
@@ -782,7 +787,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ CONFIG ─ -->
-<div class="page" id="page-config">
+<div class="page page-notas-bg" id="page-config">
   <div class="phdr"><span class="phdr-title">⚙️ Configurações</span></div>
   <div class="cfgsec">
     <div class="cfgttl">👤 Quem é você?</div>
@@ -873,7 +878,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v81</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v82</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1956,11 +1961,40 @@ async function carregarParcelas(){
 
   // Resumo
   let totalMes=0;
-  lista.forEach(g=>{const p=g.parcelas.find(x=>x.mes===mes&&x.ano===ano);if(p)totalMes+=p.valor;});
+  let totalRestante=0;
+  const totalPorCartao={};
+
+  lista.forEach(g=>{
+    const pMes=g.parcelas.find(x=>x.mes===mes&&x.ano===ano);
+    if(pMes) totalMes+=pMes.valor;
+
+    // Calcula parcelas restantes
+    const pagas=g.parcelas.filter(p=>new Date(p.ano,p.mes,1)<=new Date(ano,mes,1)).length;
+    const faltam=g.total-pagas;
+    if(faltam>0){
+      const restante=faltam*g.valorParcela;
+      totalRestante+=restante;
+      if(g.cartao){
+        if(!totalPorCartao[g.cartao]) totalPorCartao[g.cartao]=0;
+        totalPorCartao[g.cartao]+=restante;
+      }
+    }
+  });
+
   const rEl=document.getElementById('parc-resumo');
-  if(totalMes>0){
+  if(totalMes>0||totalRestante>0){
     rEl.style.display='block';
-    rEl.innerHTML=`💳 Total em parcelas este mês: <strong>${fmt(totalMes)}</strong>`;
+    const porCartaoHtml=Object.keys(totalPorCartao).length>0
+      ?'<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">'
+        +Object.entries(totalPorCartao).map(([c,v])=>'<span style="font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px 8px;">💳 '+c+': <strong>'+fmt(v)+'</strong></span>').join('')
+        +'</div>'
+      :'';
+    rEl.innerHTML=
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">'
+      +'<span>💳 Este mês: <strong>'+fmt(totalMes)+'</strong></span>'
+      +(totalRestante>0?'<span style="color:#ef4444;">⏳ Total restante: <strong>'+fmt(totalRestante)+'</strong></span>':'')
+      +'</div>'
+      +porCartaoHtml;
   } else rEl.style.display='none';
 
   document.getElementById('parcelas-list').innerHTML=lista.map(g=>{
@@ -2254,6 +2288,7 @@ const TAGS_DEF=[
   {id:'financeiro',label:'💰 Financeiro',cor:'#14b8a6'},
   {id:'ferias',label:'🏖️ Férias',cor:'#06b6d4'},
   {id:'folga',label:'😴 Folga',cor:'#a78bfa'},
+  {id:'breve',label:'🕐 Breve',cor:'#6366f1'},
 ];
 let tagAtiva='todas', editandoT=null, tagSel='', paraSel='';
 
@@ -2437,6 +2472,7 @@ function renderTarefasFiltro(){
   const filtros=[
     {id:'todas',label:'📋 Todas',cor:'var(--c1)'},
     {id:'urgente',label:'🚨 Urgentes',cor:'#ef4444'},
+    {id:'breve',label:'🕐 Breve',cor:'#6366f1'},
     {id:'pendentes',label:'⏳ Pendentes',cor:'#f59e0b'},
     {id:'feitas',label:'✅ Concluídas',cor:'#22c55e'},
     {id:'edu',label:'👤 '+(pessoas[0]||'Edu'),cor:'#0ea5e9'},
