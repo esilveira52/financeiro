@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 13:30 -->
+<!-- LIFE | Gerado: 18/03/2026 14:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v90</title>
+<title>LIFE v91</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -309,8 +309,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <!-- PIN SCREEN -->
 <div class="pin-screen" id="pin-screen">
-  <div class="pin-logo">💰</div>
-  <div class="pin-title">Financeiro</div>
+  <div class="pin-logo">✨</div>
+  <div class="pin-title">LIFE</div>
   <div class="pin-sub" id="pin-sub">Digite o PIN do app</div>
   <div class="pin-dots" id="pin-dots">
     <div class="pin-dot" id="pd0"></div>
@@ -891,7 +891,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v90</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v91</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -2304,7 +2304,6 @@ function irAbaCarteiras(cartao){
 
 // ── TAREFAS COMPLETO ──────────────────────────────────────
 const TAGS_DEF=[
-  {id:'urgente',label:'🚨 Urgente',cor:'#ef4444'},
   {id:'carro',label:'🚗 Carro',cor:'#0ea5e9'},
   {id:'casa',label:'🏠 Casa',cor:'#10b981'},
   {id:'fitness',label:'💪 Fitness',cor:'#f97316'},
@@ -2315,7 +2314,6 @@ const TAGS_DEF=[
   {id:'financeiro',label:'💰 Financeiro',cor:'#14b8a6'},
   {id:'ferias',label:'🏖️ Férias',cor:'#06b6d4'},
   {id:'folga',label:'😴 Folga',cor:'#a78bfa'},
-  {id:'breve',label:'🕐 Breve',cor:'#6366f1'},
 ];
 let tagAtiva='todas', editandoT=null, tagSel='', paraSel='', prioSel='';
 
@@ -2521,15 +2519,15 @@ function renderTarefasFiltro(){
   const g=document.getElementById('tag-filtros');if(!g)return;g.innerHTML='';
   const filtros=[
     {id:'todas',label:'📋 Todas',cor:'var(--c1)'},
-    {id:'urgente',label:'🚨 Urgentes',cor:'#ef4444'},
-    {id:'breve',label:'🕐 Breve',cor:'#6366f1'},
+    {id:'prio-urgente',label:'🚨 Urgentes',cor:'#ef4444'},
+    {id:'prio-breve',label:'🕐 Breve',cor:'#6366f1'},
     {id:'pendentes',label:'⏳ Pendentes',cor:'#f59e0b'},
     {id:'feitas',label:'✅ Concluídas',cor:'#22c55e'},
     {id:'edu',label:'👤 '+(pessoas[0]||'Edu'),cor:'#0ea5e9'},
     {id:'lud',label:'👤 '+(pessoas[1]||'Lud'),cor:'#ec4899'},
     {id:'casal',label:'👫 Casal',cor:'#14b8a6'},
     {id:'lixeira',label:'🗑 Lixeira',cor:'#ef4444'},
-    ...TAGS_DEF.filter(t=>t.id!=='urgente')
+    ...TAGS_DEF
   ];
   filtros.forEach(t=>{
     const b=document.createElement('button');
@@ -2567,6 +2565,8 @@ function renderTarefas(){
   let lista=getTarefas();
   if(tagAtiva==='pendentes') lista=lista.filter(x=>!x.feito);
   else if(tagAtiva==='feitas') lista=lista.filter(x=>x.feito);
+  else if(tagAtiva==='prio-urgente') lista=lista.filter(x=>x.prioridade==='urgente');
+  else if(tagAtiva==='prio-breve') lista=lista.filter(x=>x.prioridade==='breve');
   else if(tagAtiva==='edu'||tagAtiva==='lud'||tagAtiva==='casal') lista=lista.filter(x=>x.para===tagAtiva);
   else if(tagAtiva!=='todas') lista=lista.filter(x=>x.tag===tagAtiva);
   lista.sort((a,b)=>{if(a.feito!==b.feito)return a.feito?1:-1;if(a.data&&b.data)return a.data.localeCompare(b.data);return 0;});
