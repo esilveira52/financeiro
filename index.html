@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 10:15 -->
+<!-- Financeiro Familiar | Gerado: 18/03/2026 10:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v80</title>
+<title>Financeiro Familiar v81</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -873,7 +873,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v80</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v81</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1465,13 +1465,13 @@ async function verLancamentosCartao(cartao){
   lista.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">⏳ Carregando...</div>';
   el.classList.add('open');
 
-  // Usa exatamente o mesmo cálculo de período da abrirPagarFatura
+  // Regra: fatura = mês em que fecha. Março = gastos 08/fev até 07/mar
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
-  const mesRef=mes===0?11:mes-1;
-  const anoRef=mes===0?ano-1:ano;
-  const mesIni=mesRef===0?11:mesRef-1;
-  const anoIni=mesRef===0?anoRef-1:anoRef;
+  const mesRef=mes;                          // mês atual = nome da fatura
+  const anoRef=ano;
+  const mesIni=mes===0?11:mes-1;             // mês anterior = início período
+  const anoIni=mes===0?ano-1:ano;
   const diaFim=fechDia-1>0?fechDia-1:28;
   const periodoTxt=`${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
 
@@ -1509,19 +1509,20 @@ async function abrirPagarFatura(cartao){
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
 
-  // Estou em MARÇO → pagando fatura de FEVEREIRO
-  // Fatura fevereiro = gastos de 08/jan até 07/fev
-  // mesRef = mês dos gastos = mês anterior ao atual = FEVEREIRO
-  // Período início = dia fechamento do mês 2 atrás (janeiro)
-  // Período fim = dia (fechamento-1) do mesRef (fevereiro)
+  // Regra: fatura recebe nome do mês em que FECHA
+  // Estou em MARÇO → pagando fatura de MARÇO
+  // Fatura março = gastos de 08/fev até 07/mar
+  // mesRef = mês atual (MARÇO) = mês em que a fatura fecha
+  // mesIni = mês anterior (FEVEREIRO) = início do período
+  // Período: fechDia/fev até (fechDia-1)/mar
 
-  const mesRef = mes===0 ? 11 : mes-1;           // FEVEREIRO
-  const anoRef = mes===0 ? ano-1 : ano;
-  const mesIni = mesRef===0 ? 11 : mesRef-1;      // JANEIRO (início do período)
-  const anoIni = mesRef===0 ? anoRef-1 : anoRef;
+  const mesRef = mes;                              // MARÇO (mês atual = nome da fatura)
+  const anoRef = ano;
+  const mesIni = mes===0 ? 11 : mes-1;             // FEVEREIRO (início do período)
+  const anoIni = mes===0 ? ano-1 : ano;
   const diaFim = fechDia-1 > 0 ? fechDia-1 : 28;
 
-  // Período correto: 08/jan/2026 até 07/fev/2026
+  // Período correto: 08/fev/2026 até 07/mar/2026
   const periodoTxt = `${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
 
   fatData={cartao, mesRef, anoRef, periodoTxt};
