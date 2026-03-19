@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Financeiro Familiar | Gerado: 18/03/2026 11:45 -->
+<!-- LIFE | Gerado: 18/03/2026 12:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>Financeiro Familiar v84</title>
+<title>LIFE v85</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -19,7 +19,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;}
-.hdr{background:linear-gradient(135deg,#0ea5e9,#06b6d4,#14b8a6);padding:52px 18px 18px;color:#fff;position:relative;overflow:hidden;}
+.hdr{background:linear-gradient(135deg,var(--hdr-c1,#0ea5e9),var(--hdr-c2,#06b6d4),var(--hdr-c3,#14b8a6));padding:52px 18px 18px;color:#fff;position:relative;overflow:hidden;transition:background 0.4s;}
 .hdr::before{content:'';position:absolute;width:220px;height:220px;background:rgba(255,255,255,0.07);border-radius:50%;top:-80px;right:-60px;}
 .hdr::after{content:'';position:absolute;width:140px;height:140px;background:rgba(255,255,255,0.05);border-radius:50%;bottom:-50px;left:-30px;}
 .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
@@ -332,7 +332,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="hdr">
   <div class="hdr-top">
     <div>
-      <h1>💰 Financeiro</h1>
+      <h1>✨ LIFE</h1>
       <p id="hdr-sub">Carregando...</p>
     </div>
     <div class="hdr-r">
@@ -878,7 +878,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v84</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v85</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
