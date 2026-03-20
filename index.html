@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 11:00 -->
+<!-- LIFE | Gerado: 20/03/2026 11:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v116</title>
+<title>LIFE v117</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -1034,7 +1034,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v116</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v117</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -4007,7 +4007,6 @@ function selecionarGrupoTreino(g){
   trSeriesTemp=[];
   document.getElementById('tr-series-wrap').style.display='none';
   document.getElementById('tr-series-list').innerHTML='';
-  document.getElementById('tr-btn-add-exercicio').style.display='none';
 
   // Mostra comparativo ao selecionar exercício
   document.getElementById('tr-exercicio').onchange=function(){
@@ -4035,9 +4034,7 @@ function toggleExercicioCustom(){
 }
 
 function adicionarSerie(){
-  // Mostra painel de séries
   document.getElementById('tr-series-wrap').style.display='block';
-  document.getElementById('tr-btn-add-exercicio').style.display='block';
   const nSerie=trSeriesTemp.length+1;
   const div=document.createElement('div');
   div.style.cssText='display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:8px;';
