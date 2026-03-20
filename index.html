@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 12:15 -->
+<!-- LIFE | Gerado: 20/03/2026 10:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v112</title>
+<title>LIFE v113</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -361,6 +361,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
   <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
   <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
+  <div class="tab" onclick="ir('treino',this)">💪 Treino</div>
   <div class="tab" onclick="ir('compras',this)">🛒 L. Compras</div>
   <div class="tab" onclick="ir('historico',this)">🕓 Histórico</div>
   <div class="tab" onclick="ir('mensal',this)">📊 Mensal</div>
@@ -867,6 +868,79 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div id="av-historico-flagras"></div>
 </div>
 
+<!-- ─ TREINO ─ -->
+<div class="page page-habitos-bg" id="page-treino">
+  <div class="phdr">
+    <span class="phdr-title">💪 Treino</span>
+    <div style="display:flex;gap:6px;">
+      <button class="rbtn" onclick="carregarTreino()">↻ Atualizar</button>
+      <button class="rbtn" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);color:#fff;border:none;" onclick="abrirNovoTreino()">+ Novo</button>
+    </div>
+  </div>
+
+  <!-- Último treino por grupo -->
+  <div class="slbl">Último treino por grupo</div>
+  <div id="treino-grupos" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;"></div>
+
+  <!-- Histórico de treinos -->
+  <div class="slbl">Histórico</div>
+  <div id="treino-hist"></div>
+</div>
+
+<!-- MODAL NOVO TREINO -->
+<div class="modal" id="modal-treino" onclick="if(event.target===this)fecharModalTreino()">
+  <div class="modal-in" style="max-height:90vh;overflow-y:auto;">
+    <div class="modal-ttl">💪 Registrar treino</div>
+
+    <!-- Data -->
+    <div class="fl">Data</div>
+    <input type="date" class="tinput" id="tr-data" style="height:42px;margin-bottom:12px;"/>
+
+    <!-- Grupos musculares -->
+    <div class="fl">Grupo muscular</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;" id="tr-grupos"></div>
+
+    <!-- Exercícios do grupo selecionado -->
+    <div id="tr-exercicios-wrap" style="display:none;">
+      <div class="fl">Exercício</div>
+      <select class="tinput" id="tr-exercicio" style="height:42px;margin-bottom:12px;">
+        <option value="">Selecione...</option>
+      </select>
+      <input type="text" class="tinput" id="tr-exercicio-custom" placeholder="Ou digite um exercício personalizado..." style="height:42px;margin-bottom:12px;display:none;"/>
+      <button onclick="toggleExercicioCustom()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-bottom:12px;">✏️ Digitar manualmente</button>
+    </div>
+
+    <!-- Séries -->
+    <div id="tr-series-wrap" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="fl" style="margin:0;">Séries</div>
+        <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
+      </div>
+      <div id="tr-series-list"></div>
+    </div>
+
+    <!-- Exercícios adicionados -->
+    <div id="tr-exercicios-adicionados" style="margin-bottom:12px;"></div>
+    <button id="tr-btn-add-exercicio" onclick="adicionarExercicio()" style="display:none;width:100%;padding:10px;border-radius:10px;background:#e9d5ff;border:1px solid #7c3aed;color:#7c3aed;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;">✅ Adicionar exercício e continuar</button>
+
+    <div class="mbtns">
+      <button class="mbtn-can" onclick="fecharModalTreino()">Cancelar</button>
+      <button class="mbtn-ok" onclick="salvarTreino()">💾 Salvar treino</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE TREINO -->
+<div class="modal" id="modal-treino-det" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-in" style="max-height:90vh;overflow-y:auto;">
+    <div class="modal-ttl" id="tr-det-ttl">Detalhes do treino</div>
+    <div id="tr-det-content"></div>
+    <div class="mbtns" style="margin-top:16px;">
+      <button class="mbtn-ok" onclick="document.getElementById('modal-treino-det').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─ CONFIG ─ -->
 <div class="page page-notas-bg" id="page-config">
   <div class="phdr"><span class="phdr-title">⚙️ Configurações</span></div>
@@ -959,7 +1033,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v112</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v113</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -978,7 +1052,8 @@ function ir(aba,el){
     habitos:'roxo',
     compras:'laranja',
     notas:'cinza',config:'cinza',
-    avatar:'roxo'
+    avatar:'roxo',
+    treino:'roxo'
   };
   const novaCor=coresAba[aba]||'verde';
   document.body.classList.remove('cor-verde','cor-azul','cor-roxo','cor-laranja','cor-cinza');
@@ -1001,6 +1076,7 @@ function ir(aba,el){
   }
   if(aba==='habitos')carregarHabitos();
   if(aba==='avatar')renderAvatar();
+  if(aba==='treino')carregarTreino();
   if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){
@@ -3759,6 +3835,253 @@ async function renderAvatar(){
       histEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Nenhum flagra hoje 🎉</div>';
     }
   }
+}
+
+// ── TREINO ──────────────────────────────────────────────────────
+const GRUPOS_TREINO={
+  'Peito':    {icone:'🏋️', exercicios:['Supino Reto com Barra','Supino Inclinado com Halteres','Supino Declinado','Crucifixo Reto','Crucifixo Inclinado','Peck Deck','Crossover','Flexão de Braço','Pullover']},
+  'Costas':   {icone:'🔙', exercicios:['Puxada Alta (Pulley)','Remada Baixa','Remada Curvada','Remada Unilateral','Levantamento Terra','Pull-up (Barra Fixa)','Remada Serrote','Remada Máquina']},
+  'Bíceps':   {icone:'💪', exercicios:['Rosca Direta com Barra','Rosca Direta com Halteres','Rosca Martelo','Rosca Concentrada','Rosca Scott','Rosca 21']},
+  'Tríceps':  {icone:'💪', exercicios:['Tríceps Pulley','Tríceps Testa','Tríceps Coice','Tríceps Francês','Mergulho (Paralela)','Tríceps Corda']},
+  'Ombros':   {icone:'🤷', exercicios:['Desenvolvimento com Barra','Desenvolvimento com Halteres','Elevação Lateral','Elevação Frontal','Remada Alta','Encolhimento de Ombros','Face Pull']},
+  'Pernas':   {icone:'🦵', exercicios:['Agachamento Livre','Leg Press','Extensora','Flexora','Cadeira Adutora','Cadeira Abdutora','Stiff','Avanço (Lunge)','Panturrilha em Pé','Panturrilha Sentado']},
+  'Abdominal':{icone:'🧱', exercicios:['Abdominal Crunch','Abdominal com Peso','Prancha','Abdominal Oblíquo','Elevação de Pernas','Abdominal Máquina','Russian Twist']},
+  'Aeróbico': {icone:'🏃', exercicios:['Esteira','Bicicleta','Elíptico','Pular Corda','Escada','HIIT','Caminhada']}
+};
+
+let trGrupoSel='', trExerciciosSessao=[], trSeriesTemp=[], trCustomExercicio=false;
+
+function getTreinos(){
+  return JSON.parse(localStorage.getItem('treinos_'+sNome)||'[]');
+}
+function saveTreinos(lista){
+  localStorage.setItem('treinos_'+sNome,JSON.stringify(lista));
+  if(sUrl&&sNome) api({acao:'salvarTreinos',usuario:sNome,treinos:JSON.stringify(lista)});
+}
+
+async function carregarTreino(){
+  toast('↻ Carregando treinos...','');
+  if(sUrl&&sNome){
+    try{
+      const j=await api({acao:'lerTreinos',usuario:sNome});
+      if(j&&j.sucesso&&j.treinos){
+        localStorage.setItem('treinos_'+sNome,JSON.stringify(j.treinos));
+      }
+    }catch(e){}
+  }
+  renderTreino();
+  toast('✓ Treinos carregados!','ok');
+}
+
+function renderTreino(){
+  const treinos=getTreinos();
+
+  // Último treino por grupo
+  const gruposEl=document.getElementById('treino-grupos');
+  if(gruposEl){
+    gruposEl.innerHTML=Object.keys(GRUPOS_TREINO).map(function(g){
+      const ultimo=treinos.filter(function(t){return t.grupos&&t.grupos.indexOf(g)>=0;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
+      const diasAtras=ultimo?Math.floor((new Date()-new Date(ultimo.data+'T12:00'))/(1000*60*60*24)):null;
+      const cor=diasAtras===null?'var(--border)':diasAtras<=3?'#22c55e':diasAtras<=7?'#f59e0b':'#ef4444';
+      return '<div onclick="filtrarGrupo(\'' + g + '\')" style="background:var(--card);border:2px solid '+cor+';border-radius:var(--rs);padding:8px 4px;text-align:center;cursor:pointer;">'
+        +'<div style="font-size:18px;">'+GRUPOS_TREINO[g].icone+'</div>'
+        +'<div style="font-size:10px;font-weight:700;color:var(--text);">'+g+'</div>'
+        +'<div style="font-size:9px;color:var(--muted);">'+(diasAtras===null?'—':diasAtras===0?'Hoje':diasAtras+'d')+'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  // Histórico
+  renderHistTreino(treinos);
+}
+
+let filtroGrupoTreino='';
+function filtrarGrupo(g){
+  filtroGrupoTreino=filtroGrupoTreino===g?'':g;
+  renderHistTreino(getTreinos());
+}
+
+function renderHistTreino(treinos){
+  const el=document.getElementById('treino-hist');if(!el)return;
+  let lista=treinos.sort(function(a,b){return b.data.localeCompare(a.data);});
+  if(filtroGrupoTreino) lista=lista.filter(function(t){return t.grupos&&t.grupos.indexOf(filtroGrupoTreino)>=0;});
+  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum treino registrado ainda.</div>';return;}
+  el.innerHTML=lista.slice(0,20).map(function(t){
+    const grupos=(t.grupos||[]).map(function(g){return GRUPOS_TREINO[g]?GRUPOS_TREINO[g].icone+' '+g:g;}).join(', ');
+    const nExerc=(t.exercicios||[]).length;
+    return '<div class="hitem" style="cursor:pointer;" onclick="verDetalhesTreino('+t.id+')">'
+      +'<div class="htop"><div class="hname">'+grupos+'</div><div style="font-size:11px;color:var(--muted);">'+fmtDataBR(t.data)+'</div></div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:4px;">'+nExerc+' exercício'+(nExerc!==1?'s':'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function verDetalhesTreino(id){
+  const t=getTreinos().find(function(x){return x.id===id;});
+  if(!t)return;
+  const el=document.getElementById('tr-det-content');
+  const ttl=document.getElementById('tr-det-ttl');
+  if(ttl) ttl.textContent='💪 '+fmtDataBR(t.data);
+  if(el){
+    el.innerHTML=(t.exercicios||[]).map(function(ex){
+      const series=(ex.series||[]).map(function(s,i){
+        const carga=s.tipo==='corpo'?'Corpo livre':s.tipo==='assist'?'Assistência '+s.peso+'kg':s.peso+'kg';
+        return '<div style="font-size:12px;color:var(--muted);padding:3px 0;">'+(i+1)+'ª série — '+s.reps+' reps — '+carga+'</div>';
+      }).join('');
+      return '<div style="background:var(--bg);border-radius:var(--rs);padding:10px;margin-bottom:8px;">'
+        +'<div style="font-size:13px;font-weight:700;margin-bottom:6px;">'+ex.grupo+' · '+ex.nome+'</div>'
+        +series+'</div>';
+    }).join('');
+  }
+  document.getElementById('modal-treino-det').classList.add('open');
+}
+
+function abrirNovoTreino(){
+  trGrupoSel='';trExerciciosSessao=[];trSeriesTemp=[];trCustomExercicio=false;
+  document.getElementById('tr-data').value=dataHoje();
+  document.getElementById('tr-exercicios-wrap').style.display='none';
+  document.getElementById('tr-series-wrap').style.display='none';
+  document.getElementById('tr-exercicios-adicionados').innerHTML='';
+  document.getElementById('tr-btn-add-exercicio').style.display='none';
+
+  // Renderiza grupos
+  const gEl=document.getElementById('tr-grupos');
+  if(gEl){
+    gEl.innerHTML=Object.keys(GRUPOS_TREINO).map(function(g){
+      return '<button onclick="selecionarGrupoTreino(\''+g+'\')" id="trbtn-'+g.replace(/ /g,'_')+'" style="padding:8px 4px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;text-align:center;">'
+        +'<div style="font-size:16px;">'+GRUPOS_TREINO[g].icone+'</div>'
+        +'<div style="font-size:10px;font-weight:600;">'+g+'</div>'
+        +'</button>';
+    }).join('');
+  }
+  document.getElementById('modal-treino').classList.add('open');
+}
+
+function fecharModalTreino(){
+  document.getElementById('modal-treino').classList.remove('open');
+}
+
+function selecionarGrupoTreino(g){
+  trGrupoSel=g;
+  // Destaca botão
+  Object.keys(GRUPOS_TREINO).forEach(function(x){
+    const btn=document.getElementById('trbtn-'+x.replace(/ /g,'_'));
+    if(btn){btn.style.background=x===g?'#7c3aed':' var(--bg)';btn.style.color=x===g?'#fff':'var(--text)';btn.style.borderColor=x===g?'#7c3aed':'var(--border)';}
+  });
+  // Carrega exercícios
+  const sel=document.getElementById('tr-exercicio');
+  sel.innerHTML='<option value="">Selecione...</option>'
+    +GRUPOS_TREINO[g].exercicios.map(function(e){return '<option value="'+e+'">'+e+'</option>';}).join('')
+    +'<option value="__custom__">✏️ Outro...</option>';
+
+  // Mostra último treino desse grupo
+  const treinos=getTreinos();
+  const ultimo=treinos.filter(function(t){return t.grupos&&t.grupos.indexOf(g)>=0;}).sort(function(a,b){return b.data.localeCompare(a.data);})[0];
+  const wrap=document.getElementById('tr-exercicios-wrap');
+  wrap.style.display='block';
+  trSeriesTemp=[];
+  document.getElementById('tr-series-wrap').style.display='none';
+  document.getElementById('tr-series-list').innerHTML='';
+  document.getElementById('tr-btn-add-exercicio').style.display='none';
+
+  if(ultimo){
+    const ref=document.createElement('div');
+    ref.style.cssText='background:#ede9fe;border-radius:var(--rs);padding:10px;margin-bottom:10px;font-size:11px;';
+    ref.innerHTML='<strong>📋 Último '+g+' ('+fmtDataBR(ultimo.data)+'):</strong><br>'
+      +(ultimo.exercicios||[]).filter(function(e){return e.grupo===g;}).map(function(e){
+        return '• '+e.nome+': '+(e.series||[]).map(function(s){return s.reps+'rep@'+(s.tipo==='corpo'?'CL':s.tipo==='assist'?'Ass':s.peso+'kg');}).join(', ');
+      }).join('<br>');
+    wrap.insertBefore(ref,wrap.firstChild);
+  }
+}
+
+function toggleExercicioCustom(){
+  trCustomExercicio=!trCustomExercicio;
+  document.getElementById('tr-exercicio').style.display=trCustomExercicio?'none':'block';
+  document.getElementById('tr-exercicio-custom').style.display=trCustomExercicio?'block':'none';
+}
+
+function adicionarSerie(){
+  // Mostra painel de séries
+  document.getElementById('tr-series-wrap').style.display='block';
+  document.getElementById('tr-btn-add-exercicio').style.display='block';
+  const nSerie=trSeriesTemp.length+1;
+  const div=document.createElement('div');
+  div.style.cssText='display:grid;grid-template-columns:auto 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:8px;';
+  div.innerHTML='<span style="font-size:12px;font-weight:700;color:#7c3aed;">'+nSerie+'ª</span>'
+    +'<input type="number" placeholder="Reps" min="1" style="padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;text-align:center;" id="tr-reps-'+nSerie+'">'
+    +'<select style="padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;" id="tr-tipo-'+nSerie+'" onchange="togglePeso('+nSerie+')">'
+    +'<option value="kg">kg</option><option value="corpo">Corpo livre</option><option value="assist">Assistência</option>'
+    +'</select>'
+    +'<input type="number" placeholder="kg" min="0" step="0.5" style="padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;text-align:center;" id="tr-peso-'+nSerie+'">';
+  document.getElementById('tr-series-list').appendChild(div);
+  trSeriesTemp.push(nSerie);
+}
+
+function togglePeso(n){
+  const tipo=document.getElementById('tr-tipo-'+n).value;
+  const pesoEl=document.getElementById('tr-peso-'+n);
+  pesoEl.style.display=tipo==='corpo'?'none':'block';
+}
+
+function adicionarExercicio(){
+  const nomeExerc=trCustomExercicio
+    ?document.getElementById('tr-exercicio-custom').value.trim()
+    :document.getElementById('tr-exercicio').value;
+  if(!nomeExerc||nomeExerc==='__custom__'){toast('Selecione um exercício!','err');return;}
+  if(trSeriesTemp.length===0){toast('Adicione pelo menos 1 série!','err');return;}
+
+  // Coleta séries
+  const series=trSeriesTemp.map(function(n){
+    const reps=parseInt(document.getElementById('tr-reps-'+n).value)||0;
+    const tipo=document.getElementById('tr-tipo-'+n).value;
+    const peso=parseFloat(document.getElementById('tr-peso-'+n).value)||0;
+    return {reps,tipo,peso};
+  });
+
+  trExerciciosSessao.push({grupo:trGrupoSel,nome:nomeExerc,series});
+
+  // Mostra resumo
+  const addEl=document.getElementById('tr-exercicios-adicionados');
+  const div=document.createElement('div');
+  div.style.cssText='background:#ede9fe;border-radius:var(--rs);padding:8px 12px;margin-bottom:6px;font-size:12px;';
+  div.innerHTML='✅ <strong>'+nomeExerc+'</strong> — '
+    +series.map(function(s,i){
+      const carga=s.tipo==='corpo'?'Corpo livre':s.tipo==='assist'?'Ass.'+s.peso+'kg':s.peso+'kg';
+      return (i+1)+'ª: '+s.reps+'rep@'+carga;
+    }).join(' | ');
+  addEl.appendChild(div);
+
+  // Reset para próximo exercício
+  trSeriesTemp=[];
+  document.getElementById('tr-series-list').innerHTML='';
+  document.getElementById('tr-series-wrap').style.display='none';
+  document.getElementById('tr-btn-add-exercicio').style.display='none';
+  document.getElementById('tr-exercicio').value='';
+  document.getElementById('tr-exercicio-custom').value='';
+  toast('✅ Exercício adicionado!','ok');
+}
+
+function salvarTreino(){
+  const data=document.getElementById('tr-data').value;
+  if(!data){toast('Selecione a data!','err');return;}
+  if(trExerciciosSessao.length===0){toast('Adicione pelo menos 1 exercício!','err');return;}
+
+  const grupos=[...new Set(trExerciciosSessao.map(function(e){return e.grupo;}))];
+  const treino={
+    id:Date.now(),
+    data,
+    grupos,
+    exercicios:trExerciciosSessao,
+    usuario:sNome
+  };
+
+  const lista=getTreinos();
+  lista.unshift(treino);
+  saveTreinos(lista);
+  fecharModalTreino();
+  renderTreino();
+  toast('✅ Treino salvo!','ok');
 }
 
 function removerPin(){
