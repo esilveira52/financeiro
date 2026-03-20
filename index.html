@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 10:30 -->
+<!-- LIFE | Gerado: 19/03/2026 11:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v105</title>
+<title>LIFE v107</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v105</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v107</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3369,10 +3369,10 @@ function renderHabitos(){
                  :'<div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+displayAtual+'</div>')
         +'<div style="display:flex;gap:4px;">'
         +(isFolga
-          ?'<button class="hab-btn" style="font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">↺ Desfazer</button>'
+          ?'<button class="hab-btn" style="font-size:11px;" onclick="marcarHabito(\''+h.id+'\',\'folga\',\''+diaAtual+'\')">↺ Desfazer</button>'
           :'<button class="hab-btn neu" onclick="marcarHabito(\''+h.id+'\''+',-1,\''+diaAtual+'\')">-1</button>'
            +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\',1,\''+diaAtual+'\')">+1</button>'
-           +(semFolga?'':'<button class="hab-btn" style="'+(isFolga?'background:#f59e0b;color:#fff;':'')+';font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">😴 Folga</button>'))
+           +(semFolga?'':'<button class="hab-btn" style="'+(isFolga?'background:#f59e0b;color:#fff;':'')+';font-size:11px;" onclick="marcarHabito(\''+h.id+'\',\'folga\',\''+diaAtual+'\')">😴 Folga</button>'))
         +'</div></div>';
 
     } else {
