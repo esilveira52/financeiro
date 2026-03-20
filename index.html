@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 10:30 -->
+<!-- LIFE | Gerado: 20/03/2026 11:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v115</title>
+<title>LIFE v116</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -1034,7 +1034,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v115</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v116</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3943,7 +3943,6 @@ function abrirNovoTreino(){
   document.getElementById('tr-exercicios-wrap').style.display='none';
   document.getElementById('tr-series-wrap').style.display='none';
   document.getElementById('tr-exercicios-adicionados').innerHTML='';
-  document.getElementById('tr-btn-add-exercicio').style.display='none';
 
   // Renderiza grupos
   const gEl=document.getElementById('tr-grupos');
@@ -3955,7 +3954,32 @@ function abrirNovoTreino(){
         +'</button>';
     }).join('');
   }
+  // Restaura rascunho se existir
+  const rascunho=localStorage.getItem('treino_rascunho_'+sNome);
+  if(rascunho){
+    try{
+      const r=JSON.parse(rascunho);
+      trExerciciosSessao=r.exercicios||[];
+      document.getElementById('tr-data').value=r.data||dataHoje();
+      renderExerciciosAdicionados();
+      toast('📋 Rascunho restaurado!','ok');
+    }catch(e){}
+  }
   document.getElementById('modal-treino').classList.add('open');
+}
+
+function renderExerciciosAdicionados(){
+  const el=document.getElementById('tr-exercicios-adicionados');
+  if(!el)return;
+  el.innerHTML=trExerciciosSessao.map(function(ex){
+    return '<div style="background:#ede9fe;border-radius:var(--rs);padding:8px 12px;margin-bottom:6px;font-size:12px;">'
+      +'✅ <strong>'+ex.grupo+' · '+ex.nome+'</strong> — '
+      +(ex.series||[]).map(function(s,i){
+        const carga=s.tipo==='corpo'?'CL':s.tipo==='assist'?'Ass.'+s.peso+'kg':s.peso+'kg';
+        return (i+1)+'ª:'+s.reps+'@'+carga;
+      }).join(' | ')
+      +'</div>';
+  }).join('');
 }
 
 function fecharModalTreino(){
@@ -3985,13 +4009,21 @@ function selecionarGrupoTreino(g){
   document.getElementById('tr-series-list').innerHTML='';
   document.getElementById('tr-btn-add-exercicio').style.display='none';
 
+  // Mostra comparativo ao selecionar exercício
+  document.getElementById('tr-exercicio').onchange=function(){
+    onExercicioChange();
+    mostrarComparativo(this.value, g);
+  };
   if(ultimo){
     const ref=document.createElement('div');
+    ref.id='tr-ref-grupo';
     ref.style.cssText='background:#ede9fe;border-radius:var(--rs);padding:10px;margin-bottom:10px;font-size:11px;';
     ref.innerHTML='<strong>📋 Último '+g+' ('+fmtDataBR(ultimo.data)+'):</strong><br>'
       +(ultimo.exercicios||[]).filter(function(e){return e.grupo===g;}).map(function(e){
         return '• '+e.nome+': '+(e.series||[]).map(function(s){return s.reps+'rep@'+(s.tipo==='corpo'?'CL':s.tipo==='assist'?'Ass':s.peso+'kg');}).join(', ');
       }).join('<br>');
+    const existing=document.getElementById('tr-ref-grupo');
+    if(existing) existing.remove();
     wrap.insertBefore(ref,wrap.firstChild);
   }
 }
@@ -4023,6 +4055,30 @@ function togglePeso(n){
   const tipo=document.getElementById('tr-tipo-'+n).value;
   const pesoEl=document.getElementById('tr-peso-'+n);
   pesoEl.style.display=tipo==='corpo'?'none':'block';
+}
+
+function mostrarComparativo(nomeExerc, grupo){
+  if(!nomeExerc||nomeExerc==='__custom__'||nomeExerc==='') return;
+  const treinos=getTreinos();
+  // Busca último registro desse exercício específico
+  let ultimaSerie=null, ultimaData='';
+  for(var i=0;i<treinos.length;i++){
+    const ex=(treinos[i].exercicios||[]).find(function(e){return e.nome===nomeExerc;});
+    if(ex){ultimaSerie=ex.series;ultimaData=treinos[i].data;break;}
+  }
+  // Remove comparativo anterior
+  const old=document.getElementById('tr-comp');if(old) old.remove();
+  if(!ultimaSerie||!ultimaSerie.length) return;
+  const div=document.createElement('div');
+  div.id='tr-comp';
+  div.style.cssText='background:#fef9c3;border:1px solid #f59e0b;border-radius:var(--rs);padding:10px;margin-bottom:10px;font-size:11px;';
+  div.innerHTML='<strong>📊 Última vez ('+fmtDataBR(ultimaData)+'):</strong><br>'
+    +ultimaSerie.map(function(s,i){
+      const carga=s.tipo==='corpo'?'Corpo livre':s.tipo==='assist'?'Ass. '+s.peso+'kg':s.peso+'kg';
+      return (i+1)+'ª: '+s.reps+' reps @ '+carga;
+    }).join('<br>');
+  const seriesWrap=document.getElementById('tr-series-wrap');
+  seriesWrap.parentNode.insertBefore(div, seriesWrap);
 }
 
 function onExercicioChange(){
@@ -4067,24 +4123,23 @@ function adicionarExercicio(){
   trExerciciosSessao.push({grupo:trGrupoSel,nome:nomeExerc,series});
 
   // Mostra resumo
-  const addEl=document.getElementById('tr-exercicios-adicionados');
-  const div=document.createElement('div');
-  div.style.cssText='background:#ede9fe;border-radius:var(--rs);padding:8px 12px;margin-bottom:6px;font-size:12px;';
-  div.innerHTML='✅ <strong>'+nomeExerc+'</strong> — '
-    +series.map(function(s,i){
-      const carga=s.tipo==='corpo'?'Corpo livre':s.tipo==='assist'?'Ass.'+s.peso+'kg':s.peso+'kg';
-      return (i+1)+'ª: '+s.reps+'rep@'+carga;
-    }).join(' | ');
-  addEl.appendChild(div);
+  renderExerciciosAdicionados();
 
-  // Reset para próximo exercício
+  // Salva imediatamente (segurança contra atualização acidental)
+  const dataAtual=document.getElementById('tr-data').value||dataHoje();
+  const grupos=[...new Set(trExerciciosSessao.map(function(e){return e.grupo;}))];
+  const treinoTemp={id:'temp_'+Date.now(),data:dataAtual,grupos,exercicios:[...trExerciciosSessao],usuario:sNome,rascunho:true};
+  localStorage.setItem('treino_rascunho_'+sNome, JSON.stringify(treinoTemp));
+
+  // Remove comparativo e reset
+  const comp=document.getElementById('tr-comp');if(comp) comp.remove();
   trSeriesTemp=[];
   document.getElementById('tr-series-list').innerHTML='';
   document.getElementById('tr-series-wrap').style.display='none';
   document.getElementById('tr-exercicio').value='';
   document.getElementById('tr-exercicio-custom').value='';
   if(trCustomExercicio){toggleExercicioCustom();}
-  toast('✅ Exercício adicionado!','ok');
+  toast('✅ Salvo! Adicione o próximo exercício.','ok');
 }
 
 function salvarTreino(){
@@ -4113,6 +4168,7 @@ function salvarTreino(){
   const lista=getTreinos();
   lista.unshift(treino);
   saveTreinos(lista);
+  localStorage.removeItem('treino_rascunho_'+sNome);
   fecharModalTreino();
   renderTreino();
   toast('✅ Treino salvo!','ok');
