@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 10:00 -->
+<!-- LIFE | Gerado: 20/03/2026 10:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v113</title>
+<title>LIFE v115</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -900,28 +900,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div class="fl">Grupo muscular</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;" id="tr-grupos"></div>
 
-    <!-- Exercícios do grupo selecionado -->
+    <!-- Exercício -->
     <div id="tr-exercicios-wrap" style="display:none;">
       <div class="fl">Exercício</div>
-      <select class="tinput" id="tr-exercicio" style="height:42px;margin-bottom:12px;">
+      <select class="tinput" id="tr-exercicio" onchange="onExercicioChange()" style="height:42px;margin-bottom:4px;">
         <option value="">Selecione...</option>
       </select>
-      <input type="text" class="tinput" id="tr-exercicio-custom" placeholder="Ou digite um exercício personalizado..." style="height:42px;margin-bottom:12px;display:none;"/>
+      <input type="text" class="tinput" id="tr-exercicio-custom" placeholder="Digite o exercício..." style="height:42px;margin-bottom:4px;display:none;"/>
       <button onclick="toggleExercicioCustom()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-bottom:12px;">✏️ Digitar manualmente</button>
     </div>
 
-    <!-- Séries -->
+    <!-- Séries — aparecem ao selecionar exercício -->
     <div id="tr-series-wrap" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div class="fl" style="margin:0;">Séries</div>
-        <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
+        <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
       </div>
       <div id="tr-series-list"></div>
+      <!-- Botão próximo exercício -->
+      <button onclick="proximoExercicio()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:#ede9fe;border:1.5px solid #7c3aed;color:#7c3aed;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px;">➕ Próximo exercício</button>
     </div>
 
-    <!-- Exercícios adicionados -->
+    <!-- Resumo dos exercícios já adicionados -->
     <div id="tr-exercicios-adicionados" style="margin-bottom:12px;"></div>
-    <button id="tr-btn-add-exercicio" onclick="adicionarExercicio()" style="display:none;width:100%;padding:10px;border-radius:10px;background:#e9d5ff;border:1px solid #7c3aed;color:#7c3aed;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;">✅ Adicionar exercício e continuar</button>
 
     <div class="mbtns">
       <button class="mbtn-can" onclick="fecharModalTreino()">Cancelar</button>
@@ -1033,7 +1034,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v113</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v115</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -4024,6 +4025,30 @@ function togglePeso(n){
   pesoEl.style.display=tipo==='corpo'?'none':'block';
 }
 
+function onExercicioChange(){
+  const val=document.getElementById('tr-exercicio').value;
+  if(val&&val!=='__custom__'){
+    // Mostra painel de séries automaticamente
+    document.getElementById('tr-series-wrap').style.display='block';
+    trSeriesTemp=[];
+    document.getElementById('tr-series-list').innerHTML='';
+    // Adiciona primeira série automaticamente
+    adicionarSerie();
+  } else if(val==='__custom__'){
+    toggleExercicioCustom();
+  }
+}
+
+function proximoExercicio(){
+  // Salva exercício atual e limpa para o próximo
+  const nomeExerc=trCustomExercicio
+    ?document.getElementById('tr-exercicio-custom').value.trim()
+    :document.getElementById('tr-exercicio').value;
+  if(!nomeExerc||nomeExerc==='__custom__'){toast('Selecione um exercício!','err');return;}
+  if(trSeriesTemp.length===0){toast('Adicione pelo menos 1 série!','err');return;}
+  adicionarExercicio();
+}
+
 function adicionarExercicio(){
   const nomeExerc=trCustomExercicio
     ?document.getElementById('tr-exercicio-custom').value.trim()
@@ -4056,16 +4081,25 @@ function adicionarExercicio(){
   trSeriesTemp=[];
   document.getElementById('tr-series-list').innerHTML='';
   document.getElementById('tr-series-wrap').style.display='none';
-  document.getElementById('tr-btn-add-exercicio').style.display='none';
   document.getElementById('tr-exercicio').value='';
   document.getElementById('tr-exercicio-custom').value='';
+  if(trCustomExercicio){toggleExercicioCustom();}
   toast('✅ Exercício adicionado!','ok');
 }
 
 function salvarTreino(){
   const data=document.getElementById('tr-data').value;
   if(!data){toast('Selecione a data!','err');return;}
-  if(trExerciciosSessao.length===0){toast('Adicione pelo menos 1 exercício!','err');return;}
+
+  // Auto-adiciona exercício atual se houver séries pendentes
+  const nomeExerc=trCustomExercicio
+    ?document.getElementById('tr-exercicio-custom').value.trim()
+    :document.getElementById('tr-exercicio').value;
+  if(nomeExerc&&nomeExerc!=='__custom__'&&trSeriesTemp.length>0){
+    adicionarExercicio();
+  }
+
+  if(trExerciciosSessao.length===0){toast('Adicione pelo menos 1 exercício com séries!','err');return;}
 
   const grupos=[...new Set(trExerciciosSessao.map(function(e){return e.grupo;}))];
   const treino={
