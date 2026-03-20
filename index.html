@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 12:30 -->
+<!-- LIFE | Gerado: 20/03/2026 13:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v120</title>
+<title>LIFE v121</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -988,10 +988,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div id="tr-series-wrap" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div class="fl" style="margin:0;">Séries</div>
-        <div style="display:flex;gap:6px;">
-          <button onclick="toggleTimer()" id="tr-timer-btn" style="background:#2d2d2d;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;">⏱ 00:00</button>
-          <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
-        </div>
+        <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
       </div>
       <div id="tr-series-list"></div>
       <button onclick="proximoExercicio()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:#ede9fe;border:1.5px solid #7c3aed;color:#7c3aed;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px;">➕ Próximo exercício</button>
@@ -1111,7 +1108,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v120</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v121</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -4100,6 +4097,12 @@ function renderExerciciosAdicionados(){
 
 // Timer de descanso
 let _timerInterval=null, _timerSec=0, _timerRunning=false;
+function resetTimer(){
+  clearInterval(_timerInterval);_timerRunning=false;_timerSec=0;
+  const btn=document.getElementById('tr-timer-btn');
+  if(btn){btn.style.background='#16a34a';btn.textContent='00:00';}
+}
+
 function toggleTimer(){
   const btn=document.getElementById('tr-timer-btn');
   if(_timerRunning){
@@ -4162,18 +4165,13 @@ function selecionarGrupoTreino(g){
     onExercicioChange();
     mostrarComparativo(this.value, g);
   };
-  if(ultimo){
-    const ref=document.createElement('div');
-    ref.id='tr-ref-grupo';
-    ref.style.cssText='background:#ede9fe;border-radius:var(--rs);padding:10px;margin-bottom:10px;font-size:11px;';
-    ref.innerHTML='<strong>📋 Último '+g+' ('+fmtDataBR(ultimo.data)+'):</strong><br>'
-      +(ultimo.exercicios||[]).filter(function(e){return e.grupo===g;}).map(function(e){
-        return '• '+e.nome+': '+(e.series||[]).map(function(s){return s.reps+'rep@'+(s.tipo==='corpo'?'CL':s.tipo==='assist'?'Ass':s.peso+'kg');}).join(', ');
-      }).join('<br>');
-    const existing=document.getElementById('tr-ref-grupo');
-    if(existing) existing.remove();
-    wrap.insertBefore(ref,wrap.firstChild);
-  }
+  // Timer grande no lugar do card de referência do grupo
+  const timerDiv=document.createElement('div');
+  timerDiv.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#2d2d2d;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;';
+  timerDiv.innerHTML='<div style="color:#fff;font-size:13px;font-weight:700;">⏱ Descanso</div>'
+    +'<button onclick="toggleTimer()" id="tr-timer-btn" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 20px;font-size:18px;font-weight:800;cursor:pointer;letter-spacing:1px;">00:00</button>'
+    +'<button onclick="resetTimer()" style="background:#444;color:#aaa;border:none;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;">↺</button>';
+  wrap.insertBefore(timerDiv, wrap.firstChild);
 }
 
 function toggleExercicioCustom(){
