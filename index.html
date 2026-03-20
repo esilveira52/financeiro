@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 16:00 -->
+<!-- LIFE | Gerado: 18/03/2026 16:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v97</title>
+<title>LIFE v98</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v97</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v98</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3106,7 +3106,8 @@ const HAB_PAD=[
   {id:'casa',    nome:'Organizar cômodo',  icone:'🏠', tipo:'bool',     pts:1},
   {id:'marmita', nome:'Tirar marmita',     icone:'🚗', tipo:'bool',     pts:1},
   {id:'deus',    nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',     pts:1},
-  {id:'refeicao',nome:'Refeição',          icone:'🥗', tipo:'refeicao', pts:1},
+  {id:'ref_boa',  nome:'Refeição boa',     icone:'🥗', tipo:'contador', meta:99, pts:1},
+  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🍔', tipo:'contador', meta:99, pts:0},
   {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
   {id:'remedio', nome:'Protetor/Remédio',  icone:'💊', tipo:'bool',     pts:1},
   {id:'beijo',   nome:'Beijo',             icone:'💋', tipo:'bool',     pts:1},
@@ -3465,11 +3466,10 @@ function calcCorpo(nomeUsuario){
   // Conta refeições acumuladas
   let boas=0,ruins=0;
   dias.forEach(function(dia){
-    const v=(logs[dia].refeicao&&logs[dia].refeicao.val)||0;
-    if(typeof v==='number'){
-      if(v>0) boas+=v;
-      else if(v<0) ruins+=Math.abs(v);
-    }
+    const vBoa=(logs[dia].ref_boa&&logs[dia].ref_boa.val)||0;
+    const vRuim=(logs[dia].ref_ruim&&logs[dia].ref_ruim.val)||0;
+    if(vBoa>0) boas+=vBoa;
+    if(vRuim>0) ruins+=vRuim;
   });
 
   // Regra: para cada 4 boas pode ter 1 ruim
@@ -3601,7 +3601,7 @@ async function renderAvatar(){
   // URLs das imagens
   const imgEdu=AV_BASE+'edu/'+corpoEdu+'_'+hidEdu+'.png';
   const imgLud=AV_BASE+'lud/'+corpoLud+'_'+hidLud+'.png';
-  const imgFundo=AV_BASE+'fundo_'+casa+'.png';
+  const imgFundo=AV_BASE+'fundo_'+(casa==='arrumada'?'arrumado':'bagunca')+'.png';
   const imgMedalha=AV_BASE+'medalha.png';
 
   // Aplica fundo nos dois quadrados
