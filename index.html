@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 15:30 -->
+<!-- LIFE | Gerado: 18/03/2026 15:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v95</title>
+<title>LIFE v96</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -807,35 +807,34 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <button class="rbtn" onclick="renderAvatar()">↻ Atualizar</button>
   </div>
 
-  <!-- Avatares lado a lado -->
-  <div style="position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:16px;min-height:460px;background:#e8f4ea;">
-    <!-- Fundo — cobre toda a área -->
-    <img id="av-fundo" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;"/>
-    <!-- Overlay escuro suave para legibilidade -->
-    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.15);z-index:1;"></div>
-    <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:0;height:460px;">
-      <!-- Edu -->
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:12px;">
-        <div style="position:relative;display:inline-block;">
-          <img id="av-edu-img" src="" style="width:150px;height:200px;object-fit:contain;display:block;" onerror="this.style.opacity='0.3'"/>
-          <!-- Medalha no peito — posicionada em ~40% da altura = peito -->
-          <img id="av-edu-medalha" src="" style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
-        </div>
-        <div style="background:rgba(0,0,0,0.6);border-radius:10px;padding:6px 10px;margin-top:4px;min-width:130px;text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:#fff;" id="av-edu-nome">Edu</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.9);" id="av-edu-estado">—</div>
-        </div>
+  <!-- Avatares lado a lado — dois quadrados independentes -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <!-- Edu -->
+    <div>
+      <div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:#e8f4ea;">
+        <!-- Camada 1: fundo -->
+        <img id="av-fundo-edu" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;"/>
+        <!-- Camada 2: avatar -->
+        <img id="av-edu-img" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/>
+        <!-- Camada 3: medalha (mesma proporção) -->
+        <img id="av-edu-medalha" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:3;display:none;" onerror="this.style.display='none'"/>
       </div>
-      <!-- Lud -->
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:12px;">
-        <div style="position:relative;display:inline-block;">
-          <img id="av-lud-img" src="" style="width:150px;height:200px;object-fit:contain;display:block;" onerror="this.style.opacity='0.3'"/>
-          <img id="av-lud-medalha" src="" style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
-        </div>
-        <div style="background:rgba(0,0,0,0.6);border-radius:10px;padding:6px 10px;margin-top:4px;min-width:130px;text-align:center;">
-          <div style="font-size:13px;font-weight:700;color:#fff;" id="av-lud-nome">Lud</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.9);" id="av-lud-estado">—</div>
-        </div>
+      <!-- Status embaixo -->
+      <div style="background:var(--card);border-radius:0 0 var(--r) var(--r);border:1px solid var(--border);border-top:none;padding:8px 10px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);" id="av-edu-nome">Edu</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="av-edu-estado">—</div>
+      </div>
+    </div>
+    <!-- Lud -->
+    <div>
+      <div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:#fce4f0;">
+        <img id="av-fundo-lud" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;"/>
+        <img id="av-lud-img" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/>
+        <img id="av-lud-medalha" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:3;display:none;" onerror="this.style.display='none'"/>
+      </div>
+      <div style="background:var(--card);border-radius:0 0 var(--r) var(--r);border:1px solid var(--border);border-top:none;padding:8px 10px;text-align:center;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);" id="av-lud-nome">Lud</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="av-lud-estado">—</div>
       </div>
     </div>
   </div>
@@ -951,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v95</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v96</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3600,10 +3599,13 @@ function renderAvatar(){
   const imgEdu=AV_BASE+'edu/'+corpoEdu+'_'+hidEdu+'.png';
   const imgLud=AV_BASE+'lud/'+corpoLud+'_'+hidLud+'.png';
   const imgFundo=AV_BASE+'fundo_'+casa+'.png';
+  const imgMedalha=AV_BASE+'medalha.png';
 
-  // Aplica imagens
-  const fundoEl=document.getElementById('av-fundo');
-  if(fundoEl) fundoEl.src=imgFundo;
+  // Aplica fundo nos dois quadrados
+  const fundoEduEl=document.getElementById('av-fundo-edu');
+  const fundoLudEl=document.getElementById('av-fundo-lud');
+  if(fundoEduEl) fundoEduEl.src=imgFundo;
+  if(fundoLudEl) fundoLudEl.src=imgFundo;
 
   const eduImgEl=document.getElementById('av-edu-img');
   if(eduImgEl) eduImgEl.src=imgEdu;
@@ -3645,18 +3647,17 @@ function renderAvatar(){
   const eduMedEl=document.getElementById('av-edu-medalha');
   const ludMedEl=document.getElementById('av-lud-medalha');
   if(eduMedEl&&ludMedEl){
-    const medalhaUrl=AV_BASE+'medalha.png';
     if(flagrasEdu<flagrasLud){
-      eduMedEl.src=medalhaUrl;eduMedEl.style.display='block';
+      eduMedEl.src=imgMedalha;eduMedEl.style.display='block';
       ludMedEl.style.display='none';
     } else if(flagrasLud<flagrasEdu){
-      ludMedEl.src=medalhaUrl;ludMedEl.style.display='block';
+      ludMedEl.src=imgMedalha;ludMedEl.style.display='block';
       eduMedEl.style.display='none';
     } else {
       // Empate — nenhum ou ambos
       if(flagrasEdu===0){
-        eduMedEl.src=medalhaUrl;eduMedEl.style.display='block';
-        ludMedEl.src=medalhaUrl;ludMedEl.style.display='block';
+        eduMedEl.src=imgMedalha;eduMedEl.style.display='block';
+        ludMedEl.src=imgMedalha;ludMedEl.style.display='block';
       } else {
         eduMedEl.style.display='none';ludMedEl.style.display='none';
       }
