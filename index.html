@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 13:00 -->
+<!-- LIFE | Gerado: 20/03/2026 14:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v121</title>
+<title>LIFE v122</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -284,7 +284,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .page-compras-bg{background:linear-gradient(180deg,#fed7aa 0%,var(--bg) 160px)!important;}
 .page-notas-bg{background:linear-gradient(180deg,#e5e7eb 0%,var(--bg) 160px)!important;}
 .cor-dark .hdr,.cor-dark .tabs{background:linear-gradient(135deg,#1a1a1a,#2d2d2d,#3a3a3a)!important;}
+.cor-vermelho .hdr,.cor-vermelho .tabs{background:linear-gradient(135deg,#dc2626,#ef4444,#f87171)!important;}
 .page-treino-bg{background:linear-gradient(180deg,#2d2d2d 0%,var(--bg) 160px)!important;}
+#page-treino .card,#page-treino .hitem{background:#1e1e1e!important;border-color:#3a3a3a!important;color:#e5e5e5!important;}
+#page-treino .slbl{color:#aaa!important;}
+#page-treino .phdr-title{color:#e5e5e5!important;}
+#modal-treino .modal-in{background:#1e1e1e!important;}
+#modal-treino .fl{color:#bbb!important;}
+#modal-treino .modal-ttl{color:#e5e5e5!important;}
+#modal-treino select,#modal-treino input{background:#2d2d2d!important;border-color:#444!important;color:#e5e5e5!important;}
+#modal-treino button.mbtn-can{background:#333!important;color:#aaa!important;border-color:#444!important;}
 .agua-bar{background:var(--bg);border-radius:99px;height:8px;overflow:hidden;margin-top:6px;}
 .agua-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0ea5e9,#06b6d4);transition:width 0.4s;}
 /* Semana grid */
@@ -358,13 +367,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div class="tabs">
   <div class="tab on" onclick="ir('geral',this)">🏠 Geral</div>
-  <div class="tab" onclick="ir('saude',this)">⚖️ Saúde</div>
   <div class="tab" onclick="ir('gastos',this)">💸 Gastos</div>
   <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
   <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
   <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
   <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
   <div class="tab" onclick="ir('treino',this)">💪 Treino</div>
+  <div class="tab" onclick="ir('saude',this)">⚖️ Saúde</div>
   <div class="tab" onclick="ir('compras',this)">🛒 L. Compras</div>
   <div class="tab" onclick="ir('historico',this)">🕓 Histórico</div>
   <div class="tab" onclick="ir('mensal',this)">📊 Mensal</div>
@@ -988,7 +997,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div id="tr-series-wrap" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div class="fl" style="margin:0;">Séries</div>
-        <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
+        <button onclick="trGrupoSel==='Aeróbico'?adicionarSerieAerobico():adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
       </div>
       <div id="tr-series-list"></div>
       <button onclick="proximoExercicio()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:#ede9fe;border:1.5px solid #7c3aed;color:#7c3aed;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px;">➕ Próximo exercício</button>
@@ -1108,7 +1117,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v121</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v122</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1120,7 +1129,7 @@ function ir(aba,el){
 
   // Muda cor do header e abas conforme a seção
   const coresAba={
-    geral:'verde',saude:'verde',gastos:'verde',historico:'verde',mensal:'verde',
+    geral:'verde',gastos:'verde',historico:'verde',mensal:'verde',
     carteiras:'verde',parcelas:'verde',recorrentes:'verde',
     receita:'verde',reserva:'verde',anual:'verde',
     tarefas:'azul',calendario:'azul',
@@ -1128,7 +1137,8 @@ function ir(aba,el){
     compras:'laranja',
     notas:'cinza',config:'cinza',
     avatar:'roxo',
-    treino:'dark'
+    treino:'dark',
+    saude:'vermelho'
   };
   const novaCor=coresAba[aba]||'verde';
   document.body.classList.remove('cor-verde','cor-azul','cor-roxo','cor-laranja','cor-cinza');
@@ -4007,8 +4017,9 @@ function verDetalhesTreino(id){
   if(el){
     el.innerHTML=(t.exercicios||[]).map(function(ex){
       const series=(ex.series||[]).map(function(s,i){
-        const carga=s.tipo==='corpo'?'Corpo livre':s.tipo==='assist'?'Assistência '+s.peso+'kg':s.peso+'kg';
-        return '<div style="font-size:12px;color:var(--muted);padding:3px 0;">'+(i+1)+'ª série — '+s.reps+' reps — '+carga+'</div>';
+        const carga=s.tipo==='aerobico'?(s.reps+'min'+(s.peso?' · '+s.peso+'km':'')):s.tipo==='corpo'?'Corpo livre':s.tipo==='assist'?'Assistência '+s.peso+'kg':s.peso+'kg';
+        const label=s.tipo==='aerobico'?'duração':'série';
+        return '<div style="font-size:12px;color:var(--muted);padding:3px 0;">'+(i+1)+'ª '+label+' — '+carga+'</div>';
       }).join('');
       return '<div style="background:var(--bg);border-radius:var(--rs);padding:10px;margin-bottom:8px;">'
         +'<div style="font-size:13px;font-weight:700;margin-bottom:6px;">'+ex.grupo+' · '+ex.nome+'</div>'
@@ -4097,10 +4108,27 @@ function renderExerciciosAdicionados(){
 
 // Timer de descanso
 let _timerInterval=null, _timerSec=0, _timerRunning=false;
+function adicionarSerieAerobico(){
+  document.getElementById('tr-series-wrap').style.display='block';
+  const nSerie=trSeriesTemp.length+1;
+  const div=document.createElement('div');
+  div.style.cssText='display:grid;grid-template-columns:28px 1fr 1fr;gap:6px;align-items:center;margin-bottom:7px;';
+  div.innerHTML='<span style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center;">'+nSerie+'ª</span>'
+    +'<input type="number" placeholder="Min" min="1" style="padding:6px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;text-align:center;width:100%;" id="tr-reps-'+nSerie+'" title="Duração (min)">'
+    +'<input type="number" placeholder="km" min="0" step="0.1" style="padding:6px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;text-align:center;width:100%;" id="tr-peso-'+nSerie+'" title="Distância (km)">';
+  // hidden tipo field for compatibility
+  const hidTipo=document.createElement('input');
+  hidTipo.type='hidden';hidTipo.id='tr-tipo-'+nSerie;hidTipo.value='aerobico';
+  div.appendChild(hidTipo);
+  document.getElementById('tr-series-list').appendChild(div);
+  trSeriesTemp.push(nSerie);
+}
+
 function resetTimer(){
   clearInterval(_timerInterval);_timerRunning=false;_timerSec=0;
   const btn=document.getElementById('tr-timer-btn');
   if(btn){btn.style.background='#16a34a';btn.textContent='00:00';}
+  toast('⏱ Timer zerado','');
 }
 
 function toggleTimer(){
@@ -4165,13 +4193,16 @@ function selecionarGrupoTreino(g){
     onExercicioChange();
     mostrarComparativo(this.value, g);
   };
-  // Timer grande no lugar do card de referência do grupo
-  const timerDiv=document.createElement('div');
-  timerDiv.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#2d2d2d;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;';
-  timerDiv.innerHTML='<div style="color:#fff;font-size:13px;font-weight:700;">⏱ Descanso</div>'
-    +'<button onclick="toggleTimer()" id="tr-timer-btn" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 20px;font-size:18px;font-weight:800;cursor:pointer;letter-spacing:1px;">00:00</button>'
-    +'<button onclick="resetTimer()" style="background:#444;color:#aaa;border:none;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;">↺</button>';
-  wrap.insertBefore(timerDiv, wrap.firstChild);
+  // Timer fixo - só cria uma vez
+  if(!document.getElementById('tr-timer-fixed')){
+    const timerDiv=document.createElement('div');
+    timerDiv.id='tr-timer-fixed';
+    timerDiv.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#2d2d2d;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;';
+    timerDiv.innerHTML='<div style="color:#fff;font-size:13px;font-weight:700;">⏱ Descanso</div>'
+      +'<button onclick="toggleTimer()" id="tr-timer-btn" style="background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 20px;font-size:18px;font-weight:800;cursor:pointer;letter-spacing:1px;">00:00</button>'
+      +'<button onclick="resetTimer()" style="background:#444;color:#aaa;border:none;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;">↺</button>';
+    wrap.insertBefore(timerDiv, wrap.firstChild);
+  }
 }
 
 function toggleExercicioCustom(){
@@ -4241,7 +4272,11 @@ function onExercicioChange(){
     document.getElementById('tr-btn-salvar-exercicio').style.display='block';
     trSeriesTemp=[];
     document.getElementById('tr-series-list').innerHTML='';
-    adicionarSerie();
+    if(trGrupoSel==='Aeróbico'){
+      adicionarSerieAerobico();
+    } else {
+      adicionarSerie();
+    }
   } else if(val==='__custom__'){
     toggleExercicioCustom();
   }
