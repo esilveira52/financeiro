@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 11:45 -->
+<!-- LIFE | Gerado: 19/03/2026 12:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v110</title>
+<title>LIFE v111</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -953,7 +953,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v110</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v111</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3126,37 +3126,7 @@ function getHabCfg(){
 
 // Cache local: {Edu: {2026-03-17: {agua:1000, ponto:2, ...}}, Lud: {...}}
 function getHabCache(){
-  const raw=JSON.parse(localStorage.getItem('hab_cache')||'{}');
-  // Auto-fix: corrige datas no formato "Tue Mar 17" para "2026-03-17"
-  let fixado=false;
-  Object.keys(raw).forEach(function(u){
-    const dias=Object.keys(raw[u]||{});
-    dias.forEach(function(dia){
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(dia)){
-        try{
-          const d=new Date(dia+' 2026');
-          if(!isNaN(d)){
-            const novo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-            if(!raw[u][novo]) raw[u][novo]=raw[u][dia];
-            delete raw[u][dia];
-            fixado=true;
-          }
-        }catch(e){}
-      }
-    });
-    // Auto-fix: ref_boa e ref_ruim com val:true/false -> val:1/0
-    Object.keys(raw[u]||{}).forEach(function(dia){
-      ['ref_boa','ref_ruim'].forEach(function(id){
-        if(raw[u][dia]&&raw[u][dia][id]){
-          const v=raw[u][dia][id].val;
-          if(v===true){raw[u][dia][id]={val:1};fixado=true;}
-          else if(v===false){raw[u][dia][id]={val:0};fixado=true;}
-        }
-      });
-    });
-  });
-  if(fixado) localStorage.setItem('hab_cache',JSON.stringify(raw));
-  return raw;
+  return JSON.parse(localStorage.getItem('hab_cache')||'{}');
 }
 function saveHabCache(c){localStorage.setItem('hab_cache',JSON.stringify(c));}
 
@@ -3695,7 +3665,7 @@ async function renderAvatar(){
       const vRuim=(cacheU[dia].ref_ruim&&cacheU[dia].ref_ruim.val)||0;
       if(vBoa>0) boas+=vBoa;
       if(vRuim>0) ruins+=vRuim;
-      if(cacheU[dia].beijo&&cacheU[dia].beijo.val===true) beijoCount++;
+      if(cacheU[dia].beijo&&cacheU[dia].beijo.val) beijoCount+=(parseInt(cacheU[dia].beijo.val)||0);
     });
     // Sequência de treinos consecutivos
     const diasOrdenados=Object.keys(cacheU).filter(function(d){return d.substring(0,7)===mesAtual;}).sort().reverse();
