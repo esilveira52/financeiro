@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 17:45 -->
+<!-- LIFE | Gerado: 19/03/2026 10:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v103</title>
+<title>LIFE v104</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v103</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v104</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3122,7 +3122,39 @@ function getHabCfg(){
 }
 
 // Cache local: {Edu: {2026-03-17: {agua:1000, ponto:2, ...}}, Lud: {...}}
-function getHabCache(){return JSON.parse(localStorage.getItem('hab_cache')||'{}');}
+function getHabCache(){
+  const raw=JSON.parse(localStorage.getItem('hab_cache')||'{}');
+  // Auto-fix: corrige datas no formato "Tue Mar 17" para "2026-03-17"
+  let fixado=false;
+  Object.keys(raw).forEach(function(u){
+    const dias=Object.keys(raw[u]||{});
+    dias.forEach(function(dia){
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dia)){
+        try{
+          const d=new Date(dia+' 2026');
+          if(!isNaN(d)){
+            const novo=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+            if(!raw[u][novo]) raw[u][novo]=raw[u][dia];
+            delete raw[u][dia];
+            fixado=true;
+          }
+        }catch(e){}
+      }
+    });
+    // Auto-fix: ref_boa e ref_ruim com val:true/false -> val:1/0
+    Object.keys(raw[u]||{}).forEach(function(dia){
+      ['ref_boa','ref_ruim'].forEach(function(id){
+        if(raw[u][dia]&&raw[u][dia][id]){
+          const v=raw[u][dia][id].val;
+          if(v===true){raw[u][dia][id]={val:1};fixado=true;}
+          else if(v===false){raw[u][dia][id]={val:0};fixado=true;}
+        }
+      });
+    });
+  });
+  if(fixado) localStorage.setItem('hab_cache',JSON.stringify(raw));
+  return raw;
+}
 function saveHabCache(c){localStorage.setItem('hab_cache',JSON.stringify(c));}
 
 function dataHoje(){
@@ -3153,11 +3185,12 @@ async function marcarHabito(habId, valor, dia){
     if(valor==='folga'){
       cache[sNome][dia][habId]={folga:true, val:h.folga||4};
     } else if(cache[sNome][dia][habId]&&cache[sNome][dia][habId].folga){
-      // Desfaz folga
       delete cache[sNome][dia][habId];
     } else {
-      const atual=(cache[sNome][dia][habId]&&cache[sNome][dia][habId].val)||0;
-      const novo=Math.max(0,atual+valor);
+      // Garante que valor é numérico
+      const delta=typeof valor==='number'?valor:(valor===true?1:valor===false?-1:0);
+      const atual=parseFloat((cache[sNome][dia][habId]&&cache[sNome][dia][habId].val)||0)||0;
+      const novo=Math.max(0,atual+delta);
       cache[sNome][dia][habId]={val:novo};
     }
   } else {
@@ -3345,8 +3378,8 @@ function renderHabitos(){
     } else {
       const val=entry&&entry.val;
       botoes='<div style="display:flex;gap:4px;">'
-        +'<button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',true,\''+diaAtual+'\')">+1</button>'
-        +'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',false,\''+diaAtual+'\')">-1</button>'
+        +'<button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',true,\''+diaAtual+'\')">✅ Sim</button>'
+        +'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',false,\''+diaAtual+'\')">❌ Não</button>'
         +'</div>';
     }
 
