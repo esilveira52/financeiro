@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 11:15 -->
+<!-- LIFE | Gerado: 19/03/2026 11:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v108</title>
+<title>LIFE v109</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -271,6 +271,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .hab-streak{font-size:11px;font-weight:700;color:#f97316;flex-shrink:0;}
 .hab-btns{display:flex;gap:6px;flex-shrink:0;}
 .hab-btn{height:32px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s;}
+.hab-btn:active{transform:scale(0.88);opacity:0.8;}
+@keyframes habPulse{0%{transform:scale(1)}30%{transform:scale(1.18)}60%{transform:scale(0.95)}100%{transform:scale(1)}}
+.hab-btn-pulse{animation:habPulse 0.3s ease;}
 .hab-btn.pos{background:#dcfce7;border-color:#22c55e;color:#16a34a;}
 .hab-btn.neg{background:#fee2e2;border-color:#ef4444;color:#ef4444;}
 .hab-btn.neu{background:#e0f7fa;border-color:var(--c1);color:var(--c1);}
@@ -950,7 +953,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v108</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v109</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3172,6 +3175,14 @@ function dataSemana(){
 
 // Registra marcação — envia para planilha E atualiza cache local
 async function marcarHabito(habId, valor, dia){
+  // Animação no botão clicado
+  if(event&&event.target&&event.target.classList.contains('hab-btn')){
+    const btn=event.target;
+    btn.classList.remove('hab-btn-pulse');
+    void btn.offsetWidth; // força reflow
+    btn.classList.add('hab-btn-pulse');
+    setTimeout(function(){btn.classList.remove('hab-btn-pulse');},300);
+  }
   dia=dia||dataHoje();
   const cache=getHabCache();
   if(!cache[sNome])cache[sNome]={};
