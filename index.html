@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 17:00 -->
+<!-- LIFE | Gerado: 18/03/2026 17:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v100</title>
+<title>LIFE v101</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v100</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v101</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3458,12 +3458,26 @@ function outraPessoa(){
 }
 
 // Calcula estado gordo/forte baseado em refeições e treino cumulativos
+function calcCorpoByTreino(logs){
+  if(!logs) return 'forte';
+  const hoje=dataHoje();
+  const ontem=(function(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+  const anteontem=(function(){const d=new Date();d.setDate(d.getDate()-2);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+  const t0=logs[hoje]&&logs[hoje].treino&&logs[hoje].treino.val===true;
+  const t1=logs[ontem]&&logs[ontem].treino&&logs[ontem].treino.val===true;
+  const t2=logs[anteontem]&&logs[anteontem].treino&&logs[anteontem].treino.val===true;
+  if((t0&&t1)||(t1&&t2)) return 'forte';
+  const temHist=Object.keys(logs).some(function(d){return logs[d]&&logs[d].treino&&logs[d].treino.val===true;});
+  if(temHist&&!t0&&!t1) return 'gordo';
+  return 'forte';
+}
+
 function calcCorpo(nomeUsuario){
   const cache=getHabCache();
   const logs=cache[nomeUsuario]||{};
   const dias=Object.keys(logs).sort();
 
-  // Conta refeições acumuladas
+  // Conta refeições acumuladas (só usa novos campos ref_boa/ref_ruim)
   let boas=0,ruins=0;
   dias.forEach(function(dia){
     const vBoa=(logs[dia].ref_boa&&logs[dia].ref_boa.val)||0;
@@ -3471,6 +3485,9 @@ function calcCorpo(nomeUsuario){
     if(vBoa>0) boas+=vBoa;
     if(vRuim>0) ruins+=vRuim;
   });
+
+  // Sem dados de refeição = não está gordo por comida
+  if(boas===0&&ruins===0) return calcCorpoByTreino(logs);
 
   // Regra: para cada 4 boas pode ter 1 ruim
   const limiteRuins=Math.floor(boas/4);
@@ -3616,19 +3633,29 @@ async function renderAvatar(){
 
   // Nome e estado
   // Status: mostra ml de água e refeições
-  function getStatus(nomeU, hidStatus){
+  function getStatus(nomeU){
     const cacheU=getHabCache()[nomeU]||{};
     const hoje=dataHoje();
     const dHoje=cacheU[hoje]||{};
     const ml=(dHoje.agua&&dHoje.agua.val)||0;
-    const hidTxt=hidStatus==='hidratado'?'💧'+ml+'ml ✓':hidStatus==='sede'?'🥵'+ml+'ml':ml+'ml';
-    // Refeições acumuladas
-    let boas=0,ruins=0;
+    const mesAtual=hoje.substring(0,7);
+    let boas=0,ruins=0,beijoCount=0;
     Object.keys(cacheU).forEach(function(dia){
-      const v=(cacheU[dia].refeicao&&cacheU[dia].refeicao.val)||0;
-      if(typeof v==='number'){if(v>0)boas+=v;else if(v<0)ruins+=Math.abs(v);}
+      if(dia.substring(0,7)!==mesAtual) return;
+      const vBoa=(cacheU[dia].ref_boa&&cacheU[dia].ref_boa.val)||0;
+      const vRuim=(cacheU[dia].ref_ruim&&cacheU[dia].ref_ruim.val)||0;
+      if(vBoa>0) boas+=vBoa;
+      if(vRuim>0) ruins+=vRuim;
+      if(cacheU[dia].beijo&&cacheU[dia].beijo.val===true) beijoCount++;
     });
-    return hidTxt+' · 🥗'+boas+'B/'+ruins+'R';
+    // Sequência de treinos consecutivos
+    const diasOrdenados=Object.keys(cacheU).filter(function(d){return d.substring(0,7)===mesAtual;}).sort().reverse();
+    let streak=0;
+    for(var i=0;i<diasOrdenados.length;i++){
+      if(cacheU[diasOrdenados[i]]&&cacheU[diasOrdenados[i]].treino&&cacheU[diasOrdenados[i]].treino.val===true) streak++;
+      else break;
+    }
+    return '💧'+ml+'ml · 🥗'+boas+' · 🌭'+ruins+' · 🏋️'+streak+' · ❤️'+beijoCount;
   }
   const estadoEdu=getStatus(nEdu);
   const estadoLud=getStatus(nLud);
