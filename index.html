@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 12:00 -->
+<!-- LIFE | Gerado: 19/03/2026 12:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v111</title>
+<title>LIFE v112</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -810,11 +810,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <button class="rbtn" onclick="renderAvatar()">↻ Atualizar</button>
   </div>
 
+  <!-- Placar diário acima dos avatares -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;">
+    <div id="av-pts-edu" style="text-align:center;background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:6px;"></div>
+    <div id="av-pts-lud" style="text-align:center;background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:6px;"></div>
+  </div>
+
   <!-- Avatares lado a lado — dois quadrados independentes -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
     <!-- Edu -->
     <div>
-      <div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:#e8f4ea;">
+      <div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:#e8f4ea;border:1.5px solid var(--border);">
         <!-- Camada 1: fundo -->
         <img id="av-fundo-edu" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;"/>
         <!-- Camada 2: avatar -->
@@ -822,22 +828,22 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
         <!-- Camada 3: medalha (mesma proporção) -->
         <img id="av-edu-medalha" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:3;display:none;" onerror="this.style.display='none'"/>
       </div>
-      <!-- Status embaixo -->
-      <div style="background:var(--card);border-radius:0 0 var(--r) var(--r);border:1px solid var(--border);border-top:none;padding:8px 10px;text-align:center;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);" id="av-edu-nome">Edu</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="av-edu-estado">—</div>
+      <!-- Status embaixo vertical -->
+      <div style="background:var(--card);border-radius:0 0 var(--r) var(--r);border:1.5px solid var(--border);border-top:none;padding:8px 10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px;" id="av-edu-nome">Edu</div>
+        <div id="av-edu-estado" style="font-size:12px;color:var(--text);line-height:1.8;"></div>
       </div>
     </div>
     <!-- Lud -->
     <div>
-      <div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:#fce4f0;">
+      <div style="position:relative;width:100%;aspect-ratio:3/4;border-radius:var(--r);overflow:hidden;background:#fce4f0;border:1.5px solid var(--border);">
         <img id="av-fundo-lud" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;"/>
         <img id="av-lud-img" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;"/>
         <img id="av-lud-medalha" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:3;display:none;" onerror="this.style.display='none'"/>
       </div>
-      <div style="background:var(--card);border-radius:0 0 var(--r) var(--r);border:1px solid var(--border);border-top:none;padding:8px 10px;text-align:center;">
-        <div style="font-size:13px;font-weight:700;color:var(--text);" id="av-lud-nome">Lud</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="av-lud-estado">—</div>
+      <div style="background:var(--card);border-radius:0 0 var(--r) var(--r);border:1.5px solid var(--border);border-top:none;padding:8px 10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px;" id="av-lud-nome">Lud</div>
+        <div id="av-lud-estado" style="font-size:12px;color:var(--text);line-height:1.8;"></div>
       </div>
     </div>
   </div>
@@ -953,7 +959,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v111</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v112</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3674,8 +3680,27 @@ async function renderAvatar(){
       if(cacheU[diasOrdenados[i]]&&cacheU[diasOrdenados[i]].treino&&cacheU[diasOrdenados[i]].treino.val===true) streak++;
       else break;
     }
-    return '💧'+ml+'ml · 🥗'+boas+' · 🌭'+ruins+' · 🏋️'+streak+' · ❤️'+beijoCount;
+    return '<div>💧 '+ml+'ml</div>'
+      +'<div>🥗 '+boas+'</div>'
+      +'<div>🌭 '+ruins+'</div>'
+      +'<div>🏋️ '+streak+'</div>'
+      +'<div>❤️ '+beijoCount+'</div>';
   }
+
+  // Placar diário acima
+  function getPtsDia(nomeU){
+    const cu=getHabCache()[nomeU]||{};
+    const cfg2=getHabCfg();
+    const dh=cu[dataHoje()]||{};
+    let pts=0;cfg2.forEach(function(h){pts+=calcPtsDia(h,dh[h.id]);});
+    return Math.max(0,pts);
+  }
+  const ptsEdu=getPtsDia(nEdu), ptsLud=getPtsDia(nLud);
+  const pEl1=document.getElementById('av-pts-edu');
+  const pEl2=document.getElementById('av-pts-lud');
+  if(pEl1) pEl1.innerHTML='<div style="font-size:10px;color:var(--muted);">hoje</div><div style="font-size:18px;font-weight:800;color:#7c3aed;">'+ptsEdu+'pts</div>';
+  if(pEl2) pEl2.innerHTML='<div style="font-size:10px;color:var(--muted);">hoje</div><div style="font-size:18px;font-weight:800;color:#ec4899;">'+ptsLud+'pts</div>';
+
   const estadoEdu=getStatus(nEdu);
   const estadoLud=getStatus(nLud);
 
@@ -3684,9 +3709,9 @@ async function renderAvatar(){
   const ludNomeEl=document.getElementById('av-lud-nome');
   if(ludNomeEl) ludNomeEl.textContent=nLud;
   const eduEstEl=document.getElementById('av-edu-estado');
-  if(eduEstEl) eduEstEl.textContent=estadoEdu;
+  if(eduEstEl) eduEstEl.innerHTML=estadoEdu;
   const ludEstEl=document.getElementById('av-lud-estado');
-  if(ludEstEl) ludEstEl.textContent=estadoLud;
+  if(ludEstEl) ludEstEl.innerHTML=estadoLud;
 
   // Medalha — quem tem MENOS flagras ganha
   const flagrasEdu=flagras[idEdu]||0;
