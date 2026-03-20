@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 11:45 -->
+<!-- LIFE | Gerado: 20/03/2026 12:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v119</title>
+<title>LIFE v120</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -283,6 +283,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .page-habitos-bg{background:linear-gradient(180deg,#e9d5ff 0%,var(--bg) 160px)!important;}
 .page-compras-bg{background:linear-gradient(180deg,#fed7aa 0%,var(--bg) 160px)!important;}
 .page-notas-bg{background:linear-gradient(180deg,#e5e7eb 0%,var(--bg) 160px)!important;}
+.cor-dark .hdr,.cor-dark .tabs{background:linear-gradient(135deg,#1a1a1a,#2d2d2d,#3a3a3a)!important;}
+.page-treino-bg{background:linear-gradient(180deg,#2d2d2d 0%,var(--bg) 160px)!important;}
 .agua-bar{background:var(--bg);border-radius:99px;height:8px;overflow:hidden;margin-top:6px;}
 .agua-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#0ea5e9,#06b6d4);transition:width 0.4s;}
 /* Semana grid */
@@ -356,6 +358,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div class="tabs">
   <div class="tab on" onclick="ir('geral',this)">🏠 Geral</div>
+  <div class="tab" onclick="ir('saude',this)">⚖️ Saúde</div>
   <div class="tab" onclick="ir('gastos',this)">💸 Gastos</div>
   <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
   <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
@@ -440,6 +443,76 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
   <div style="background:var(--card);border-radius:var(--r);padding:16px;border:1px solid var(--border);margin-bottom:16px;">
     <div id="lembretes-list"></div>
+  </div>
+</div>
+
+<!-- ─ SAÚDE ─ -->
+<div class="page" id="page-saude">
+  <div class="phdr">
+    <span class="phdr-title">⚖️ Saúde</span>
+    <button class="rbtn" onclick="renderSaude()">↻</button>
+  </div>
+  <!-- Sub-abas -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <button class="stab on" id="stab-saude-edu" onclick="irSubSaude('edu',this)" style="flex:1;">👤 Edu</button>
+    <button class="stab" id="stab-saude-lud" onclick="irSubSaude('lud',this)" style="flex:1;">👤 Lud</button>
+  </div>
+
+  <!-- Sub Edu -->
+  <div id="sub-saude-edu">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="slbl">Registrar medida</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div>
+          <div class="fl">Peso (kg)</div>
+          <input type="number" class="vinput" id="saude-edu-peso" placeholder="Ex: 78.5" step="0.1"/>
+        </div>
+        <div>
+          <div class="fl">Altura (cm)</div>
+          <input type="number" class="vinput" id="saude-edu-altura" placeholder="Ex: 175"/>
+        </div>
+      </div>
+      <div class="fl">Data</div>
+      <input type="date" class="vinput" id="saude-edu-data" style="margin-bottom:10px;"/>
+      <div class="fl">Observação <span style="font-weight:400;font-size:10px;">(opcional)</span></div>
+      <input type="text" class="vinput" id="saude-edu-obs" placeholder="Ex: em jejum, após treino..." style="margin-bottom:12px;"/>
+      <button onclick="salvarMedida('edu')" class="btnverde" style="width:100%;">💾 Salvar medida</button>
+    </div>
+    <!-- IMC -->
+    <div id="saude-edu-imc" style="margin-bottom:12px;"></div>
+    <!-- Gráfico -->
+    <div class="slbl">Evolução do peso</div>
+    <div id="saude-edu-grafico" style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:12px;margin-bottom:12px;overflow-x:auto;"></div>
+    <!-- Histórico -->
+    <div class="slbl">Histórico</div>
+    <div id="saude-edu-hist"></div>
+  </div>
+
+  <!-- Sub Lud -->
+  <div id="sub-saude-lud" style="display:none;">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="slbl">Registrar medida</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div>
+          <div class="fl">Peso (kg)</div>
+          <input type="number" class="vinput" id="saude-lud-peso" placeholder="Ex: 60.0" step="0.1"/>
+        </div>
+        <div>
+          <div class="fl">Altura (cm)</div>
+          <input type="number" class="vinput" id="saude-lud-altura" placeholder="Ex: 163"/>
+        </div>
+      </div>
+      <div class="fl">Data</div>
+      <input type="date" class="vinput" id="saude-lud-data" style="margin-bottom:10px;"/>
+      <div class="fl">Observação <span style="font-weight:400;font-size:10px;">(opcional)</span></div>
+      <input type="text" class="vinput" id="saude-lud-obs" placeholder="Ex: em jejum, após treino..." style="margin-bottom:12px;"/>
+      <button onclick="salvarMedida('lud')" class="btnverde" style="width:100%;">💾 Salvar medida</button>
+    </div>
+    <div id="saude-lud-imc" style="margin-bottom:12px;"></div>
+    <div class="slbl">Evolução do peso</div>
+    <div id="saude-lud-grafico" style="background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:12px;margin-bottom:12px;overflow-x:auto;"></div>
+    <div class="slbl">Histórico</div>
+    <div id="saude-lud-hist"></div>
   </div>
 </div>
 
@@ -869,7 +942,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ─ TREINO ─ -->
-<div class="page page-habitos-bg" id="page-treino">
+<div class="page page-treino-bg" id="page-treino">
   <div class="phdr">
     <span class="phdr-title">💪 Treino</span>
     <div style="display:flex;gap:6px;">
@@ -915,10 +988,12 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <div id="tr-series-wrap" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div class="fl" style="margin:0;">Séries</div>
-        <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
+        <div style="display:flex;gap:6px;">
+          <button onclick="toggleTimer()" id="tr-timer-btn" style="background:#2d2d2d;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;">⏱ 00:00</button>
+          <button onclick="adicionarSerie()" style="background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;">+ Série</button>
+        </div>
       </div>
       <div id="tr-series-list"></div>
-      <!-- Botão próximo exercício -->
       <button onclick="proximoExercicio()" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:#ede9fe;border:1.5px solid #7c3aed;color:#7c3aed;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:4px;">➕ Próximo exercício</button>
     </div>
 
@@ -1036,7 +1111,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v119</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v120</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1048,7 +1123,7 @@ function ir(aba,el){
 
   // Muda cor do header e abas conforme a seção
   const coresAba={
-    geral:'verde',gastos:'verde',historico:'verde',mensal:'verde',
+    geral:'verde',saude:'verde',gastos:'verde',historico:'verde',mensal:'verde',
     carteiras:'verde',parcelas:'verde',recorrentes:'verde',
     receita:'verde',reserva:'verde',anual:'verde',
     tarefas:'azul',calendario:'azul',
@@ -1056,12 +1131,13 @@ function ir(aba,el){
     compras:'laranja',
     notas:'cinza',config:'cinza',
     avatar:'roxo',
-    treino:'roxo'
+    treino:'dark'
   };
   const novaCor=coresAba[aba]||'verde';
   document.body.classList.remove('cor-verde','cor-azul','cor-roxo','cor-laranja','cor-cinza');
   document.body.classList.add('cor-'+novaCor);
   if(aba==='geral')carregarGeral();
+  if(aba==='saude')renderSaude();
   if(aba==='calendario'){
     // Sincroniza com merge antes de renderizar
     sincTarefas();
@@ -3842,14 +3918,14 @@ async function renderAvatar(){
 
 // ── TREINO ──────────────────────────────────────────────────────
 const GRUPOS_TREINO={
-  'Peito':    {icone:'🏋️', exercicios:['Supino Reto com Barra','Supino Inclinado com Halteres','Supino Declinado','Crucifixo Reto','Crucifixo Inclinado','Peck Deck','Crossover','Flexão de Braço','Pullover']},
-  'Costas':   {icone:'🔙', exercicios:['Puxada Alta (Pulley)','Remada Baixa','Remada Curvada','Remada Unilateral','Levantamento Terra','Pull-up (Barra Fixa)','Remada Serrote','Remada Máquina']},
-  'Bíceps':   {icone:'💪', exercicios:['Rosca Direta com Barra','Rosca Direta com Halteres','Rosca Martelo','Rosca Concentrada','Rosca Scott','Rosca 21']},
-  'Tríceps':  {icone:'💪', exercicios:['Tríceps Pulley','Tríceps Testa','Tríceps Coice','Tríceps Francês','Mergulho (Paralela)','Tríceps Corda']},
-  'Ombros':   {icone:'🤷', exercicios:['Desenvolvimento com Barra','Desenvolvimento com Halteres','Elevação Lateral','Elevação Frontal','Remada Alta','Encolhimento de Ombros','Face Pull']},
-  'Pernas':   {icone:'🦵', exercicios:['Agachamento Livre','Leg Press','Extensora','Flexora','Cadeira Adutora','Cadeira Abdutora','Stiff','Avanço (Lunge)','Panturrilha em Pé','Panturrilha Sentado']},
-  'Abdominal':{icone:'🧱', exercicios:['Abdominal Crunch','Abdominal com Peso','Prancha','Abdominal Oblíquo','Elevação de Pernas','Abdominal Máquina','Russian Twist']},
-  'Aeróbico': {icone:'🏃', exercicios:['Esteira','Bicicleta','Elíptico','Pular Corda','Escada','HIIT','Caminhada']}
+  'Peito':    {icone:'🏋️', exercicios:['Supino Reto com Barra','Supino Inclinado com Halteres','Supino Declinado com Barra','Supino Inclinado com Barra','Supino Declinado com Halteres','Crucifixo Reto','Crucifixo Inclinado','Peck Deck','Crossover Alto','Crossover Baixo','Crossover Médio','Flexão de Braço','Flexão com Carga','Pullover com Halter','Pullover com Barra']},
+  'Costas':   {icone:'🔙', exercicios:['Puxada Alta (Pulley)','Puxada Fechada','Puxada Triângulo','Remada Baixa','Remada Curvada com Barra','Remada Unilateral com Halter','Remada Cavalinho','Levantamento Terra','Pull-up (Barra Fixa)','Remada Serrote','Remada Máquina','Remada Articulada','Pulldown']},
+  'Bíceps':   {icone:'💪', exercicios:['Rosca Direta com Barra','Rosca Direta com Halteres','Rosca Martelo','Rosca Concentrada','Rosca Scott','Rosca 21','Rosca Inversa','Rosca Inclinada','Rosca Cabo']},
+  'Tríceps':  {icone:'💪', exercicios:['Tríceps Pulley Reto','Tríceps Pulley Corda','Tríceps Testa','Tríceps Coice','Tríceps Francês','Mergulho (Paralela)','Tríceps Máquina','Supino Fechado','Kickback']},
+  'Ombros':   {icone:'🤷', exercicios:['Desenvolvimento com Barra','Desenvolvimento com Halteres','Desenvolvimento Máquina','Elevação Lateral','Elevação Frontal','Elevação Posterior','Remada Alta','Encolhimento de Ombros','Face Pull','Rotação Interna','Rotação Externa']},
+  'Pernas':   {icone:'🦵', exercicios:['Agachamento Livre','Agachamento Hack','Leg Press 45°','Leg Press Horizontal','Extensora','Flexora Deitada','Flexora Sentada','Cadeira Adutora','Cadeira Abdutora','Stiff','Avanço (Lunge)','Avanço com Halteres','Panturrilha em Pé','Panturrilha Sentado','Agachamento Búlgaro','Agachamento Sumô','Hip Thrust','Glúteo no Cross']},
+  'Abdominal':{icone:'🧱', exercicios:['Abdominal Crunch','Abdominal com Peso','Abdominal Bicicleta','Prancha Frontal','Prancha Lateral','Abdominal Oblíquo','Elevação de Pernas','Abdominal Máquina','Russian Twist','Rollout','Hollow Body','Dead Bug','Mountain Climber']},
+  'Aeróbico': {icone:'🏃', exercicios:['Esteira','Bicicleta Ergométrica','Elíptico','Pular Corda','Escada','HIIT','Caminhada','Natação','Remo Ergométrico','Skipping','Burpee','Jump Rope']}
 };
 
 let trGrupoSel='', trExerciciosSessao=[], trSeriesTemp=[], trCustomExercicio=false;
@@ -3930,7 +4006,7 @@ function verDetalhesTreino(id){
   if(!t)return;
   const el=document.getElementById('tr-det-content');
   const ttl=document.getElementById('tr-det-ttl');
-  if(ttl) ttl.textContent='💪 '+fmtDataBR(t.data);
+  if(ttl) ttl.textContent='💪 '+fmtDataBR(t.data)+(t.aberto?' 🔓 Em aberto':'');
   if(el){
     el.innerHTML=(t.exercicios||[]).map(function(ex){
       const series=(ex.series||[]).map(function(s,i){
@@ -3941,8 +4017,40 @@ function verDetalhesTreino(id){
         +'<div style="font-size:13px;font-weight:700;margin-bottom:6px;">'+ex.grupo+' · '+ex.nome+'</div>'
         +series+'</div>';
     }).join('');
+    // Botão editar/reabrir
+    el.innerHTML+='<button onclick="reabrirTreino('+id+')" style="width:100%;margin-top:8px;padding:10px;border-radius:10px;background:#2d2d2d;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;">✏️ '+(t.aberto?'Continuar editando':'Reabrir e editar')+'</button>';
   }
   document.getElementById('modal-treino-det').classList.add('open');
+}
+
+function reabrirTreino(id){
+  const t=getTreinos().find(function(x){return x.id===id;});
+  if(!t)return;
+  // Marca como aberto e carrega no modal
+  const lista=getTreinos();
+  const idx=lista.findIndex(function(x){return x.id===id;});
+  if(idx>=0) lista[idx].aberto=true;
+  saveTreinos(lista);
+  window._treinoAbertoId=id;
+  trExerciciosSessao=[...t.exercicios];
+  document.getElementById('modal-treino-det').classList.remove('open');
+  // Abre modal de edição
+  document.getElementById('tr-data').value=t.data;
+  document.getElementById('tr-exercicios-wrap').style.display='none';
+  document.getElementById('tr-series-wrap').style.display='none';
+  document.getElementById('tr-btn-salvar-exercicio').style.display='none';
+  renderExerciciosAdicionados();
+  const gEl=document.getElementById('tr-grupos');
+  if(gEl){
+    gEl.innerHTML=Object.keys(GRUPOS_TREINO).map(function(g){
+      return '<button onclick="selecionarGrupoTreino(\''+g+'\')" id="trbtn-'+g.replace(/ /g,'_')+'" style="padding:8px 4px;border-radius:var(--rs);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;text-align:center;">'
+        +'<div style="font-size:16px;">'+GRUPOS_TREINO[g].icone+'</div>'
+        +'<div style="font-size:10px;font-weight:600;">'+g+'</div>'
+        +'</button>';
+    }).join('');
+  }
+  document.getElementById('modal-treino').classList.add('open');
+  toast('📋 Treino reaberto para edição!','ok');
 }
 
 function abrirNovoTreino(){
@@ -3990,6 +4098,28 @@ function renderExerciciosAdicionados(){
   }).join('');
 }
 
+// Timer de descanso
+let _timerInterval=null, _timerSec=0, _timerRunning=false;
+function toggleTimer(){
+  const btn=document.getElementById('tr-timer-btn');
+  if(_timerRunning){
+    clearInterval(_timerInterval);_timerRunning=false;
+    _timerSec=0;if(btn) btn.style.background='#2d2d2d';
+    if(btn) btn.textContent='⏱ 00:00';
+  } else {
+    _timerRunning=true;_timerSec=0;
+    if(btn) btn.style.background='#16a34a';
+    _timerInterval=setInterval(function(){
+      _timerSec++;
+      const m=Math.floor(_timerSec/60),s=_timerSec%60;
+      const txt='⏱ '+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+      if(btn) btn.textContent=txt;
+      // Alerta em 60s e 90s
+      if(_timerSec===60||_timerSec===90) toast('⏱ '+m+'min de descanso','');
+    },1000);
+  }
+}
+
 function zerarTreinos(){
   if(!confirm('Apagar TODOS os treinos?')) return;
   localStorage.removeItem('treinos_'+sNome);
@@ -4011,9 +4141,12 @@ function selecionarGrupoTreino(g){
   });
   // Carrega exercícios
   const sel=document.getElementById('tr-exercicio');
+  const custom=JSON.parse(localStorage.getItem('tr_custom_exercicios')||'{}');
+  const customList=(custom[g]||[]).filter(function(e){return GRUPOS_TREINO[g].exercicios.indexOf(e)<0;});
   sel.innerHTML='<option value="">Selecione...</option>'
     +GRUPOS_TREINO[g].exercicios.map(function(e){return '<option value="'+e+'">'+e+'</option>';}).join('')
-    +'<option value="__custom__">✏️ Outro...</option>';
+    +(customList.length?'<optgroup label="Meus exercícios">'+customList.map(function(e){return '<option value="'+e+'">⭐ '+e+'</option>';}).join('')+'</optgroup>':'')
+    +'<option value="__custom__">✏️ Adicionar novo...</option>';
 
   // Mostra último treino desse grupo
   const treinos=getTreinos();
@@ -4046,14 +4179,23 @@ function selecionarGrupoTreino(g){
 function toggleExercicioCustom(){
   trCustomExercicio=!trCustomExercicio;
   document.getElementById('tr-exercicio').style.display=trCustomExercicio?'none':'block';
-  document.getElementById('tr-exercicio-custom').style.display=trCustomExercicio?'block':'none';
+  const inp=document.getElementById('tr-exercicio-custom');
+  inp.style.display=trCustomExercicio?'block':'none';
+  if(trCustomExercicio){
+    // Mostra séries para exercício manual
+    document.getElementById('tr-series-wrap').style.display='block';
+    document.getElementById('tr-btn-salvar-exercicio').style.display='block';
+    trSeriesTemp=[];
+    document.getElementById('tr-series-list').innerHTML='';
+    adicionarSerie();
+  }
 }
 
 function adicionarSerie(){
   document.getElementById('tr-series-wrap').style.display='block';
   const nSerie=trSeriesTemp.length+1;
   const div=document.createElement('div');
-  div.style.cssText='display:grid;grid-template-columns:28px 52px 90px 52px;gap:5px;align-items:center;margin-bottom:7px;';
+  div.style.cssText='display:grid;grid-template-columns:28px 72px 90px 70px;gap:6px;align-items:center;margin-bottom:7px;';
   div.innerHTML='<span style="font-size:12px;font-weight:700;color:#7c3aed;text-align:center;">'+nSerie+'ª</span>'
     +'<input type="number" placeholder="Rep" min="1" style="padding:6px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;text-align:center;width:100%;" id="tr-reps-'+nSerie+'">'
     +'<select style="padding:6px 2px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;width:100%;" id="tr-tipo-'+nSerie+'" onchange="togglePeso('+nSerie+')">'
@@ -4113,6 +4255,13 @@ function salvarExercicioRapido(){
     :document.getElementById('tr-exercicio').value;
   if(!nomeExerc||nomeExerc==='__custom__'){toast('Selecione um exercício!','err');return;}
   if(trSeriesTemp.length===0){toast('Adicione pelo menos 1 série!','err');return;}
+  // Salva exercício customizado na lista do grupo para uso futuro
+  if(trCustomExercicio&&trGrupoSel&&nomeExerc){
+    const custom=JSON.parse(localStorage.getItem('tr_custom_exercicios')||'{}');
+    if(!custom[trGrupoSel]) custom[trGrupoSel]=[];
+    if(custom[trGrupoSel].indexOf(nomeExerc)<0) custom[trGrupoSel].push(nomeExerc);
+    localStorage.setItem('tr_custom_exercicios',JSON.stringify(custom));
+  }
   adicionarExercicio();
   // Esconde o botão após salvar
   document.getElementById('tr-btn-salvar-exercicio').style.display='none';
@@ -4125,6 +4274,13 @@ function proximoExercicio(){
     :document.getElementById('tr-exercicio').value;
   if(!nomeExerc||nomeExerc==='__custom__'){toast('Selecione um exercício!','err');return;}
   if(trSeriesTemp.length===0){toast('Adicione pelo menos 1 série!','err');return;}
+  // Salva exercício customizado na lista do grupo para uso futuro
+  if(trCustomExercicio&&trGrupoSel&&nomeExerc){
+    const custom=JSON.parse(localStorage.getItem('tr_custom_exercicios')||'{}');
+    if(!custom[trGrupoSel]) custom[trGrupoSel]=[];
+    if(custom[trGrupoSel].indexOf(nomeExerc)<0) custom[trGrupoSel].push(nomeExerc);
+    localStorage.setItem('tr_custom_exercicios',JSON.stringify(custom));
+  }
   adicionarExercicio();
 }
 
@@ -4134,6 +4290,13 @@ function adicionarExercicio(){
     :document.getElementById('tr-exercicio').value;
   if(!nomeExerc||nomeExerc==='__custom__'){toast('Selecione um exercício!','err');return;}
   if(trSeriesTemp.length===0){toast('Adicione pelo menos 1 série!','err');return;}
+  // Salva exercício customizado na lista do grupo para uso futuro
+  if(trCustomExercicio&&trGrupoSel&&nomeExerc){
+    const custom=JSON.parse(localStorage.getItem('tr_custom_exercicios')||'{}');
+    if(!custom[trGrupoSel]) custom[trGrupoSel]=[];
+    if(custom[trGrupoSel].indexOf(nomeExerc)<0) custom[trGrupoSel].push(nomeExerc);
+    localStorage.setItem('tr_custom_exercicios',JSON.stringify(custom));
+  }
 
   // Coleta séries
   const series=trSeriesTemp.map(function(n){
@@ -4149,11 +4312,23 @@ function adicionarExercicio(){
   renderExerciciosAdicionados();
 
   document.getElementById('tr-btn-salvar-exercicio').style.display='none';
-  // Salva imediatamente (segurança contra atualização acidental)
+  // Salva/atualiza treino do dia imediatamente
   const dataAtual=document.getElementById('tr-data').value||dataHoje();
   const grupos=[...new Set(trExerciciosSessao.map(function(e){return e.grupo;}))];
-  const treinoTemp={id:'temp_'+Date.now(),data:dataAtual,grupos,exercicios:[...trExerciciosSessao],usuario:sNome,rascunho:true};
-  localStorage.setItem('treino_rascunho_'+sNome, JSON.stringify(treinoTemp));
+  const lista=getTreinos();
+  const idxExist=lista.findIndex(function(t){return t.data===dataAtual&&t.aberto;});
+  if(idxExist>=0){
+    lista[idxExist].exercicios=[...trExerciciosSessao];
+    lista[idxExist].grupos=grupos;
+  } else if(!window._treinoAbertoId){
+    const novoId=Date.now();
+    window._treinoAbertoId=novoId;
+    lista.unshift({id:novoId,data:dataAtual,grupos,exercicios:[...trExerciciosSessao],usuario:sNome,aberto:true});
+  } else {
+    const idx=lista.findIndex(function(t){return t.id===window._treinoAbertoId;});
+    if(idx>=0){lista[idx].exercicios=[...trExerciciosSessao];lista[idx].grupos=grupos;}
+  }
+  saveTreinos(lista);
 
   // Remove comparativo e reset
   const comp=document.getElementById('tr-comp');if(comp) comp.remove();
@@ -4192,10 +4367,147 @@ function salvarTreino(){
   const lista=getTreinos();
   lista.unshift(treino);
   saveTreinos(lista);
+  // Fecha treino (remove flag aberto)
+  const listaFinal=getTreinos();
+  const idxF=listaFinal.findIndex(function(t){return t.id===window._treinoAbertoId;});
+  if(idxF>=0) delete listaFinal[idxF].aberto;
+  saveTreinos(listaFinal);
+  window._treinoAbertoId=null;
   localStorage.removeItem('treino_rascunho_'+sNome);
   fecharModalTreino();
   renderTreino();
   toast('✅ Treino salvo!','ok');
+}
+
+// ── SAÚDE ───────────────────────────────────────────────────────
+let _subSaude='edu';
+
+function irSubSaude(sub,el){
+  _subSaude=sub;
+  ['edu','lud'].forEach(function(s){
+    document.getElementById('sub-saude-'+s).style.display=s===sub?'block':'none';
+    const btn=document.getElementById('stab-saude-'+s);
+    if(btn){btn.classList.toggle('on',s===sub);}
+  });
+}
+
+function getSaudeDados(pessoa){
+  return JSON.parse(localStorage.getItem('saude_'+pessoa)||'[]');
+}
+function saveSaudeDados(pessoa,lista){
+  localStorage.setItem('saude_'+pessoa,JSON.stringify(lista));
+}
+
+function calcIMC(peso,altura){
+  if(!peso||!altura) return null;
+  const h=altura/100;
+  return (peso/(h*h)).toFixed(1);
+}
+function imcClassif(imc){
+  if(imc<18.5) return {txt:'Abaixo do peso',cor:'#3b82f6'};
+  if(imc<25)   return {txt:'Peso normal',cor:'#16a34a'};
+  if(imc<30)   return {txt:'Sobrepeso',cor:'#f59e0b'};
+  return {txt:'Obesidade',cor:'#ef4444'};
+}
+
+function salvarMedida(pessoa){
+  const peso=parseFloat(document.getElementById('saude-'+pessoa+'-peso').value);
+  const altura=parseFloat(document.getElementById('saude-'+pessoa+'-altura').value);
+  const data=document.getElementById('saude-'+pessoa+'-data').value;
+  const obs=document.getElementById('saude-'+pessoa+'-obs').value.trim();
+  if(!peso||!data){toast('Preencha pelo menos peso e data!','err');return;}
+  const lista=getSaudeDados(pessoa);
+  // Remove registro do mesmo dia se existir
+  const idx=lista.findIndex(function(r){return r.data===data;});
+  const novo={data,peso,altura:altura||null,obs};
+  if(idx>=0) lista[idx]=novo;
+  else lista.push(novo);
+  lista.sort(function(a,b){return b.data.localeCompare(a.data);});
+  saveSaudeDados(pessoa,lista);
+  document.getElementById('saude-'+pessoa+'-peso').value='';
+  document.getElementById('saude-'+pessoa+'-obs').value='';
+  renderSaude();
+  toast('✅ Medida salva!','ok');
+}
+
+function renderSaude(){
+  // Set today's date
+  ['edu','lud'].forEach(function(p){
+    const el=document.getElementById('saude-'+p+'-data');
+    if(el&&!el.value) el.value=dataHoje();
+  });
+  renderSaudePessoa('edu');
+  renderSaudePessoa('lud');
+}
+
+function renderSaudePessoa(pessoa){
+  const lista=getSaudeDados(pessoa);
+
+  // IMC do último registro
+  const imcEl=document.getElementById('saude-'+pessoa+'-imc');
+  if(imcEl&&lista.length>0){
+    const ultimo=lista[0];
+    if(ultimo.peso&&ultimo.altura){
+      const imc=calcIMC(ultimo.peso,ultimo.altura);
+      const cl=imcClassif(parseFloat(imc));
+      imcEl.innerHTML='<div style="background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:12px;display:flex;justify-content:space-between;align-items:center;">'
+        +'<div><div style="font-size:11px;color:var(--muted);">IMC atual ('+fmtDataBR(ultimo.data)+')</div>'
+        +'<div style="font-size:22px;font-weight:800;color:'+cl.cor+';">'+imc+'</div>'
+        +'<div style="font-size:11px;color:'+cl.cor+';font-weight:600;">'+cl.txt+'</div></div>'
+        +'<div style="text-align:right;">'
+        +'<div style="font-size:11px;color:var(--muted);">Peso</div>'
+        +'<div style="font-size:18px;font-weight:700;">'+ultimo.peso+'kg</div>'
+        +(ultimo.altura?'<div style="font-size:11px;color:var(--muted);">'+ultimo.altura+'cm</div>':'')
+        +'</div></div>';
+    } else {
+      imcEl.innerHTML='<div style="background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:12px;">'
+        +'<span style="font-size:16px;font-weight:700;">⚖️ '+lista[0].peso+'kg</span>'
+        +'<span style="font-size:11px;color:var(--muted);margin-left:8px;">('+fmtDataBR(lista[0].data)+')</span></div>';
+    }
+  }
+
+  // Gráfico SVG simples
+  const grafEl=document.getElementById('saude-'+pessoa+'-grafico');
+  if(grafEl){
+    const dados=lista.filter(function(r){return r.peso;}).slice(0,12).reverse();
+    if(dados.length<2){
+      grafEl.innerHTML='<div style="text-align:center;color:var(--muted);padding:20px;font-size:12px;">Registre pelo menos 2 medidas para ver o gráfico</div>';
+    } else {
+      const W=280,H=100,pad=10;
+      const pesos=dados.map(function(d){return d.peso;});
+      const minP=Math.min.apply(null,pesos)-2;
+      const maxP=Math.max.apply(null,pesos)+2;
+      const pts=dados.map(function(d,i){
+        const x=pad+(i/(dados.length-1))*(W-pad*2);
+        const y=H-pad-(d.peso-minP)/(maxP-minP)*(H-pad*2);
+        return x.toFixed(1)+','+y.toFixed(1);
+      });
+      const polyline='<polyline points="'+pts.join(' ')+'" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linejoin="round"/>';
+      const circles=dados.map(function(d,i){
+        const x=pad+(i/(dados.length-1))*(W-pad*2);
+        const y=H-pad-(d.peso-minP)/(maxP-minP)*(H-pad*2);
+        return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.5" fill="#16a34a"/>'
+          +'<text x="'+x.toFixed(1)+'" y="'+(y-7).toFixed(1)+'" font-size="8" text-anchor="middle" fill="var(--muted)">'+d.peso+'</text>';
+      }).join('');
+      grafEl.innerHTML='<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="overflow:visible;">'+polyline+circles+'</svg>';
+    }
+  }
+
+  // Histórico
+  const histEl=document.getElementById('saude-'+pessoa+'-hist');
+  if(histEl){
+    if(!lista.length){histEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Nenhum registro ainda.</div>';return;}
+    histEl.innerHTML=lista.slice(0,20).map(function(r){
+      const imc=r.peso&&r.altura?'IMC '+calcIMC(r.peso,r.altura):'';
+      return '<div class="hitem">'
+        +'<div class="htop">'
+        +'<div class="hname">⚖️ '+r.peso+'kg'+(r.altura?' · '+r.altura+'cm':'')+(imc?' · '+imc:'')+'</div>'
+        +'<div style="font-size:11px;color:var(--muted);">'+fmtDataBR(r.data)+'</div>'
+        +'</div>'
+        +(r.obs?'<div style="font-size:11px;color:var(--muted);margin-top:3px;">'+r.obs+'</div>':'')
+        +'</div>';
+    }).join('');
+  }
 }
 
 function removerPin(){
