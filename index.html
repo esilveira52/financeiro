@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 16:30 -->
+<!-- LIFE | Gerado: 18/03/2026 17:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v99</title>
+<title>LIFE v100</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v99</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v100</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3107,9 +3107,9 @@ const HAB_PAD=[
   {id:'marmita', nome:'Tirar marmita',     icone:'🚗', tipo:'bool',     pts:1},
   {id:'deus',    nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',     pts:1},
   {id:'ref_boa',  nome:'Refeição boa',     icone:'🥗', tipo:'contador', meta:99, pts:1},
-  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🍔', tipo:'contador', meta:99, pts:0},
+  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🌭', tipo:'contador', meta:99, pts:0},
   {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
-  {id:'remedio', nome:'Protetor/Rem.',     icone:'💊', tipo:'bool',     pts:1},
+  {id:'remedio', nome:'Rem.',              icone:'💊', tipo:'bool',     pts:1},
   {id:'beijo',   nome:'Beijo',             icone:'💋', tipo:'bool',     pts:1},
 ];
 
@@ -3523,23 +3523,15 @@ function calcCasa(nomeUsuario){
   const cache=getHabCache();
   const hoje=dataHoje();
   const ontem=(function(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
-
-  // Verifica se arrumou hoje
-  const arrumouHoje=cache[nomeUsuario]&&cache[nomeUsuario][hoje]&&cache[nomeUsuario][hoje].casa&&cache[nomeUsuario][hoje].casa.val===true;
-
+  const logs=cache[nomeUsuario]||{};
+  // Verifica se este usuário arrumou hoje
+  const arrumouHoje=logs[hoje]&&logs[hoje].casa&&logs[hoje].casa.val===true;
+  if(arrumouHoje) return 'arrumado';
   // Hora de Brasília
-  const agora=new Date();
-  const horaBrasilia=agora.getUTCHours()-3;
-  const h=horaBrasilia<0?horaBrasilia+24:horaBrasilia;
-
-  // Se hoje não arrumou e já passou das 23h, amanhã será bagunçado
-  // Para simplificar: se não arrumou hoje = bagunçado (exceto antes das 23h ainda há chance)
-  if(arrumouHoje) return 'arrumada';
-
-  // Verificar se ontem arrumou e hoje ainda não chegou nas 23h
-  const arrumouOntem=cache[nomeUsuario]&&cache[nomeUsuario][ontem]&&cache[nomeUsuario][ontem].casa&&cache[nomeUsuario][ontem].casa.val===true;
-  if(arrumouOntem&&h<23) return 'arrumada';
-
+  const h=(new Date().getUTCHours()-3+24)%24;
+  // Se ontem arrumou e hoje ainda não passou das 23h = ainda arrumado
+  const arrumouOntem=logs[ontem]&&logs[ontem].casa&&logs[ontem].casa.val===true;
+  if(arrumouOntem&&h<23) return 'arrumado';
   return 'bagunca';
 }
 
@@ -3586,7 +3578,7 @@ function registrarFlagra(){
 }
 
 async function renderAvatar(){
-  // Sincroniza hábitos antes de renderizar para ter dados atualizados
+  toast('↻ Sincronizando...','');
   await sincHabLog();
   const p=pessoas||['Edu','Lud'];
   const nEdu=p[0]||'Edu';
@@ -3599,20 +3591,22 @@ async function renderAvatar(){
   const hidEdu=calcHidratacao(nEdu);
   const corpoLud=calcCorpo(nLud);
   const hidLud=calcHidratacao(nLud);
-  const casa=calcCasa(sNome);
   const flagras=calcFlagras();
 
   // URLs das imagens
   const imgEdu=AV_BASE+'edu/'+corpoEdu+'_'+hidEdu+'.png';
   const imgLud=AV_BASE+'lud/'+corpoLud+'_'+hidLud+'.png';
-  const imgFundo=AV_BASE+'fundo_'+(casa==='arrumada'?'arrumado':'bagunca')+'.png';
+  const casaEdu=calcCasa(nEdu);
+  const casaLud=calcCasa(nLud);
+  const imgFundoEdu=AV_BASE+'fundo_'+casaEdu+'.png';
+  const imgFundoLud=AV_BASE+'fundo_'+casaLud+'.png';
   const imgMedalha=AV_BASE+'medalha.png';
 
   // Aplica fundo nos dois quadrados
   const fundoEduEl=document.getElementById('av-fundo-edu');
   const fundoLudEl=document.getElementById('av-fundo-lud');
-  if(fundoEduEl) fundoEduEl.src=imgFundo;
-  if(fundoLudEl) fundoLudEl.src=imgFundo;
+  if(fundoEduEl) fundoEduEl.src=imgFundoEdu;
+  if(fundoLudEl) fundoLudEl.src=imgFundoLud;
 
   const eduImgEl=document.getElementById('av-edu-img');
   if(eduImgEl) eduImgEl.src=imgEdu;
@@ -3636,8 +3630,8 @@ async function renderAvatar(){
     });
     return hidTxt+' · 🥗'+boas+'B/'+ruins+'R';
   }
-  const estadoEdu=getStatus(nEdu,hidEdu);
-  const estadoLud=getStatus(nLud,hidLud);
+  const estadoEdu=getStatus(nEdu);
+  const estadoLud=getStatus(nLud);
 
   const eduNomeEl=document.getElementById('av-edu-nome');
   if(eduNomeEl) eduNomeEl.textContent=nEdu;
