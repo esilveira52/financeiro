@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 10:00 -->
+<!-- LIFE | Gerado: 19/03/2026 10:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v104</title>
+<title>LIFE v105</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v104</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v105</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3106,8 +3106,8 @@ const HAB_PAD=[
   {id:'casa',    nome:'Organizar cômodo',  icone:'🏠', tipo:'bool',     pts:1},
   {id:'marmita', nome:'Tirar marmita',     icone:'🚗', tipo:'bool',     pts:1},
   {id:'deus',    nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',     pts:1},
-  {id:'ref_boa',  nome:'Refeição boa',     icone:'🥗', tipo:'contador', meta:99, pts:1},
-  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🌭', tipo:'contador', meta:99, pts:0},
+  {id:'ref_boa',  nome:'Refeição boa',     icone:'🥗', tipo:'cont',     meta:99, pts:1},
+  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🌭', tipo:'cont',     meta:99, pts:0},
   {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
   {id:'remedio', nome:'Rem.',              icone:'💊', tipo:'bool',     pts:1},
   {id:'beijo',   nome:'Beijo',             icone:'💋', tipo:'bool',     pts:1},
@@ -3181,7 +3181,7 @@ async function marcarHabito(habId, valor, dia){
   if(!h)return;
 
   // Atualiza cache local
-  if(h.tipo==='ml'||h.tipo==='horas'||h.tipo==='cont'){
+  if(h.tipo==='ml'||h.tipo==='horas'||h.tipo==='cont'||h.tipo==='contador'){
     if(valor==='folga'){
       cache[sNome][dia][habId]={folga:true, val:h.folga||4};
     } else if(cache[sNome][dia][habId]&&cache[sNome][dia][habId].folga){
@@ -3277,7 +3277,7 @@ function calcPtsDia(h,entry){
   if(v===undefined||v===null)return 0;
   if(h.tipo==='ml')return Math.floor((v||0)/h.passo)*h.pts;
   if(h.tipo==='horas')return Math.floor(v||0)*h.pts;
-  if(h.tipo==='cont'){if(h.id==='ref_boa'||h.id==='ref_ruim') return (v||0)*(h.pts||1); return Math.min(v||0,h.meta||4)*(h.pts||1);}
+  if(h.tipo==='cont'||h.tipo==='contador'){if(h.id==='ref_boa'||h.id==='ref_ruim') return (v||0)*(h.pts||1); return Math.min(v||0,h.meta||4)*(h.pts||1);}
   if(h.tipo==='bool')return v===true?h.pts:0;
   return 0;
 }
@@ -3358,7 +3358,7 @@ function renderHabitos(){
         +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\','+h.passo+',\''+diaAtual+'\')">+1h</button>'
         +'</div></div>';
 
-    } else if(h.tipo==='cont'){
+    } else if(h.tipo==='cont'||h.tipo==='contador'){
       const isFolga=entry&&entry.folga;
       const atual=isFolga?'folga':((entry&&entry.val)||0);
       const meta=h.meta||4;
