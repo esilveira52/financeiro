@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 14:30 -->
+<!-- LIFE | Gerado: 18/03/2026 15:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v93</title>
+<title>LIFE v94</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -367,6 +367,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
+  <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
 
@@ -799,6 +800,62 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
+<!-- ─ AVATAR ─ -->
+<div class="page page-habitos-bg" id="page-avatar">
+  <div class="phdr">
+    <span class="phdr-title">🧍 Perfil</span>
+    <button class="rbtn" onclick="renderAvatar()">↻ Atualizar</button>
+  </div>
+
+  <!-- Avatares lado a lado -->
+  <div style="position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:16px;min-height:420px;">
+    <!-- Fundo -->
+    <img id="av-fundo" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" onerror="this.style.display='none'"/>
+    <div style="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;">
+      <!-- Edu -->
+      <div style="text-align:center;">
+        <div style="position:relative;display:inline-block;">
+          <img id="av-edu-img" src="" style="width:140px;height:187px;object-fit:contain;" onerror="this.src=''"/>
+          <img id="av-edu-medalha" src="" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:40px;height:40px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
+        </div>
+        <div style="margin-top:6px;background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 8px;">
+          <div style="font-size:13px;font-weight:700;color:#fff;" id="av-edu-nome">Edu</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);" id="av-edu-estado">carregando...</div>
+        </div>
+      </div>
+      <!-- Lud -->
+      <div style="text-align:center;">
+        <div style="position:relative;display:inline-block;">
+          <img id="av-lud-img" src="" style="width:140px;height:187px;object-fit:contain;" onerror="this.src=''"/>
+          <img id="av-lud-medalha" src="" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:40px;height:40px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
+        </div>
+        <div style="margin-top:6px;background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 8px;">
+          <div style="font-size:13px;font-weight:700;color:#fff;" id="av-lud-nome">Lud</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);" id="av-lud-estado">carregando...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flagra de bagunça -->
+  <div class="card" style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="font-size:14px;font-weight:700;">🚨 Flagra de bagunça</span>
+      <span style="font-size:11px;color:var(--muted);">Zera à meia-noite</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div id="av-placar-edu" style="text-align:center;background:var(--bg);border-radius:10px;padding:10px;"></div>
+      <div id="av-placar-lud" style="text-align:center;background:var(--bg);border-radius:10px;padding:10px;"></div>
+    </div>
+    <textarea id="av-flagra-desc" class="tinput" rows="2" placeholder="O que você viu? Descreva a bagunça..."></textarea>
+    <button onclick="registrarFlagra()" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;background:#ef4444;border:none;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);">🚨 Registrar flagra para '+outraPessoa()+'</button>
+  </div>
+
+  <!-- Histórico de flagras -->
+  <div class="slbl">Histórico de hoje</div>
+  <div id="av-historico-flagras"></div>
+</div>
+
 <!-- ─ CONFIG ─ -->
 <div class="page page-notas-bg" id="page-config">
   <div class="phdr"><span class="phdr-title">⚙️ Configurações</span></div>
@@ -891,7 +948,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v93</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v94</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -909,7 +966,8 @@ function ir(aba,el){
     tarefas:'azul',calendario:'azul',
     habitos:'roxo',
     compras:'laranja',
-    notas:'cinza',config:'cinza'
+    notas:'cinza',config:'cinza',
+    avatar:'roxo'
   };
   const novaCor=coresAba[aba]||'verde';
   document.body.classList.remove('cor-verde','cor-azul','cor-roxo','cor-laranja','cor-cinza');
@@ -931,6 +989,7 @@ function ir(aba,el){
     }
   }
   if(aba==='habitos')carregarHabitos();
+  if(aba==='avatar')renderAvatar();
   if(aba==='notas')carregarNotas();
   if(aba==='parcelas')carregarParcelas();
   if(aba==='tarefas'){
@@ -3036,15 +3095,18 @@ function renderNotas(){
 
 // ── HÁBITOS ───────────────────────────────────────────────────
 const HAB_PAD=[
-  {id:'agua',   nome:'Água',              icone:'💧', tipo:'ml',    passo:500, pts:1},
-  {id:'ponto',  nome:'Bater ponto',       icone:'✅', tipo:'cont',  meta:4,   pts:1, folga:4},
-  {id:'estudo', nome:'Horas de estudo',   icone:'📚', tipo:'horas', passo:1,  pts:1},
-  {id:'treino', nome:'Treino',            icone:'🏋️', tipo:'bool',  pts:1},
-  {id:'sono',   nome:'Dormir cedo',       icone:'😴', tipo:'bool',  pts:1},
-  {id:'acordar',nome:'Acordar cedo',      icone:'🌅', tipo:'bool',  pts:1},
-  {id:'casa',   nome:'Organizar cômodo',  icone:'🏠', tipo:'bool',  pts:1},
-  {id:'marmita',nome:'Tirar marmita',     icone:'🚗', tipo:'bool',  pts:1},
-  {id:'deus',   nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',  pts:1},
+  {id:'agua',    nome:'Água',              icone:'💧', tipo:'ml',       passo:500, pts:1},
+  {id:'ponto',   nome:'Bater ponto',       icone:'✅', tipo:'cont',     meta:4,    pts:1, folga:4},
+  {id:'estudo',  nome:'Horas de estudo',   icone:'📚', tipo:'horas',    passo:1,   pts:1},
+  {id:'treino',  nome:'Treino',            icone:'🏋️', tipo:'bool',     pts:1},
+  {id:'sono',    nome:'Dormir cedo',       icone:'😴', tipo:'bool',     pts:1},
+  {id:'acordar', nome:'Acordar cedo',      icone:'🌅', tipo:'bool',     pts:1},
+  {id:'casa',    nome:'Organizar cômodo',  icone:'🏠', tipo:'bool',     pts:1},
+  {id:'marmita', nome:'Tirar marmita',     icone:'🚗', tipo:'bool',     pts:1},
+  {id:'deus',    nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',     pts:1},
+  {id:'refeicao',nome:'Refeição',          icone:'🥗', tipo:'refeicao', pts:1},
+  {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
+  {id:'remedio', nome:'Protetor/Remédio',  icone:'💊', tipo:'bool',     pts:1},
 ];
 
 // ── NOVA ARQUITETURA: cada marcação = nova linha na planilha ──────
@@ -3381,6 +3443,231 @@ async function zerarProgressoHab(){
   if(sUrl) await api({acao:'zerarHabitos',usuario:sNome});
   renderHabitos();
   toast('✓ Zerado!','ok');
+}
+
+// ── AVATAR / PERFIL ─────────────────────────────────────────────
+const AV_BASE='https://esilveira52.github.io/financeiro/avatares/';
+
+function outraPessoa(){
+  const p=pessoas||['Edu','Lud'];
+  return sNome===p[0]?p[1]:p[0];
+}
+
+// Calcula estado gordo/forte baseado em refeições e treino cumulativos
+function calcCorpo(nomeUsuario){
+  const cache=getHabCache();
+  const logs=cache[nomeUsuario]||{};
+  const dias=Object.keys(logs).sort();
+
+  // Conta refeições acumuladas
+  let boas=0,ruins=0;
+  dias.forEach(function(dia){
+    const v=(logs[dia].refeicao&&logs[dia].refeicao.val)||0;
+    if(typeof v==='number'){
+      if(v>0) boas+=v;
+      else if(v<0) ruins+=Math.abs(v);
+    }
+  });
+
+  // Regra: para cada 4 boas pode ter 1 ruim
+  const limiteRuins=Math.floor(boas/4);
+  const estaGordoComida=ruins>limiteRuins;
+
+  // Treino: 2 dias consecutivos sem treinar = gordo, 2 consecutivos treinando = forte
+  const hoje=dataHoje();
+  const ontem=(function(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+  const anteontem=(function(){const d=new Date();d.setDate(d.getDate()-2);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+
+  const treinouHoje=(logs[hoje]&&logs[hoje].treino&&logs[hoje].treino.val===true);
+  const treinouOntem=(logs[ontem]&&logs[ontem].treino&&logs[ontem].treino.val===true);
+  const treinouAnteontem=(logs[anteontem]&&logs[anteontem].treino&&logs[anteontem].treino.val===true);
+
+  // 2 consecutivos treinando = forte; 2 consecutivos sem = gordo
+  const forteByTreino=(treinouHoje&&treinouOntem)||(treinouOntem&&treinouAnteontem);
+  const gordoByTreino=!treinouHoje&&!treinouOntem;
+
+  if(forteByTreino) return 'forte';
+  if(gordoByTreino||estaGordoComida) return 'gordo';
+  return 'forte';
+}
+
+// Calcula estado de hidratação baseado na hora de Brasília
+function calcHidratacao(nomeUsuario){
+  const cache=getHabCache();
+  const hoje=dataHoje();
+  const entry=(cache[nomeUsuario]&&cache[nomeUsuario][hoje]&&cache[nomeUsuario][hoje].agua)||{val:0};
+  const ml=entry.val||0;
+
+  // Hora de Brasília (UTC-3)
+  const agora=new Date();
+  const horaBrasilia=agora.getUTCHours()-3;
+  const h=horaBrasilia<0?horaBrasilia+24:horaBrasilia;
+
+  if(h<10) return 'neutro';
+  if(h>=10&&h<17){
+    return ml>=1000?'hidratado':'sede';
+  }
+  // 17h ou mais
+  return ml>=2000?'hidratado':'sede';
+}
+
+// Calcula fundo (casa arrumada ou bagunçada)
+function calcCasa(nomeUsuario){
+  const cache=getHabCache();
+  const hoje=dataHoje();
+  const ontem=(function(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');})();
+
+  // Verifica se arrumou hoje
+  const arrumouHoje=cache[nomeUsuario]&&cache[nomeUsuario][hoje]&&cache[nomeUsuario][hoje].casa&&cache[nomeUsuario][hoje].casa.val===true;
+
+  // Hora de Brasília
+  const agora=new Date();
+  const horaBrasilia=agora.getUTCHours()-3;
+  const h=horaBrasilia<0?horaBrasilia+24:horaBrasilia;
+
+  // Se hoje não arrumou e já passou das 23h, amanhã será bagunçado
+  // Para simplificar: se não arrumou hoje = bagunçado (exceto antes das 23h ainda há chance)
+  if(arrumouHoje) return 'arrumada';
+
+  // Verificar se ontem arrumou e hoje ainda não chegou nas 23h
+  const arrumouOntem=cache[nomeUsuario]&&cache[nomeUsuario][ontem]&&cache[nomeUsuario][ontem].casa&&cache[nomeUsuario][ontem].casa.val===true;
+  if(arrumouOntem&&h<23) return 'arrumada';
+
+  return 'bagunca';
+}
+
+// Calcula placar de flagras do dia
+function calcFlagras(){
+  const flagras=JSON.parse(localStorage.getItem('flagras_hoje')||'{}');
+  const hoje=dataHoje();
+  if(flagras.data!==hoje) return {edu:0,lud:0,historico:[]};
+  return {
+    edu:flagras.edu||0,
+    lud:flagras.lud||0,
+    historico:flagras.historico||[]
+  };
+}
+
+function registrarFlagra(){
+  const desc=document.getElementById('av-flagra-desc').value.trim();
+  if(!desc){toast('Descreva a bagunça!','err');return;}
+  const outro=outraPessoa();
+  const hoje=dataHoje();
+  const flagras=JSON.parse(localStorage.getItem('flagras_hoje')||'{}');
+
+  // Zera se mudou o dia
+  if(flagras.data!==hoje){
+    flagras.data=hoje;flagras.edu=0;flagras.lud=0;flagras.historico=[];
+  }
+
+  // Incrementa flagra do outro
+  const chave=(outro===(pessoas&&pessoas[0]?pessoas[0]:'Edu'))?'edu':'lud';
+  flagras[chave]=(flagras[chave]||0)+1;
+  flagras.historico=flagras.historico||[];
+  flagras.historico.unshift({
+    de:sNome,para:outro,desc,hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),ts:Date.now()
+  });
+
+  localStorage.setItem('flagras_hoje',JSON.stringify(flagras));
+
+  // Salva na planilha também
+  if(sUrl) api({acao:'salvarFlagra',usuario:sNome,para:outro,desc,dia:hoje,ts:Date.now()});
+
+  document.getElementById('av-flagra-desc').value='';
+  toast('🚨 Flagra registrado para '+outro+'!','ok');
+  renderAvatar();
+}
+
+function renderAvatar(){
+  const p=pessoas||['Edu','Lud'];
+  const nEdu=p[0]||'Edu';
+  const nLud=p[1]||'Lud';
+  const idEdu=nEdu.toLowerCase();
+  const idLud=nLud.toLowerCase();
+
+  // Calcula estados
+  const corpoEdu=calcCorpo(nEdu);
+  const hidEdu=calcHidratacao(nEdu);
+  const corpoLud=calcCorpo(nLud);
+  const hidLud=calcHidratacao(nLud);
+  const casa=calcCasa(sNome);
+  const flagras=calcFlagras();
+
+  // URLs das imagens
+  const imgEdu=AV_BASE+'edu/'+corpoEdu+'_'+hidEdu+'.png';
+  const imgLud=AV_BASE+'lud/'+corpoLud+'_'+hidLud+'.png';
+  const imgFundo=AV_BASE+'fundo_'+casa+'.png';
+
+  // Aplica imagens
+  const fundoEl=document.getElementById('av-fundo');
+  if(fundoEl) fundoEl.src=imgFundo;
+
+  const eduImgEl=document.getElementById('av-edu-img');
+  if(eduImgEl) eduImgEl.src=imgEdu;
+
+  const ludImgEl=document.getElementById('av-lud-img');
+  if(ludImgEl) ludImgEl.src=imgLud;
+
+  // Nome e estado
+  const estadoEdu=(corpoEdu==='forte'?'💪 Forte':'🫃 Gordo')+' · '+(hidEdu==='hidratado'?'💧 Hidratado':hidEdu==='sede'?'🥵 Com sede':'😐 Neutro');
+  const estadoLud=(corpoLud==='forte'?'💪 Forte':'🫃 Gordo')+' · '+(hidLud==='hidratado'?'💧 Hidratado':hidLud==='sede'?'🥵 Com sede':'😐 Neutro');
+
+  const eduNomeEl=document.getElementById('av-edu-nome');
+  if(eduNomeEl) eduNomeEl.textContent=nEdu;
+  const ludNomeEl=document.getElementById('av-lud-nome');
+  if(ludNomeEl) ludNomeEl.textContent=nLud;
+  const eduEstEl=document.getElementById('av-edu-estado');
+  if(eduEstEl) eduEstEl.textContent=estadoEdu;
+  const ludEstEl=document.getElementById('av-lud-estado');
+  if(ludEstEl) ludEstEl.textContent=estadoLud;
+
+  // Medalha — quem tem MENOS flagras ganha
+  const flagrasEdu=flagras[idEdu]||0;
+  const flagrasLud=flagras[idLud]||0;
+  const eduMedEl=document.getElementById('av-edu-medalha');
+  const ludMedEl=document.getElementById('av-lud-medalha');
+  if(eduMedEl&&ludMedEl){
+    const medalhaUrl=AV_BASE+'medalha.png';
+    if(flagrasEdu<flagrasLud){
+      eduMedEl.src=medalhaUrl;eduMedEl.style.display='block';
+      ludMedEl.style.display='none';
+    } else if(flagrasLud<flagrasEdu){
+      ludMedEl.src=medalhaUrl;ludMedEl.style.display='block';
+      eduMedEl.style.display='none';
+    } else {
+      // Empate — nenhum ou ambos
+      if(flagrasEdu===0){
+        eduMedEl.src=medalhaUrl;eduMedEl.style.display='block';
+        ludMedEl.src=medalhaUrl;ludMedEl.style.display='block';
+      } else {
+        eduMedEl.style.display='none';ludMedEl.style.display='none';
+      }
+    }
+  }
+
+  // Placar flagras
+  const placarEduEl=document.getElementById('av-placar-edu');
+  const placarLudEl=document.getElementById('av-placar-lud');
+  if(placarEduEl) placarEduEl.innerHTML='<div style="font-size:20px;font-weight:800;color:'+(flagrasEdu>flagrasLud?'#ef4444':'#16a34a')+'">'+flagrasEdu+'</div><div style="font-size:11px;color:var(--muted);">flagras '+nEdu+'</div>';
+  if(placarLudEl) placarLudEl.innerHTML='<div style="font-size:20px;font-weight:800;color:'+(flagrasLud>flagrasEdu?'#ef4444':'#16a34a')+'">'+flagrasLud+'</div><div style="font-size:11px;color:var(--muted);">flagras '+nLud+'</div>';
+
+  // Histórico de flagras
+  const histEl=document.getElementById('av-historico-flagras');
+  if(histEl){
+    if(flagras.historico&&flagras.historico.length>0){
+      histEl.innerHTML=flagras.historico.map(function(f){
+        return '<div style="background:var(--card);border-radius:var(--rs);border:1px solid var(--border);padding:10px 14px;margin-bottom:8px;">'
+          +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+          +'<span style="font-size:12px;font-weight:700;color:#ef4444;">🚨 '+f.de+' → '+f.para+'</span>'
+          +'<span style="font-size:11px;color:var(--muted);">'+f.hora+'</span>'
+          +'</div>'
+          +'<div style="font-size:12px;color:var(--text);">'+f.desc+'</div>'
+          +'</div>';
+      }).join('');
+    } else {
+      histEl.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">Nenhum flagra hoje 🎉</div>';
+    }
+  }
 }
 
 function removerPin(){
