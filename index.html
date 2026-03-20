@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 11:30 -->
+<!-- LIFE | Gerado: 20/03/2026 11:45 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v118</title>
+<title>LIFE v119</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -873,7 +873,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="phdr">
     <span class="phdr-title">💪 Treino</span>
     <div style="display:flex;gap:6px;">
-      <button class="rbtn" onclick="carregarTreino()">↻ Atualizar</button>
+      <button class="rbtn" onclick="carregarTreino()">↻</button>
+      <button class="rbtn" onclick="zerarTreinos()" style="color:#ef4444;border-color:#ef4444;">🗑</button>
       <button class="rbtn" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);color:#fff;border:none;" onclick="abrirNovoTreino()">+ Novo</button>
     </div>
   </div>
@@ -1035,7 +1036,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v118</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v119</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3905,15 +3906,21 @@ function filtrarGrupo(g){
 
 function renderHistTreino(treinos){
   const el=document.getElementById('treino-hist');if(!el)return;
-  let lista=treinos.sort(function(a,b){return b.data.localeCompare(a.data);});
-  if(filtroGrupoTreino) lista=lista.filter(function(t){return t.grupos&&t.grupos.indexOf(filtroGrupoTreino)>=0;});
-  if(!lista.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum treino registrado ainda.</div>';return;}
-  el.innerHTML=lista.slice(0,20).map(function(t){
-    const grupos=(t.grupos||[]).map(function(g){return GRUPOS_TREINO[g]?GRUPOS_TREINO[g].icone+' '+g:g;}).join(', ');
-    const nExerc=(t.exercicios||[]).length;
+  let lista=[...treinos].sort(function(a,b){return b.data.localeCompare(a.data);});
+  if(filtroGrupoTreino) lista=lista.filter(function(t){return (t.grupos||[]).indexOf(filtroGrupoTreino)>=0;});
+  if(!lista.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">'+(filtroGrupoTreino?'Nenhum treino de '+filtroGrupoTreino+' registrado.':'Nenhum treino registrado ainda.')+'</div>';
+    return;
+  }
+  el.innerHTML=lista.slice(0,30).map(function(t){
+    const grupos=(t.grupos||[]).map(function(g){return GRUPOS_TREINO[g]?GRUPOS_TREINO[g].icone+' '+g:g;}).join(' · ');
+    const exercs=(t.exercicios||[]).map(function(e){return e.nome;}).join(', ');
     return '<div class="hitem" style="cursor:pointer;" onclick="verDetalhesTreino('+t.id+')">'
-      +'<div class="htop"><div class="hname">'+grupos+'</div><div style="font-size:11px;color:var(--muted);">'+fmtDataBR(t.data)+'</div></div>'
-      +'<div style="font-size:11px;color:var(--muted);margin-top:4px;">'+nExerc+' exercício'+(nExerc!==1?'s':'')+'</div>'
+      +'<div class="htop">'
+      +'<div class="hname">'+grupos+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);white-space:nowrap;">'+fmtDataBR(t.data)+'</div>'
+      +'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+exercs+'</div>'
       +'</div>';
   }).join('');
 }
@@ -3981,6 +3988,14 @@ function renderExerciciosAdicionados(){
       }).join(' | ')
       +'</div>';
   }).join('');
+}
+
+function zerarTreinos(){
+  if(!confirm('Apagar TODOS os treinos?')) return;
+  localStorage.removeItem('treinos_'+sNome);
+  localStorage.removeItem('treino_rascunho_'+sNome);
+  renderTreino();
+  toast('✓ Treinos apagados!','ok');
 }
 
 function fecharModalTreino(){
