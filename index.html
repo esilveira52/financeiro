@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 16:15 -->
+<!-- LIFE | Gerado: 18/03/2026 16:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v98</title>
+<title>LIFE v99</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v98</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v99</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3109,7 +3109,7 @@ const HAB_PAD=[
   {id:'ref_boa',  nome:'Refeição boa',     icone:'🥗', tipo:'contador', meta:99, pts:1},
   {id:'ref_ruim', nome:'Refeição ruim',     icone:'🍔', tipo:'contador', meta:99, pts:0},
   {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
-  {id:'remedio', nome:'Protetor/Remédio',  icone:'💊', tipo:'bool',     pts:1},
+  {id:'remedio', nome:'Protetor/Rem.',     icone:'💊', tipo:'bool',     pts:1},
   {id:'beijo',   nome:'Beijo',             icone:'💋', tipo:'bool',     pts:1},
 ];
 
@@ -3487,7 +3487,11 @@ function calcCorpo(nomeUsuario){
 
   // 2 consecutivos treinando = forte; 2 consecutivos sem = gordo
   const forteByTreino=(treinouHoje&&treinouOntem)||(treinouOntem&&treinouAnteontem);
-  const gordoByTreino=!treinouHoje&&!treinouOntem;
+  // Só fica gordo por treino se houver histórico (pelo menos um dia treinado nos últimos 7 dias)
+  const temHistTreino=Object.keys(logs).some(function(dia){
+    return logs[dia]&&logs[dia].treino&&logs[dia].treino.val===true;
+  });
+  const gordoByTreino=temHistTreino&&!treinouHoje&&!treinouOntem;
 
   if(forteByTreino) return 'forte';
   if(gordoByTreino||estaGordoComida) return 'gordo';
