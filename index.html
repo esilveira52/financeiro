@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 19/03/2026 11:00 -->
+<!-- LIFE | Gerado: 19/03/2026 11:15 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v107</title>
+<title>LIFE v108</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v107</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v108</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3183,9 +3183,12 @@ async function marcarHabito(habId, valor, dia){
   // Atualiza cache local
   if(h.tipo==='ml'||h.tipo==='horas'||h.tipo==='cont'||h.tipo==='contador'){
     if(valor==='folga'){
-      cache[sNome][dia][habId]={folga:true, val:h.folga||4};
-    } else if(cache[sNome][dia][habId]&&cache[sNome][dia][habId].folga){
-      delete cache[sNome][dia][habId];
+      // Toggle: se já está em folga, desfaz; senão marca folga
+      if(cache[sNome][dia][habId]&&cache[sNome][dia][habId].folga){
+        delete cache[sNome][dia][habId];
+      } else {
+        cache[sNome][dia][habId]={folga:true, val:h.folga||4};
+      }
     } else {
       // Garante que valor é numérico
       const delta=typeof valor==='number'?valor:(valor===true?1:valor===false?-1:0);
@@ -3369,10 +3372,10 @@ function renderHabitos(){
                  :'<div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+displayAtual+'</div>')
         +'<div style="display:flex;gap:4px;">'
         +(isFolga
-          ?'<button class="hab-btn" style="font-size:11px;" onclick="marcarHabito(\''+h.id+'\',\'folga\',\''+diaAtual+'\')">↺ Desfazer</button>'
-          :'<button class="hab-btn neu" onclick="marcarHabito(\''+h.id+'\''+',-1,\''+diaAtual+'\')">-1</button>'
-           +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\',1,\''+diaAtual+'\')">+1</button>'
-           +(semFolga?'':'<button class="hab-btn" style="'+(isFolga?'background:#f59e0b;color:#fff;':'')+';font-size:11px;" onclick="marcarHabito(\''+h.id+'\',\'folga\',\''+diaAtual+'\')">😴 Folga</button>'))
+          ?'<button class="hab-btn" style="background:#f59e0b;color:#fff;border-color:#f59e0b;font-size:11px;" onclick="marcarHabito(\''+h.id+'\',\'folga\',\''+diaAtual+'\')">↺ Desfazer</button>'
+          :'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\',1,\''+diaAtual+'\')">+1</button>'
+           +'<button class="hab-btn neg" onclick="marcarHabito(\''+h.id+'\''+',-1,\''+diaAtual+'\')">-1</button>'
+           +(semFolga?'':'<button class="hab-btn" style="font-size:11px;" onclick="marcarHabito(\''+h.id+'\',\'folga\',\''+diaAtual+'\')">😴 Folga</button>'))
         +'</div></div>';
 
     } else {
