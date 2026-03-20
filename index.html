@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 17:15 -->
+<!-- LIFE | Gerado: 18/03/2026 17:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v101</title>
+<title>LIFE v102</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v101</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v102</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3329,22 +3329,23 @@ function renderHabitos(){
       const isFolga=entry&&entry.folga;
       const atual=isFolga?'folga':((entry&&entry.val)||0);
       const meta=h.meta||4;
+      const semFolga=h.id==='ref_boa'||h.id==='ref_ruim'; // refeições não têm folga
       botoes='<div style="text-align:right;">'
         +(isFolga?'<div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:4px;">😴 Folga (+'+h.folga+'pts)</div>'
-                 :'<div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+'/'+meta+'</div>')
+                 :'<div style="font-size:11px;font-weight:700;color:#0ea5e9;margin-bottom:4px;">'+atual+(semFolga?'':'/'+meta)+'</div>')
         +'<div style="display:flex;gap:4px;">'
         +(isFolga
           ?'<button class="hab-btn" style="font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">↺ Desfazer</button>'
           :'<button class="hab-btn neu" onclick="marcarHabito(\''+h.id+'\''+',-1,\''+diaAtual+'\')">-1</button>'
            +'<button class="hab-btn pos" onclick="marcarHabito(\''+h.id+'\',1,\''+diaAtual+'\')">+1</button>'
-           +'<button class="hab-btn" style="'+(isFolga?'background:#f59e0b;color:#fff;':'')+';font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">😴 Folga</button>')
+           +(semFolga?'':'<button class="hab-btn" style="'+(isFolga?'background:#f59e0b;color:#fff;':'')+';font-size:11px;" onclick="marcarHabito(\''+h.id+'\',%27folga%27,\''+diaAtual+'\')">😴 Folga</button>'))
         +'</div></div>';
 
     } else {
       const val=entry&&entry.val;
       botoes='<div style="display:flex;gap:4px;">'
-        +'<button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',true,\''+diaAtual+'\')">✅ Sim</button>'
-        +'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',false,\''+diaAtual+'\')">❌ Não</button>'
+        +'<button class="hab-btn pos" style="'+(val===true?'background:#16a34a;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',true,\''+diaAtual+'\')">+1</button>'
+        +'<button class="hab-btn neg" style="'+(val===false?'background:#ef4444;color:#fff;':'')+'" onclick="marcarHabito(\''+h.id+'\',false,\''+diaAtual+'\')">-1</button>'
         +'</div>';
     }
 
