@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 15:45 -->
+<!-- LIFE | Gerado: 18/03/2026 16:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v96</title>
+<title>LIFE v97</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -950,7 +950,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v96</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v97</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3109,6 +3109,7 @@ const HAB_PAD=[
   {id:'refeicao',nome:'Refeição',          icone:'🥗', tipo:'refeicao', pts:1},
   {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
   {id:'remedio', nome:'Protetor/Remédio',  icone:'💊', tipo:'bool',     pts:1},
+  {id:'beijo',   nome:'Beijo',             icone:'💋', tipo:'bool',     pts:1},
 ];
 
 // ── NOVA ARQUITETURA: cada marcação = nova linha na planilha ──────
@@ -3580,7 +3581,9 @@ function registrarFlagra(){
   renderAvatar();
 }
 
-function renderAvatar(){
+async function renderAvatar(){
+  // Sincroniza hábitos antes de renderizar para ter dados atualizados
+  await sincHabLog();
   const p=pessoas||['Edu','Lud'];
   const nEdu=p[0]||'Edu';
   const nLud=p[1]||'Lud';
