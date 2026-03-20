@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 18/03/2026 15:00 -->
+<!-- LIFE | Gerado: 18/03/2026 15:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v94</title>
+<title>LIFE v95</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -357,6 +357,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('tarefas',this)">✅ Tarefas</div>
   <div class="tab" onclick="ir('calendario',this)">📅 Calendário</div>
   <div class="tab" onclick="ir('habitos',this)">🏆 Hábitos</div>
+  <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
   <div class="tab" onclick="ir('compras',this)">🛒 L. Compras</div>
   <div class="tab" onclick="ir('historico',this)">🕓 Histórico</div>
   <div class="tab" onclick="ir('mensal',this)">📊 Mensal</div>
@@ -367,7 +368,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="tab" onclick="ir('reserva',this)">🏦 Reserva</div>
   <div class="tab" onclick="ir('notas',this)">📓 Notas</div>
   <div class="tab" onclick="ir('anual',this)">📈 Anual</div>
-  <div class="tab" onclick="ir('avatar',this)">🧍 Avatar</div>
   <div class="tab" onclick="ir('config',this)">⚙️ Config</div>
 </div>
 
@@ -808,30 +808,33 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 
   <!-- Avatares lado a lado -->
-  <div style="position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:16px;min-height:420px;">
-    <!-- Fundo -->
-    <img id="av-fundo" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" onerror="this.style.display='none'"/>
-    <div style="position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;">
+  <div style="position:relative;border-radius:var(--r);overflow:hidden;margin-bottom:16px;min-height:460px;background:#e8f4ea;">
+    <!-- Fundo — cobre toda a área -->
+    <img id="av-fundo" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;"/>
+    <!-- Overlay escuro suave para legibilidade -->
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.15);z-index:1;"></div>
+    <div style="position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:0;height:460px;">
       <!-- Edu -->
-      <div style="text-align:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:12px;">
         <div style="position:relative;display:inline-block;">
-          <img id="av-edu-img" src="" style="width:140px;height:187px;object-fit:contain;" onerror="this.src=''"/>
-          <img id="av-edu-medalha" src="" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:40px;height:40px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
+          <img id="av-edu-img" src="" style="width:150px;height:200px;object-fit:contain;display:block;" onerror="this.style.opacity='0.3'"/>
+          <!-- Medalha no peito — posicionada em ~40% da altura = peito -->
+          <img id="av-edu-medalha" src="" style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
         </div>
-        <div style="margin-top:6px;background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 8px;">
+        <div style="background:rgba(0,0,0,0.6);border-radius:10px;padding:6px 10px;margin-top:4px;min-width:130px;text-align:center;">
           <div style="font-size:13px;font-weight:700;color:#fff;" id="av-edu-nome">Edu</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.8);" id="av-edu-estado">carregando...</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.9);" id="av-edu-estado">—</div>
         </div>
       </div>
       <!-- Lud -->
-      <div style="text-align:center;">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:12px;">
         <div style="position:relative;display:inline-block;">
-          <img id="av-lud-img" src="" style="width:140px;height:187px;object-fit:contain;" onerror="this.src=''"/>
-          <img id="av-lud-medalha" src="" style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:40px;height:40px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
+          <img id="av-lud-img" src="" style="width:150px;height:200px;object-fit:contain;display:block;" onerror="this.style.opacity='0.3'"/>
+          <img id="av-lud-medalha" src="" style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;object-fit:contain;display:none;" onerror="this.style.display='none'"/>
         </div>
-        <div style="margin-top:6px;background:rgba(0,0,0,0.5);border-radius:8px;padding:4px 8px;">
+        <div style="background:rgba(0,0,0,0.6);border-radius:10px;padding:6px 10px;margin-top:4px;min-width:130px;text-align:center;">
           <div style="font-size:13px;font-weight:700;color:#fff;" id="av-lud-nome">Lud</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.8);" id="av-lud-estado">carregando...</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.9);" id="av-lud-estado">—</div>
         </div>
       </div>
     </div>
@@ -948,7 +951,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v94</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v95</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3609,8 +3612,23 @@ function renderAvatar(){
   if(ludImgEl) ludImgEl.src=imgLud;
 
   // Nome e estado
-  const estadoEdu=(corpoEdu==='forte'?'💪 Forte':'🫃 Gordo')+' · '+(hidEdu==='hidratado'?'💧 Hidratado':hidEdu==='sede'?'🥵 Com sede':'😐 Neutro');
-  const estadoLud=(corpoLud==='forte'?'💪 Forte':'🫃 Gordo')+' · '+(hidLud==='hidratado'?'💧 Hidratado':hidLud==='sede'?'🥵 Com sede':'😐 Neutro');
+  // Status: mostra ml de água e refeições
+  function getStatus(nomeU, hidStatus){
+    const cacheU=getHabCache()[nomeU]||{};
+    const hoje=dataHoje();
+    const dHoje=cacheU[hoje]||{};
+    const ml=(dHoje.agua&&dHoje.agua.val)||0;
+    const hidTxt=hidStatus==='hidratado'?'💧'+ml+'ml ✓':hidStatus==='sede'?'🥵'+ml+'ml':ml+'ml';
+    // Refeições acumuladas
+    let boas=0,ruins=0;
+    Object.keys(cacheU).forEach(function(dia){
+      const v=(cacheU[dia].refeicao&&cacheU[dia].refeicao.val)||0;
+      if(typeof v==='number'){if(v>0)boas+=v;else if(v<0)ruins+=Math.abs(v);}
+    });
+    return hidTxt+' · 🥗'+boas+'B/'+ruins+'R';
+  }
+  const estadoEdu=getStatus(nEdu,hidEdu);
+  const estadoLud=getStatus(nLud,hidLud);
 
   const eduNomeEl=document.getElementById('av-edu-nome');
   if(eduNomeEl) eduNomeEl.textContent=nEdu;
