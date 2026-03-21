@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 20/03/2026 15:00 -->
+<!-- LIFE | Gerado: 21/03/2026 10:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v124</title>
+<title>LIFE v125</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -1117,7 +1117,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v124</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v125</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3278,7 +3278,7 @@ const HAB_PAD=[
   {id:'marmita', nome:'Tirar marmita',     icone:'🚗', tipo:'bool',     pts:1},
   {id:'deus',    nome:'Tempo com Deus',    icone:'🙏', tipo:'bool',     pts:1},
   {id:'ref_boa',  nome:'Refeição boa',     icone:'🥗', tipo:'cont',     meta:99, pts:1},
-  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🌭', tipo:'cont',     meta:99, pts:0},
+  {id:'ref_ruim', nome:'Refeição ruim',     icone:'🌭', tipo:'cont',     meta:99, pts:-1},
   {id:'fio',     nome:'Fio dental',        icone:'🦷', tipo:'bool',     pts:1},
   {id:'remedio', nome:'Rem.',              icone:'💊', tipo:'bool',     pts:1},
   {id:'beijo',   nome:'Beijo',             icone:'💋', tipo:'cont',     meta:99, pts:1},
@@ -3485,8 +3485,8 @@ function renderHabitos(){
   html+=cfg.map(function(h){
     const entry=cDia[h.id];
     const pts=calcPtsDia(h,entry);
-    const ptsCor=pts>0?'#16a34a':'var(--muted)';
-    const ptsStr=pts>0?'+'+pts:'0';
+    const ptsCor=pts>0?'#16a34a':pts<0?'#ef4444':'var(--muted)';
+    const ptsStr=pts>0?'+'+pts:pts<0?''+pts:'0';
     let botoes='';
 
     if(h.tipo==='ml'){
