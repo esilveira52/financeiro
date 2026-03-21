@@ -1,5 +1,6 @@
+
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 21/03/2026 10:00 -->
+<!-- LIFE | Gerado: 21/03/2026 10:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v125</title>
+<title>LIFE v126</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -1117,7 +1118,7 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v125</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v126</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -3824,19 +3825,13 @@ async function renderAvatar(){
     const cacheU=getHabCache()[nomeU]||{};
     const hoje=dataHoje();
     const dHoje=cacheU[hoje]||{};
+    // Tudo do dia de hoje apenas
     const ml=(dHoje.agua&&dHoje.agua.val)||0;
-    const mesAtual=hoje.substring(0,7);
-    let boas=0,ruins=0,beijoCount=0;
-    Object.keys(cacheU).forEach(function(dia){
-      if(dia.substring(0,7)!==mesAtual) return;
-      const vBoa=(cacheU[dia].ref_boa&&cacheU[dia].ref_boa.val)||0;
-      const vRuim=(cacheU[dia].ref_ruim&&cacheU[dia].ref_ruim.val)||0;
-      if(vBoa>0) boas+=vBoa;
-      if(vRuim>0) ruins+=vRuim;
-      if(cacheU[dia].beijo&&cacheU[dia].beijo.val) beijoCount+=(parseInt(cacheU[dia].beijo.val)||0);
-    });
-    // Sequência de treinos consecutivos
-    const diasOrdenados=Object.keys(cacheU).filter(function(d){return d.substring(0,7)===mesAtual;}).sort().reverse();
+    const boas=(dHoje.ref_boa&&dHoje.ref_boa.val)||0;
+    const ruins=(dHoje.ref_ruim&&dHoje.ref_ruim.val)||0;
+    const beijoCount=(dHoje.beijo&&dHoje.beijo.val)||0;
+    // Streak de treinos consecutivos (mantém histórico pois é sequência)
+    const diasOrdenados=Object.keys(cacheU).sort().reverse();
     let streak=0;
     for(var i=0;i<diasOrdenados.length;i++){
       if(cacheU[diasOrdenados[i]]&&cacheU[diasOrdenados[i]].treino&&cacheU[diasOrdenados[i]].treino.val===true) streak++;
