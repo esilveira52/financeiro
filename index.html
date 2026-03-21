@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 21/03/2026 11:15 -->
+<!-- LIFE | Gerado: 21/03/2026 12:00 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v129</title>
+<title>LIFE v131</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -1118,7 +1118,8 @@ function init(){
 function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v129</span>':'⚙️ Configure seu nome na aba Config';
+  const gdEl=document.getElementById('gasto-data');if(gdEl)gdEl.value=dataHoje();
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v131</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1369,20 +1370,43 @@ async function lancar(){
   if(!itemA||isNaN(v)||v<=0){toast('Informe um valor válido!','err');return;}
   if(!pagA){toast('Selecione a forma de pagamento!','warn');document.getElementById('paggrid').scrollIntoView({behavior:'smooth',block:'center'});return;}
   const desc=document.getElementById('tinput').value.trim();
+  const gastoDataEl=document.getElementById('gasto-data');
+  const gastoData=gastoDataEl&&gastoDataEl.value?gastoDataEl.value:dataHoje();
+  // Calcula mês/fatura baseado na DATA DO GASTO (Opção A)
+  // Converte YYYY-MM-DD para Date e verifica fechamento do cartão
+  const gastoDateObj=new Date(gastoData+'T12:00');
   const c=carteiras.find(x=>x.nome===pagA);
   if(c){
     const disp=c.tipo==='credito'?c.saldo:c.saldo;
     if(disp>0&&v>disp&&!confirm(`⚠️ Saldo insuficiente!\n${pagA}: ${fmt(disp)}\nGasto: ${fmt(v)}\n\nLançar mesmo assim?`))return;
   }
-  // Para cartão de crédito, verifica se passou do fechamento
-  const mf=getMesFatura(pagA);
-  const mesLanc=mf.mes, anoLanc=mf.ano;
+  // Para cartão de crédito, calcula fatura baseado na DATA DO GASTO
+  const c2=carteiras.find(x=>x.nome===pagA);
+  let mesLanc, anoLanc;
+  if(c2&&c2.tipo==='credito'&&c2.fechamento>0){
+    const diaGasto=gastoDateObj.getDate();
+    const mesGasto=gastoDateObj.getMonth();
+    const anoGasto=gastoDateObj.getFullYear();
+    if(diaGasto>=c2.fechamento){
+      // Passou do fechamento naquele dia → fatura do mês seguinte
+      mesLanc=mesGasto===11?0:mesGasto+1;
+      anoLanc=mesGasto===11?anoGasto+1:anoGasto;
+    } else {
+      // Antes do fechamento → fatura do próprio mês
+      mesLanc=mesGasto;
+      anoLanc=anoGasto;
+    }
+  } else {
+    // Débito/Pix → usa mês da data do gasto
+    mesLanc=gastoDateObj.getMonth();
+    anoLanc=gastoDateObj.getFullYear();
+  }
   const passouFechamento=(mesLanc!==mes||anoLanc!==ano);
 
   const btn=document.getElementById('btnlancar');btn.disabled=true;document.getElementById('btntxt').textContent='Enviando...';
   try{
     if(parc&&nParc>1){
-      await apiNC({acao:'lancarParcelas',mes:MN[mesLanc],ano:anoLanc,mesInicio:mesLanc,anoInicio:anoLanc,coluna:itemA,valor:v,parcelas:nParc,descricao:desc,pagamento:pagA,usuario:sNome});
+      await apiNC({acao:'lancarParcelas',mes:MN[mesLanc],ano:anoLanc,mesInicio:mesLanc,anoInicio:anoLanc,coluna:itemA,valor:v,parcelas:nParc,descricao:desc,pagamento:pagA,usuario:sNome,dataGasto:gastoData});
       if(c){
         const desconto=c.tipo==='credito'?v:Math.round(v/nParc*100)/100;
         c.saldo=Math.round((c.saldo-desconto)*100)/100;
@@ -1390,13 +1414,13 @@ async function lancar(){
       const fatMsg=passouFechamento?` (fatura ${MN[mesLanc].substring(0,3)})`: '';
       toast('✓ '+nParc+' parcelas lançadas'+fatMsg+'!','ok');
     }else{
-      await apiNC({acao:'lancar',mes:MN[mesLanc],ano:anoLanc,coluna:itemA,valor:v,descricao:desc,pagamento:pagA,usuario:sNome});
+      await apiNC({acao:'lancar',mes:MN[mesLanc],ano:anoLanc,coluna:itemA,valor:v,descricao:desc,pagamento:pagA,usuario:sNome,dataGasto:gastoData});
       if(mesLanc===mes&&anoLanc===ano) gastosG[itemA]=(gastosG[itemA]||0)+v;
       if(c)c.saldo=Math.round((c.saldo-v)*100)/100;
       const fatMsg=passouFechamento?` na fatura de ${MN[mesLanc].substring(0,3)}`:'';
       toast('✓ Lançado'+fatMsg+'!','ok');
     }
-    document.getElementById('vinput').value='';document.getElementById('tinput').value='';pagA=null;rPag();hidePanel();
+    document.getElementById('vinput').value='';document.getElementById('tinput').value='';document.getElementById('gasto-data').value=dataHoje();pagA=null;rPag();hidePanel();
     parc=false;document.getElementById('psw').classList.remove('on');document.getElementById('ptog').classList.remove('on');document.getElementById('pcfg').style.display='none';
   }catch(e){toast('Erro de conexão.','err');}
   btn.disabled=false;atuBtn();
@@ -1733,13 +1757,14 @@ async function verLancamentosCartao(cartao){
   lista.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">⏳ Carregando...</div>';
   el.classList.add('open');
 
-  // Regra: fatura = mês em que fecha. Março = gastos 08/fev até 07/mar
+  // Usa o mês real da fatura (igual ao que é exibido no card)
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
-  const mesRef=mes;                          // mês atual = nome da fatura
-  const anoRef=ano;
-  const mesIni=mes===0?11:mes-1;             // mês anterior = início período
-  const anoIni=mes===0?ano-1:ano;
+  const mf=getMesFatura(cartao);   // mês em que a fatura cai (ex: abril)
+  const mesRef=mf.mes;
+  const anoRef=mf.ano;
+  const mesIni=mesRef===0?11:mesRef-1;
+  const anoIni=mesRef===0?anoRef-1:anoRef;
   const diaFim=fechDia-1>0?fechDia-1:28;
   const periodoTxt=`${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
 
