@@ -1757,13 +1757,13 @@ async function verLancamentosCartao(cartao){
   lista.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);">⏳ Carregando...</div>';
   el.classList.add('open');
 
-  // Usa o mês real da fatura (igual ao que é exibido no card)
+  // Regra: fatura leva o nome do mês em que FECHA
+  // Ver lançamentos mostra a fatura do mês SELECIONADO no app
   const c=carteiras.find(x=>x.nome===cartao);
   const fechDia=c&&c.fechamento>0?c.fechamento:1;
-  const mf=getMesFatura(cartao);   // mês em que a fatura cai (ex: abril)
-  const mesRef=mf.mes;
-  const anoRef=mf.ano;
-  const mesIni=mesRef===0?11:mesRef-1;
+  const mesRef=mes;    // mês selecionado no app = nome da fatura
+  const anoRef=ano;
+  const mesIni=mesRef===0?11:mesRef-1;   // mês anterior = início do período
   const anoIni=mesRef===0?anoRef-1:anoRef;
   const diaFim=fechDia-1>0?fechDia-1:28;
   const periodoTxt=`${String(fechDia).padStart(2,'0')}/${String(mesIni+1).padStart(2,'0')}/${anoIni} até ${String(diaFim).padStart(2,'0')}/${String(mesRef+1).padStart(2,'0')}/${anoRef}`;
