@@ -1766,7 +1766,7 @@ async function verLancamentosCartao(cartao){
         lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum lançamento encontrado nesta fatura.<br><small>'+periodoTxt+'</small></div>';
       }
     } else {
-      lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.<br><small style="font-size:10px;word-break:break-all;">'+JSON.stringify(j)+'</small></div>';
+      lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.</div>';
     }
   }catch(e){
     lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro: '+e.message+'</div>';
