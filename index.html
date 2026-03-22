@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<!-- LIFE | Gerado: 21/03/2026 12:00 -->
+<!-- LIFE | Gerado: 21/03/2026 12:30 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Financeiro">
-<title>LIFE v131</title>
+<title>LIFE v132</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 :root{
@@ -1119,7 +1119,7 @@ function atuHdr(){
   const lb=MN[mes]+'/'+String(ano).slice(-2);
   document.getElementById('mes-lbl').textContent=lb;
   const gdEl=document.getElementById('gasto-data');if(gdEl)gdEl.value=dataHoje();
-  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v131</span>':'⚙️ Configure seu nome na aba Config';
+  document.getElementById('hdr-sub').innerHTML=sNome?'<strong>'+sNome+'</strong> · '+lb+'<span style="font-size:9px;opacity:0.6;margin-left:6px;">v132</span>':'⚙️ Configure seu nome na aba Config';
   document.getElementById('gcrd-sub').textContent=cap(MN[mes])+'/'+String(ano).slice(-2)+' — por item';
   document.getElementById('ano-lbl').textContent=anoA;
 }
@@ -1788,10 +1788,10 @@ async function verLancamentosCartao(cartao){
             +'</div>'
           ).join('');
       } else {
-        lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum lançamento encontrado nesta fatura.<br><small>'+periodoTxt+'</small></div>';
+        lista.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">Nenhum lançamento encontrado nesta fatura.<br><small>'+periodoTxt+'</small><br><small style="font-size:9px;color:#999;">Buscando: cartao='+cartao+' mes='+MN[mesIni]+'/'+anoIni+' mes2='+MN[mesRef]+'/'+anoRef+' fechDia='+fechDia+'</small></div>';
       }
     } else {
-      lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.</div>';
+      lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro ao carregar lançamentos.<br><small style="font-size:9px;word-break:break-all;color:#666;">'+JSON.stringify(j).substring(0,300)+'</small></div>';
     }
   }catch(e){
     lista.innerHTML='<div style="text-align:center;padding:20px;color:#ef4444;">Erro: '+e.message+'</div>';
